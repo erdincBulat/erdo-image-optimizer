@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <style>
+    /* Animasyon Tanımlaması */
+    /* Büyüteç grubunu hedef alıyoruz */
+    .seo-scanner {
+      animation: scanMotion 3s ease-in-out infinite alternate;
+      /* 3s: Bir hareketin süresi
+         ease-in-out: Yavaş başlayıp yavaş biten yumuşak geçiş
+         infinite: Sonsuz döngü
+         alternate: Sona gelince başa dönmek yerine geri git (ping-pong hareketi)
+      */
+    }
+
+    /* Keyframes: Hareketin koordinatları */
+    @keyframes scanMotion {
+      0% {
+        transform: translateX(-30px) translateY(-10px); /* Başlangıç: Sol üst taraf */
+      }
+      100% {
+        transform: translateX(30px) translateY(10px); /* Bitiş: Sağ alt taraf */
+      }
+    }
+  </style>
+
+  <rect x="48" y="48" width="160" height="160" rx="12" fill="#f6f7f7" stroke="#dcdcde" stroke-width="8"/>
+  <circle cx="90" cy="95" r="15" fill="#c3c4c7"/>
+  <path d="M60 180 L100 130 L130 160 L160 110 L200 180 H60Z" fill="#c3c4c7"/>
+  
+  <g class="seo-scanner">
+    <line x1="165" y1="165" x2="210" y2="210" stroke="#5fda08" stroke-width="14" stroke-linecap="round"/>
+    <circle cx="135" cy="135" r="45" fill="none" stroke="#5fda08" stroke-width="12"/>
+    <circle cx="135" cy="135" r="39" fill="rgba(114, 167, 235, 0.2)"/>
+    <path d="M115 120 Q 125 105, 145 115" fill="none" stroke="white" stroke-width="4" opacity="0.6" stroke-linecap="round"/>
+  </g>
+  
+</svg>

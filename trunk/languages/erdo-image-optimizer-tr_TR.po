@@ -1,0 +1,337 @@
+# Translation of Erdo Image Optimizer in Turkish
+# Copyright (C) 2026 Erdinc Bulat
+# This file is distributed under the same license as the Erdo Image Optimizer plugin.
+# Erdinc Bulat <erdincbulat14@gmail.com>, 2026.
+msgid ""
+msgstr ""
+"Project-Id-Version: Erdo Image Optimizer 2.0.0\n"
+"Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/erdo-image-optimizer\n"
+"POT-Creation-Date: 2026-05-19 00:00+0000\n"
+"PO-Revision-Date: 2026-05-19 00:00+0000\n"
+"Last-Translator: Erdinc Bulat <erdincbulat14@gmail.com>\n"
+"Language-Team: Turkish <tr@li.org>\n"
+"Language: tr_TR\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Erdo Make-Translation Script\n"
+
+msgid ".htaccess rewrite (Apache only)"
+msgstr ".htaccess yönlendirme (yalnızca Apache)"
+
+msgid "80% is the recommended sweet spot. Lossless mode overrides this setting."
+msgstr "%80 önerilen ideal değerdir. Kayıpsız mod bu ayarı geçersiz kılar."
+
+msgid "AVIF — Best compression (requires PHP 8.1+)"
+msgstr "AVIF — En iyi sıkıştırma (PHP 8.1+ gerektirir)"
+
+msgid "Active"
+msgstr "Aktif"
+
+msgid "Add New Image"
+msgstr "Yeni Görsel Ekle"
+
+msgid "Add loading=\"lazy\" to all content images. Defers off-screen images for faster initial load."
+msgstr "Tüm içerik görsellerine loading=\"lazy\" ekler. Ekran dışı görselleri erteler."
+
+msgid "All posts have featured images!"
+msgstr "Tüm yazıların öne çıkan görseli var!"
+
+msgid "Allow SVG Uploads (admin only)"
+msgstr "SVG Yüklemesine İzin Ver (yalnızca yönetici)"
+
+msgid "Alt Tags Present"
+msgstr "Alt Etiket Mevcut"
+
+msgid "Alt Text"
+msgstr "Alt Metin"
+
+msgid "Alt text is missing. Search engines use this to understand your image."
+msgstr "Alt metin eksik. Arama motorları görseli anlamak için bu metni kullanır."
+
+msgid "Audit Report"
+msgstr "Denetim Raporu"
+
+msgid "Auto-Convert on Upload"
+msgstr "Yüklemede Otomatik Dönüştür"
+
+msgid "Automatically convert JPEG/PNG/GIF to WebP/AVIF when a new image is uploaded."
+msgstr "Yeni bir görsel yüklendiğinde JPEG/PNG/GIF'i otomatik olarak WebP/AVIF'e dönüştürür."
+
+msgid "Automatically find the lowest quality that still looks good. Overrides the manual quality slider."
+msgstr "İyi görünen en düşük kaliteyi otomatik bulur. Manuel kalite kaydırıcısını geçersiz kılar."
+
+msgid "Automatically resize images larger than this width on upload. Applied before conversion."
+msgstr "Yüklemede bu genişliği aşan görselleri otomatik olarak yeniden boyutlandırır. Dönüşümden önce uygulanır."
+
+msgid "Background Queue"
+msgstr "Arka Plan Kuyruğu"
+
+msgid "Bulk Convert (%s)"
+msgstr "Toplu Dönüştür (%s)"
+
+msgid "CONFIRM DELETE"
+msgstr "SİLMEYİ ONAYLA"
+
+msgid "Cancel"
+msgstr "İptal"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Compression Quality"
+msgstr "Sıkıştırma Kalitesi"
+
+msgid "Conversion Format"
+msgstr "Dönüşüm Formatı"
+
+msgid "Convert to %s"
+msgstr "%s'e Dönüştür"
+
+msgid "Current format is %s. WebP or AVIF is recommended for better performance."
+msgstr "Mevcut format %s. Daha iyi performans için WebP veya AVIF önerilir."
+
+msgid "Danger Zone"
+msgstr "Tehlikeli Bölge"
+
+msgid "Delete All Unused"
+msgstr "Tüm Kullanılmayanları Sil"
+
+msgid "Delete Image"
+msgstr "Görseli Sil"
+
+msgid "Dimensions"
+msgstr "Boyutlar"
+
+msgid "Disk Space Freed"
+msgstr "Boşaltılan Alan"
+
+msgid "Edit Post"
+msgstr "Yazıyı Düzenle"
+
+msgid "Enables SVG file uploads for administrators. All SVGs are sanitized on upload to prevent XSS attacks."
+msgstr "Yöneticilerin SVG dosyası yüklemesine izin verir. XSS saldırılarını önlemek için tüm SVG'ler yüklemede temizlenir."
+
+msgid "End of results — all images scanned."
+msgstr "Sonuçların sonu — tüm görseller tarandı."
+
+msgid "Erdo Image Optimizer"
+msgstr "Erdo Görsel Optimizörü"
+
+msgid "File Size"
+msgstr "Dosya Boyutu"
+
+msgid "File size is %s KB. Aim for under 250 KB."
+msgstr "Dosya boyutu %s KB. 250 KB altını hedefleyin."
+
+msgid "File size unknown. Re-save or regenerate thumbnails to detect it."
+msgstr "Dosya boyutu bilinmiyor. Tespit için yeniden kaydedin veya küçük resimleri oluşturun."
+
+msgid "Filename"
+msgstr "Dosya Adı"
+
+msgid "Filename contains underscores or spaces. Use hyphens for better SEO."
+msgstr "Dosya adı alt çizgi veya boşluk içeriyor. Daha iyi SEO için kısa çizgi kullanın."
+
+msgid "Format"
+msgstr "Format"
+
+msgid "Found %d posts without a featured image:"
+msgstr "%d yazının öne çıkan görseli yok:"
+
+msgid "Generate from Filename"
+msgstr "Dosya Adından Oluştur"
+
+msgid "Image Optimizer"
+msgstr "Görsel Optimizörü"
+
+msgid "Image Title"
+msgstr "Görsel Başlığı"
+
+msgid "Image dimensions could not be detected. This may resolve after re-saving."
+msgstr "Görsel boyutları tespit edilemedi. Yeniden kaydettikten sonra çözülebilir."
+
+msgid "Image is too large (>%dpx wide). Resize to improve load time."
+msgstr "Görsel çok büyük (>%dpx genişlik). Yükleme süresini iyileştirmek için yeniden boyutlandırın."
+
+msgid "Images are scanned in batches of 50 to maintain performance. Click \"Load More\" to scan your entire library."
+msgstr "Performansı korumak için görseller 50'şer gruplar hâlinde taranır. Tüm kütüphaneyi taramak için \"Daha Fazla Yükle\"ye tıklayın."
+
+msgid "Images scanned"
+msgstr "Görsel tarandı"
+
+msgid "Keep Original Backup"
+msgstr "Orijinal Yedeği Sakla"
+
+msgid "Lazy Loading"
+msgstr "Gecikmeli Yükleme"
+
+msgid "Load More Images"
+msgstr "Daha Fazla Görsel Yükle"
+
+msgid "Lossless Mode"
+msgstr "Kayıpsız Mod"
+
+msgid "Max Upload Width"
+msgstr "Maks. Yükleme Genişliği"
+
+msgid "Missing Featured Images"
+msgstr "Eksik Öne Çıkan Görseller"
+
+msgid "Missing Thumbnails"
+msgstr "Eksik Küçük Resimler"
+
+msgid "No images"
+msgstr "Görsel yok"
+
+msgid "Optimization"
+msgstr "Optimizasyon"
+
+msgid "Optimization Result"
+msgstr "Optimizasyon Sonucu"
+
+msgid "Optimized"
+msgstr "Optimize"
+
+msgid "Original"
+msgstr "Orijinal"
+
+msgid "PHP <picture> (all servers)"
+msgstr "PHP <picture> (tüm sunucular)"
+
+msgid "Performance & Serving"
+msgstr "Performans ve Servis"
+
+msgid "Poor"
+msgstr "Kötü"
+
+msgid "Potential Cleanup"
+msgstr "Temizlenebilir"
+
+msgid "Processing..."
+msgstr "İşleniyor..."
+
+msgid "Refresh Audits"
+msgstr "Denetleri Yenile"
+
+msgid "Remove .htaccess Rules"
+msgstr ".htaccess Kurallarını Kaldır"
+
+msgid "Remove camera data, GPS location and other metadata to reduce file size."
+msgstr "Dosya boyutunu küçültmek için kamera verileri, GPS konumu ve diğer meta verileri kaldırır."
+
+msgid "Replace spaces and underscores with hyphens for better SEO."
+msgstr "Daha iyi SEO için boşluk ve alt çizgileri kısa çizgiyle değiştirir."
+
+msgid "Resize"
+msgstr "Yeniden Boyutlandır"
+
+msgid "Restore Original"
+msgstr "Orijinale Döndür"
+
+msgid "SEO Health"
+msgstr "SEO Sağlığı"
+
+msgid "SVG Support"
+msgstr "SVG Desteği"
+
+msgid "SVG file is empty or unreadable."
+msgstr "SVG dosyası boş veya okunamıyor."
+
+msgid "Sanitize Filenames on Upload"
+msgstr "Yüklemede Dosya Adını Temizle"
+
+msgid "Save Changes"
+msgstr "Değişiklikleri Kaydet"
+
+msgid "Save Settings"
+msgstr "Ayarları Kaydet"
+
+msgid "Save original file before converting so you can restore it later."
+msgstr "Dönüştürmeden önce orijinal dosyayı kaydeder; böylece daha sonra geri yükleyebilirsiniz."
+
+msgid "Scanning..."
+msgstr "Taranıyor..."
+
+msgid "Search images by filename or title..."
+msgstr "Dosya adı veya başlığa göre ara..."
+
+msgid "Serve WebP to Browsers"
+msgstr "Tarayıcılara WebP Sun"
+
+msgid "Settings"
+msgstr "Ayarlar"
+
+msgid "Smart Quality (Auto)"
+msgstr "Akıllı Kalite (Otomatik)"
+
+msgid "Start Background Convert"
+msgstr "Arka Plan Dönüşümünü Başlat"
+
+msgid "Start a bulk conversion in the background via WP-Cron. The browser tab can be closed while it runs."
+msgstr "WP-Cron aracılığıyla arka planda toplu dönüşüm başlatır. Çalışırken tarayıcı sekmesi kapatılabilir."
+
+msgid "Strip EXIF Metadata"
+msgstr "EXIF Verisini Temizle"
+
+msgid "This action is irreversible!"
+msgstr "Bu işlem geri alınamaz!"
+
+msgid "Title is empty or contains underscores. Keep it clean and readable."
+msgstr "Başlık boş veya alt çizgi içeriyor. Temiz ve okunabilir tutun."
+
+msgid "Total Library"
+msgstr "Toplam Kütüphane"
+
+msgid "Total Saved"
+msgstr "Toplam Kazanç"
+
+msgid "Transparently deliver WebP files when a browser supports them. Originals are served as fallback."
+msgstr "Tarayıcı destekliyorsa WebP dosyalarını şeffaf şekilde sunar. Desteklemeyenlere orijinal sunulur."
+
+msgid "Type DELETE to confirm"
+msgstr "Onaylamak için DELETE yazın"
+
+msgid "Unused"
+msgstr "Kullanılmayan"
+
+msgid "Unused Image"
+msgstr "Kullanılmayan Görsel"
+
+msgid "Unused Images"
+msgstr "Kullanılmayan Görseller"
+
+msgid "Use Post Title"
+msgstr "Yazı Başlığını Kullan"
+
+msgid "View Nginx configuration snippet"
+msgstr "Nginx yapılandırma parçacığını görüntüle"
+
+msgid "Warning"
+msgstr "Uyarı"
+
+msgid "We strongly recommend backing up your site before proceeding."
+msgstr "Devam etmeden önce sitenizi yedeklemenizi kesinlikle öneririz."
+
+msgid "WebP is supported by all modern browsers."
+msgstr "WebP tüm modern tarayıcılar tarafından desteklenir."
+
+msgid "WebP — Recommended (all modern browsers)"
+msgstr "WebP — Önerilen (tüm modern tarayıcılar)"
+
+msgid "WebP/AVIF Format"
+msgstr "WebP/AVIF Formatı"
+
+msgid "Write .htaccess Rules"
+msgstr ".htaccess Kurallarını Yaz"
+
+msgid "You are about to permanently delete ALL images detected as \"Unused\". Some images may still be used by custom code or hardcoded links that our scanner cannot detect."
+msgstr "\"Kullanılmayan\" olarak tespit edilen TÜM görselleri kalıcı olarak silmek üzeresiniz. Bazı görseller, tarayıcımızın tespit edemediği özel kodlar veya sabit bağlantılar tarafından hâlâ kullanılıyor olabilir."
+
+msgid "You saved %1$s%% (%2$s)"
+msgstr "%1$s%% kazandınız (%2$s)"
+
+msgid "Zero quality loss. Results in larger files than lossy mode."
+msgstr "Sıfır kalite kaybı. Kayıplı moda göre daha büyük dosyalar üretir."
+

@@ -1,0 +1,191 @@
+/* --- GENEL --- */
+.erdo-wrapper { margin-top: 20px; width: 99%; max-width: 100%; box-sizing: border-box; }
+.erdo-header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 20px; background: #fff; padding: 15px 20px; border-radius: 4px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); gap: 15px; }
+.erdo-header h1 { margin: 0; font-size: 20px; font-weight: 600; color: #1d2327; }
+
+/* --- DASHBOARD / STATS (YENİ) --- */
+.erdo-stats-container { display: flex; gap: 20px; margin-bottom: 25px; flex-wrap: wrap; }
+.erdo-stat-card { background: #fff; flex: 1; min-width: 200px; padding: 20px; border-radius: 8px; border: 1px solid #dcdcde; box-shadow: 0 2px 5px rgba(0,0,0,0.02); display: flex; align-items: center; justify-content: space-between; position: relative; overflow: hidden; }
+.erdo-stat-card:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: all 0.2s ease; border-color: #2271b1; }
+
+.stat-info h3 { margin: 0 0 5px 0; font-size: 13px; color: #646970; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 600; }
+.stat-info .stat-value { font-size: 24px; font-weight: 700; color: #1d2327; }
+.stat-info .stat-sub { font-size: 11px; color: #a7aaad; margin-top: 3px; }
+
+.stat-icon { width: 40px; height: 40px; background: #f0f6fc; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2271b1; font-size: 20px; }
+.stat-icon.red { background: #fff8f8; color: #d63638; }
+.stat-icon.green { background: #f6fff5; color: #46b450; }
+
+.erdo-chart-ring { width: 50px; height: 50px; border-radius: 50%; background: conic-gradient(#2271b1 0% 0%, #f0f0f1 0% 100%); position: relative; display: flex; align-items: center; justify-content: center; }
+.erdo-chart-ring::before { content: ""; position: absolute; width: 36px; height: 36px; background: #fff; border-radius: 50%; }
+.erdo-chart-ring span { position: absolute; font-size: 11px; font-weight: 700; color: #2271b1; }
+
+/* --- ARAMA KUTUSU --- */
+.erdo-search-box input { height: 36px; line-height: 36px; border: 1px solid #8c8f94; border-radius: 4px; font-size: 14px; transition: border 0.2s; }
+.erdo-search-box input:focus { border-color: #2271b1; box-shadow: 0 0 0 1px #2271b1; }
+
+/* --- HEADER ACTIONS --- */
+.header-actions { display: flex; gap: 10px; flex-wrap: wrap; }
+#erdo-bulk-progress-wrapper { background: #fff; padding: 15px; border-radius: 4px; margin-bottom: 20px; border: 1px solid #ccd0d4; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+.erdo-progress-info { font-weight: 600; margin-bottom: 8px; font-size: 12px; color: #2271b1; }
+.erdo-progress-bar { background: #f0f0f1; height: 10px; border-radius: 5px; overflow: hidden; border: 1px solid #dcdcde; }
+#erdo-progress-fill { background: #2271b1; height: 100%; width: 0%; transition: width 0.2s ease; }
+
+/* --- TABS --- */
+.erdo-tabs-container { display: flex; justify-content: space-between; border-bottom: 1px solid #c3c4c7; margin-bottom: 15px; align-items: flex-end; flex-wrap: wrap; gap: 10px; }
+.erdo-tabs { display: flex; gap: 4px; }
+.tab-btn { padding: 8px 15px; border: 1px solid #c3c4c7; border-bottom: none; background: #f0f0f1; border-radius: 4px 4px 0 0; cursor: pointer; font-weight: 600; color: #50575e; transition: all 0.2s; font-size: 12px; position: relative; }
+.tab-btn:hover { background: #fff; color: #2271b1; }
+.tab-btn.active { background: #fff; color: #2271b1; border-bottom: 1px solid #fff; margin-bottom: -1px; z-index: 10; }
+.count-badge { display: inline-block; background: rgba(0,0,0,0.08); padding: 0 6px; border-radius: 10px; font-size: 10px; margin-left: 5px; }
+
+/* --- GRID SİSTEMİ --- */
+.erdo-main-content .erdo-content { display: none; }
+.erdo-main-content .erdo-content.active { display: block; }
+.erdo-grid { 
+    display: grid !important; 
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)) !important; 
+    gap: 12px !important; 
+    padding: 10px 0; 
+    width: 100%;
+}
+
+/* --- KART TASARIMI --- */
+.erdo-card { 
+    background: #fff; border: 1px solid #dcdcde; border-radius: 4px; padding: 8px; 
+    cursor: pointer; transition: all 0.1s ease; position: relative; 
+    display: flex; flex-direction: column; box-shadow: 0 1px 2px rgba(0,0,0,0.05); height: 160px;
+}
+.erdo-card:hover { transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-color: #2271b1; }
+.card-img-holder { 
+    width: 100%; height: 100px; overflow: hidden; border-radius: 2px; margin-bottom: 6px; 
+    background: #f0f0f1; display: flex; align-items: center; justify-content: center; border: 1px solid #f0f0f1;
+}
+.card-img-holder img { max-width: 100%; max-height: 100%; object-fit: contain; }
+.erdo-card-info { font-size: 11px; text-align: center; color: #3c434a; font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: auto; }
+
+/* BORDERS */
+.border-red { border-top: 3px solid #d63638; }
+.border-orange { border-top: 3px solid #f56e28; }
+.border-green { border-top: 3px solid #46b450; }
+.border-gray { border-top: 3px solid #646970; opacity: 0.8; }
+
+/* --- MODAL --- */
+#erdo-modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); z-index: 99999; display: flex; justify-content: center; align-items: center; }
+#erdo-modal { background: #fff; width: 900px; padding: 30px; border-radius: 8px; position: relative; max-height: 90vh; overflow-y: auto; box-shadow: 0 10px 30px rgba(0,0,0,0.3); }
+.erdo-modal-flex { display: flex; gap: 30px; align-items: flex-start; }
+.erdo-modal-left { flex: 0 0 250px; text-align: center; }
+.erdo-modal-right { flex: 1; }
+.modal-preview img { width: 100%; border-radius: 4px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); border: 1px solid #ddd; }
+.full-width { width: 100% !important; margin-bottom: 10px; }
+
+/* --- CHECKLIST --- */
+.erdo-checklist { margin: 0; padding: 0; }
+.erdo-checklist li { padding: 12px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #e5e5e5; background: #fff; }
+.erdo-checklist li.fail { border-left: 4px solid #d63638; background: #fff8f8; }
+.erdo-checklist li.pass { border-left: 4px solid #46b450; background: #f9fff9; }
+.label-row { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; font-weight: 600; font-size: 13px; }
+.erdo-input { width: 100%; padding: 6px 10px; border: 1px solid #8c8f94; border-radius: 4px; font-size: 13px; }
+
+/* --- DÜZELTİLMİŞ HOTSPOTS (Burası kritik) --- */
+.hotspot-container { position: relative; display: inline-flex; vertical-align: middle; margin-left: 5px; }
+.erdo-hotspot { 
+    background: #2271b1; color: #fff; width: 18px; height: 18px; 
+    border-radius: 50%; display: flex; align-items: center; justify-content: center; 
+    font-size: 11px; cursor: pointer; font-weight: bold; font-style: italic;
+    z-index: 100; /* İkonun tıklanabilir olması için */
+}
+
+.erdo-help-content { 
+    display: none; /* Varsayılan olarak gizli */
+    position: absolute; 
+    bottom: 135%; /* İkonun üstünde */
+    left: 50%; 
+    transform: translateX(-50%); 
+    background: #1d2327; 
+    color: #fff; 
+    padding: 10px; 
+    font-size: 12px; 
+    border-radius: 4px; 
+    width: 220px; 
+    text-align: center; 
+    box-shadow: 0 4px 15px rgba(0,0,0,0.25); 
+    line-height: 1.4; 
+    font-weight: normal;
+    z-index: 9999999; /* EN ÖNEMLİ KISIM: Modal'ın (99999) üstünde olmalı */
+}
+
+/* Küçük Ok İşareti */
+.erdo-help-content::after { 
+    content: ""; position: absolute; top: 100%; left: 50%; margin-left: -6px; 
+    border-width: 6px; border-style: solid; 
+    border-color: #1d2327 transparent transparent transparent; 
+}
+
+/* Close Button */
+#erdo-close-btn { position: absolute; top: 20px; right: 20px; background: transparent; border: none; font-size: 30px; color: #787c82; cursor: pointer; line-height: 1; }
+#erdo-close-btn:hover { color: #d63638; }
+.hidden { display: none !important; }
+
+/* Delete Link Button */
+.button-link-delete.button { color: #b32d2e; border-color: #b32d2e; margin-top: 10px; }
+.button-link-delete.button:hover { background: #b32d2e; color: #fff; }
+
+/* Magic Button (Sihirli Değnek) */
+.erdo-magic-btn { padding: 0 8px !important; font-size: 14px !important; margin-left: 2px; }
+
+/* Mevcut CSS kodlarının altına ekle */
+
+/* --- SAFETY MODAL (Nükleer Koruma) --- */
+#erdo-safety-modal-overlay {
+    position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+    background: rgba(0,0,0,0.85); z-index: 10000;
+    display: flex; justify-content: center; align-items: center;
+}
+
+.erdo-safety-box {
+    background: #fff; width: 500px; padding: 30px; border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.5); text-align: center;
+    border-top: 5px solid #d63638;
+}
+
+.erdo-safety-icon {
+    font-size: 50px; color: #d63638; margin-bottom: 15px;
+    display: block;
+}
+
+.erdo-safety-title {
+    font-size: 24px; font-weight: bold; color: #1d2327; margin: 0 0 15px 0;
+}
+
+.erdo-safety-desc {
+    font-size: 14px; color: #50575e; line-height: 1.6; margin-bottom: 20px;
+    background: #fbeaea; padding: 15px; border-radius: 4px; border-left: 4px solid #d63638; text-align: left;
+}
+
+.erdo-safety-input {
+    width: 100%; padding: 12px; font-size: 18px; text-align: center;
+    border: 2px solid #ccc; border-radius: 4px; margin-bottom: 20px;
+    text-transform: uppercase; letter-spacing: 2px;
+}
+
+.erdo-safety-input:focus {
+    border-color: #d63638; outline: none; box-shadow: 0 0 0 1px #d63638;
+}
+
+#erdo-safety-confirm-btn {
+    width: 100%; padding: 12px; font-size: 16px; font-weight: bold;
+    background: #d63638; border: none; color: #fff; border-radius: 4px;
+    cursor: pointer; transition: all 0.2s;
+}
+
+#erdo-safety-confirm-btn:disabled {
+    background: #f0f0f1; color: #a7aaad; cursor: not-allowed;
+}
+
+#erdo-safety-cancel-btn {
+    margin-top: 15px; background: none; border: none; color: #646970;
+    cursor: pointer; text-decoration: underline;
+}
+
+.hidden { display: none !important; }
