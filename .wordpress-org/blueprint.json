@@ -1,0 +1,26 @@
+{
+	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
+	"meta": {
+		"title": "Erdo Image Optimizer",
+		"author": "erdincbulat",
+		"description": "Try Erdo Image Optimizer instantly: WebP/AVIF conversion, 6-point image SEO audit, bulk alt text, and lazy loading, no install required."
+	},
+	"landingPage": "/wp-admin/admin.php?page=erdo-image-optimizer",
+	"preferredVersions": {
+		"php": "8.3",
+		"wp": "latest"
+	},
+	"login": true,
+	"steps": [
+		{
+			"step": "installPlugin",
+			"pluginData": {
+				"resource": "wordpress.org/plugins",
+				"slug": "erdo-image-optimizer"
+			},
+			"options": {
+				"activate": true
+			}
+		}
+	]
+}
