@@ -3,7 +3,7 @@ Contributors: erdincbulat
 Tags: image optimizer, webp, avif, image compression, alt text
 Requires at least: 5.8
 Tested up to: 7.1
-Stable tag: 2.2.1
+Stable tag: 2.2.2
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
 
@@ -151,6 +151,11 @@ Yes. Erdo exposes two REST endpoints: `/wp-json/erdo/v1/stats` returns optimizat
 Yes. Erdo includes a BunnyCDN integration that automatically uploads converted images to your BunnyCDN storage zone. Configure your Storage Zone name, API key, and hostname in the Settings tab to enable it.
 
 == Changelog ==
+
+= 2.2.2 =
+* FIXED: Disk-space waste — when "Keep Original Backup" was enabled, the original file was left in place after conversion in addition to the backup copy, storing every converted image 3x instead of 2x.
+* FIXED: Restoring an original no longer leaves stale WebP/AVIF thumbnail files behind — previously, per-size thumbnail files from the old metadata were never cleaned up, so both WebP-serving methods kept displaying the orphaned WebP/AVIF thumbnails after a restore.
+* FIXED: Usage-detection cache (used by "Delete All Unused") was not invalidated when an image was set as a featured image or attached/detached from a post, so a bulk-delete-unused run could incorrectly delete an image that had just become in-use.
 
 = 2.2.1 =
 * FIXED: Bulk Rename / Fix Filename never renamed filenames containing underscores — `sanitize_title()` alone doesn't convert underscores to hyphens, so an underscore-only filename compared equal to itself and was incorrectly reported as "already clean" and skipped instead of renamed.

@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Erdo Image Optimizer
  * Description:       WebP/AVIF conversion, SEO audit, lazy loading, SVG support, background queue, WP-CLI and more.
- * Version:           2.2.1
+ * Version:           2.2.2
  * Requires at least: 5.8
  * Requires PHP:      7.4
  * Author:            Erdinc Bulat
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 define( 'ERDO_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'ERDO_URL',     plugin_dir_url( __FILE__ ) );
-define( 'ERDO_VERSION', '2.2.1' );
+define( 'ERDO_VERSION', '2.2.2' );
 
 require_once ERDO_PATH . 'includes/class-auditor.php';
 require_once ERDO_PATH . 'includes/class-admin-page.php';
