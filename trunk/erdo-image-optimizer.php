@@ -54,12 +54,40 @@ add_action( ERDO_Queue::HOOK, array( 'ERDO_Queue', 'process_batch' ) );
 function erdo_clear_attachment_cache( $post_id ) {
     if ( class_exists( 'ERDO_Auditor' ) ) {
         ERDO_Auditor::clear_cache( $post_id );
+        // wp_update_post() bir attachment'in post_parent'ını değiştirdiğinde de
+        // (örn. medya kütüphanesinde "Attach"/"Detach") bu hook tetiklenir —
+        // bulk_check_usage()'ın post_parent cache'i de burada bayatlamış olabilir.
+        ERDO_Auditor::flush_usage_cache();
     }
     erdo_bump_library_version();
 }
 add_action( 'edit_attachment',   'erdo_clear_attachment_cache' );
 add_action( 'add_attachment',    'erdo_clear_attachment_cache' );
 add_action( 'delete_attachment', 'erdo_bump_library_version' );
+
+/**
+ * Bir görsel bir yazının öne çıkan görseli yapıldığında/kaldırıldığında,
+ * usage-check sonuçlarını 300 saniye önbelleğe alan 'erdo_image_optimizer'
+ * cache grubu bayatlar (bulk_check_usage()'daki featured-image kontrolü).
+ * Bu, önbellek yenilenene kadar yeni atanmış bir görselin yanlışlıkla
+ * "kullanılmıyor" görünmesine (ve "Kullanılmayanları Sil" ile silinmesine)
+ * yol açabilir — bu yüzden değişiklik anında hem cache grubu hem de yeni
+ * atanan görselin audit cache'i temizlenir.
+ */
+function erdo_clear_usage_cache_on_thumbnail_change( $meta_id, $post_id, $meta_key, $meta_value ) {
+    if ( '_thumbnail_id' !== $meta_key || ! class_exists( 'ERDO_Auditor' ) ) {
+        return;
+    }
+
+    ERDO_Auditor::flush_usage_cache();
+
+    if ( $meta_value ) {
+        ERDO_Auditor::clear_cache( (int) $meta_value );
+    }
+}
+add_action( 'added_post_meta',   'erdo_clear_usage_cache_on_thumbnail_change', 10, 4 );
+add_action( 'updated_post_meta', 'erdo_clear_usage_cache_on_thumbnail_change', 10, 4 );
+add_action( 'deleted_post_meta', 'erdo_clear_usage_cache_on_thumbnail_change', 10, 4 );
 
 /**
  * Kütüphane versiyonunu günceller.

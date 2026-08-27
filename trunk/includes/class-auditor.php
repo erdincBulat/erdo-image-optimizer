@@ -22,13 +22,11 @@ class ERDO_Auditor {
     }
 
     /**
-     * Tüm audit cache'ini temizler.
-     * wp_cache_flush() YOK — tüm site cache'ini silmez, sadece eklenti verisini siler.
+     * Eklentiye ait 'erdo_image_optimizer' object cache grubunu temizler
+     * (featured-image/post-parent usage cache dahil). wp_cache_flush() YOK —
+     * tüm site cache'ini silmez, sadece eklenti verisini siler.
      */
-    public static function clear_all_cache() {
-        delete_metadata( 'post', 0, '_erdo_audit_cache', '', true );
-
-        // Sadece eklentiye ait object cache key'lerini sil
+    public static function flush_usage_cache() {
         if ( function_exists( 'wp_cache_flush_group' ) ) {
             // WP 6.1+ — grup bazında temizle
             wp_cache_flush_group( 'erdo_image_optimizer' );
@@ -37,6 +35,14 @@ class ERDO_Auditor {
             wp_cache_delete( 'erdo_count_seo',          'erdo_image_optimizer' );
             wp_cache_delete( 'erdo_missing_thumbnails', 'erdo_image_optimizer' );
         }
+    }
+
+    /**
+     * Tüm audit cache'ini temizler.
+     */
+    public static function clear_all_cache() {
+        delete_metadata( 'post', 0, '_erdo_audit_cache', '', true );
+        self::flush_usage_cache();
     }
 
     /* ------------------------------------------------------------------
@@ -542,14 +548,32 @@ class ERDO_Auditor {
             . '/' . pathinfo( $current_path, PATHINFO_FILENAME )
             . '.' . $original_ext;
 
+        // Yeni boyutları üretmeden önce eski (optimize edilmiş formattaki) metadata'yı
+        // sakla — aşağıda alt boyut dosyalarını (thumbnail'ları) temizlemek için gerekli.
+        $old_meta = wp_get_attachment_metadata( $post_id );
+
         // Yedekten kopyala
         if ( ! copy( $backup_path, $restore_path ) ) {
             return false;
         }
 
-        // Eski (optimize edilmiş) dosyayı sil
+        // Eski (optimize edilmiş) ana dosyayı sil
         if ( $current_path !== $restore_path && file_exists( $current_path ) ) {
             wp_delete_file( $current_path );
+        }
+
+        // Eski (optimize edilmiş formattaki) alt boyut dosyalarını da sil — aksi hâlde
+        // WebP/AVIF sunucusu diskte kalan bu dosyaları restore sonrasında da servis etmeye devam eder.
+        if ( ! empty( $old_meta['sizes'] ) ) {
+            $thumb_dir = trailingslashit( dirname( $current_path ) );
+            foreach ( $old_meta['sizes'] as $size_data ) {
+                if ( ! empty( $size_data['file'] ) ) {
+                    $old_thumb = $thumb_dir . $size_data['file'];
+                    if ( file_exists( $old_thumb ) ) {
+                        wp_delete_file( $old_thumb );
+                    }
+                }
+            }
         }
 
         // DB'yi orijinal mime type ile güncelle
@@ -682,10 +706,10 @@ class ERDO_Auditor {
             return false;
         }
 
-        // Orijinal dosyayı sil — SADECE yedek alınmadıysa (keep_orig kapalıysa)
-        if ( ! $keep_orig ) {
-            wp_delete_file( $file_path );
-        }
+        // Orijinal dosyayı sil — yedek isteniyorsa zaten backup_original() ile
+        // _erdo_backup/ klasörüne kopyalandı, o yüzden burada koşulsuz silinir
+        // (aksi hâlde orijinal + yedek + dönüştürülmüş dosya olmak üzere 3 kopya birikir).
+        wp_delete_file( $file_path );
 
         clearstatcache();
         $new_size = file_exists( $new_path ) ? filesize( $new_path ) : 0;
