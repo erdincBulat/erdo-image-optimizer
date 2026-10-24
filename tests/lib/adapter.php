@@ -219,6 +219,78 @@ function et_set_decorative( $id, $on = true ) {
     ERDO_Auditor::clear_cache( $id );
 }
 
+/* --- AI suggestions (Faz 5) ----------------------------------------
+ * The Studio site has no AI provider or key, so the provider call is
+ * replaced through the plugin's `erdo_ai_pre_generate` filter. Every request
+ * the plugin would have sent is captured in $GLOBALS['et_ai_requests'].
+ */
+
+/** Real availability (no stub): array( ready, reason, message ). */
+function et_ai_status() {
+    delete_transient( 'erdo_ai_status' );
+    return ERDO_AI::status( true );
+}
+
+/** Pretends a provider is connected and answers with $answer (array → JSON, string as is, callable($request)). */
+function et_ai_stub( $answer ) {
+    et_ai_unstub();
+    $GLOBALS['et_ai_requests'] = array();
+    $GLOBALS['et_ai_status_cb'] = function ( $s ) {
+        return array_merge( $s, array( 'ready' => true, 'reason' => '', 'message' => '' ) );
+    };
+    $GLOBALS['et_ai_answer_cb'] = function ( $raw, $request ) use ( $answer ) {
+        $GLOBALS['et_ai_requests'][] = $request;
+        $a = is_callable( $answer ) ? $answer( $request ) : $answer;
+        return is_array( $a ) ? wp_json_encode( $a ) : $a;
+    };
+    add_filter( 'erdo_ai_status', $GLOBALS['et_ai_status_cb'] );
+    add_filter( 'erdo_ai_pre_generate', $GLOBALS['et_ai_answer_cb'], 10, 2 );
+}
+
+function et_ai_unstub() {
+    if ( ! empty( $GLOBALS['et_ai_status_cb'] ) ) {
+        remove_filter( 'erdo_ai_status', $GLOBALS['et_ai_status_cb'] );
+        remove_filter( 'erdo_ai_pre_generate', $GLOBALS['et_ai_answer_cb'], 10 );
+    }
+}
+
+/** Last request the plugin would have sent to the provider. */
+function et_ai_last_request() {
+    $r = $GLOBALS['et_ai_requests'] ?? array();
+    return $r ? end( $r ) : null;
+}
+
+/** Asks for a suggestion (stored for review, not applied). Returns array|WP_Error. */
+function et_ai_suggest( $id ) {
+    return ERDO_AI::suggest( $id );
+}
+
+function et_ai_suggestion( $id ) {
+    return ERDO_AI::get( $id );
+}
+
+function et_ai_accept( $id, array $fields = array( 'alt' ), array $edits = array() ) {
+    return ERDO_AI::accept( $id, $fields, $edits );
+}
+
+function et_ai_reject( $id ) {
+    return ERDO_AI::reject( $id );
+}
+
+function et_ai_pending() {
+    return ERDO_AI::pending_ids();
+}
+
+/** Images a bulk run would send ('missing' alt or also 'weak' alt). */
+function et_ai_candidates( $scope = 'missing' ) {
+    return ERDO_AI::candidate_ids( $scope );
+}
+
+/** The image as it would be sent: array( mime, width, height, bytes, data ). */
+function et_ai_image( $id ) {
+    return ERDO_AI::image_payload( $id );
+}
+
 /** The .htaccess block the plugin writes for Apache WebP/AVIF delivery. */
 function et_htaccess_rules() {
     $file = trailingslashit( wp_upload_dir()['basedir'] ) . '.htaccess';

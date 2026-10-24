@@ -71,6 +71,9 @@ jQuery(document).ready(function($) {
         } else if ( target === 'tab-quarantine' ) {
             $('#erdo-bulk-webp-btn, #erdo-bulk-delete-btn').addClass('hidden');
             loadQuarantine();
+        } else if ( target === 'tab-ai' ) {
+            $('#erdo-bulk-webp-btn, #erdo-bulk-delete-btn').addClass('hidden');
+            loadAiList();
         } else {
             $('#erdo-bulk-webp-btn').removeClass('hidden');
             $('#erdo-bulk-delete-btn').addClass('hidden');
@@ -1324,6 +1327,204 @@ jQuery(document).ready(function($) {
             });
             clearGridCache();
         });
+    });
+
+    /* -------------------------------------------------------
+       AI ÖNERİLERİ (Faz 5)
+       Öneri hiçbir zaman otomatik kaydedilmez: detay kutusunda ya da
+       "AI Suggestions" sekmesinde incelenip kabul edilir.
+    ------------------------------------------------------- */
+    function reloadDetail(id) {
+        $.post(erdo_vars.ajax_url, { action: 'erdo_get_detail', id: id, nonce: erdo_vars.nonce }, function(html) {
+            $('#erdo-modal-content').html(html);
+        });
+    }
+
+    function setAiCount(n) {
+        $('#count-ai').text(n);
+    }
+
+    // Detay: öner / yeniden dene
+    $(document).on('click', '.erdo-ai-suggest-btn', function() {
+        var $btn = $(this), id = $btn.data('id');
+        $btn.prop('disabled', true).html('<span class="erdo-spinner"></span> ' + esc(i18n.aiWorking));
+        $.post(erdo_vars.ajax_url, { action: 'erdo_ai_suggest', nonce: erdo_vars.nonce, id: id }, function(res) {
+            if ( res && res.success ) {
+                setAiCount(parseInt($('#count-ai').text(), 10) + 1 || 1);
+                reloadDetail(id);
+            } else {
+                alert(( res && res.data && res.data.message ) || i18n.error);
+                reloadDetail(id);
+            }
+        }).fail(function() { alert(i18n.error); reloadDetail(id); });
+    });
+
+    // Detay: seçili alanları kabul et
+    $(document).on('click', '.erdo-ai-accept-btn', function() {
+        var $box = $(this).closest('.erdo-ai-box'), id = $box.data('id');
+        var data = { action: 'erdo_ai_accept', nonce: erdo_vars.nonce, id: id, fields: [], edits: {} };
+        $box.find('.erdo-ai-field:checked').each(function() { data.fields.push($(this).val()); });
+        $box.find('.erdo-ai-value').each(function() { data.edits[$(this).data('field')] = $(this).val(); });
+        if ( ! data.fields.length ) return;
+        $box.find('button').prop('disabled', true);
+        $.post(erdo_vars.ajax_url, data, function(res) {
+            if ( ! res || ! res.success ) {
+                alert(( res && res.data && res.data.message ) || i18n.error);
+                $box.find('button').prop('disabled', false);
+                return;
+            }
+            var $card = $('.erdo-card[data-id="' + id + '"]');
+            if ( res.data.filename ) $card.find('.erdo-card-info').text(res.data.filename);
+            if ( res.data.audit ) $card.find('.erdo-score-badge').text(res.data.audit.score);
+            setAiCount(Math.max(0, parseInt($('#count-ai').text(), 10) - 1));
+            clearGridCache();
+            loadStats();
+            reloadDetail(id);
+        });
+    });
+
+    $(document).on('click', '.erdo-ai-reject-btn', function() {
+        var id = $(this).closest('.erdo-ai-box').data('id');
+        $.post(erdo_vars.ajax_url, { action: 'erdo_ai_reject', nonce: erdo_vars.nonce, id: id }, function() {
+            setAiCount(Math.max(0, parseInt($('#count-ai').text(), 10) - 1));
+            reloadDetail(id);
+        });
+    });
+
+    // Sekme: inceleme listesi
+    function loadAiList() {
+        var $list = $('#erdo-ai-list');
+        $list.html('<p class="erdo-rn-loading"><span class="erdo-spinner"></span></p>');
+        $.post(erdo_vars.ajax_url, { action: 'erdo_ai_list', nonce: erdo_vars.nonce }, function(res) {
+            if ( ! res || ! res.success ) { $list.html('<p class="erdo-rn-error">' + esc(i18n.error) + '</p>'); return; }
+            var rows = res.data.rows;
+            setAiCount(rows.length);
+            $('#erdo-ai-accept-all').text(i18n.aiAcceptAll + ' (' + rows.length + ')').prop('disabled', ! rows.length);
+            if ( ! rows.length ) { $list.html('<p class="erdo-rn-empty">' + esc(i18n.aiEmpty) + '</p>'); return; }
+            var html = '';
+            $.each(rows, function(_, r) {
+                html += '<div class="erdo-ai-item" data-id="' + parseInt(r.id, 10) + '">';
+                html += '<img src="' + esc(r.thumb) + '" alt="" loading="lazy">';
+                html += '<div class="erdo-ai-item-body"><div class="erdo-ai-item-name">' + esc(r.filename) + '</div>';
+                if ( r.current_alt ) html += '<div class="erdo-ai-item-current">' + esc(i18n.aiCurrent) + ': ' + esc(r.current_alt) + '</div>';
+                if ( r.issue ) html += '<div class="erdo-ai-issue">' + esc(r.issue) + '</div>';
+                html += r.decorative
+                    ? '<em class="erdo-ai-decorative">' + esc(i18n.aiDecorative) + '</em>'
+                    : '<input type="text" class="erdo-input erdo-ai-item-alt" value="' + esc(r.alt) + '" aria-label="Alt — ' + esc(r.filename) + '">';
+                html += '</div><div class="erdo-ai-item-actions">';
+                html += '<button type="button" class="button button-primary erdo-ai-item-accept">' + esc(i18n.aiAccept) + '</button>';
+                html += '<button type="button" class="button erdo-ai-item-reject">' + esc(i18n.aiReject) + '</button>';
+                html += '</div></div>';
+            });
+            $list.html(html);
+        });
+    }
+
+    function acceptItem($item) {
+        var id = $item.data('id'), $alt = $item.find('.erdo-ai-item-alt');
+        var data = { action: 'erdo_ai_accept', nonce: erdo_vars.nonce, id: id, fields: ['alt'], edits: {} };
+        if ( $alt.length ) data.edits.alt = $alt.val();
+        $item.find('button, input').prop('disabled', true);
+        return $.post(erdo_vars.ajax_url, data).done(function(res) {
+            if ( res && res.success ) {
+                $item.slideUp(150, function() { $item.remove(); });
+                setAiCount(Math.max(0, parseInt($('#count-ai').text(), 10) - 1));
+            } else {
+                $item.find('button, input').prop('disabled', false);
+            }
+        });
+    }
+
+    $(document).on('click', '.erdo-ai-item-accept', function() {
+        acceptItem($(this).closest('.erdo-ai-item')).always(function() { clearGridCache(); loadStats(); });
+    });
+
+    $(document).on('click', '.erdo-ai-item-reject', function() {
+        var $item = $(this).closest('.erdo-ai-item');
+        $.post(erdo_vars.ajax_url, { action: 'erdo_ai_reject', nonce: erdo_vars.nonce, id: $item.data('id') }, function() {
+            $item.slideUp(150, function() { $item.remove(); });
+            setAiCount(Math.max(0, parseInt($('#count-ai').text(), 10) - 1));
+        });
+    });
+
+    $('#erdo-ai-accept-all').on('click', function() {
+        var $items = $('#erdo-ai-list .erdo-ai-item').toArray(), $btn = $(this).prop('disabled', true);
+        (function next() {
+            var el = $items.shift();
+            if ( ! el ) { clearGridCache(); loadStats(); loadAiList(); return; }
+            acceptItem($(el)).always(next);
+        })();
+    });
+
+    // Toplu üretim: kapsam seç → tahmin → başlat (tek tek, durdurulabilir, hız sınırında bekler)
+    var aiRun = null;
+
+    $('#erdo-ai-bulk-btn').on('click', function() {
+        var st = erdo_vars.ai || {};
+        var html = '<div class="modal-header"><h2>' + esc(i18n.aiStart) + '</h2></div><div class="erdo-rename-body">';
+        if ( ! st.ready ) {
+            html += '<p class="erdo-rn-safety">' + esc(st.message || '') + '</p>';
+            if ( st.reason === 'provider' ) html += '<a class="button button-primary" href="' + esc(st.setup_url) + '">Settings &gt; Connectors</a>';
+            openModal(html + '</div>');
+            return;
+        }
+        html += '<div class="erdo-rn-fields"><label><select id="erdo-ai-scope" class="erdo-input">';
+        html += '<option value="missing">' + esc(i18n.aiMissingAlt) + '</option><option value="weak">' + esc(i18n.aiWeakAlt) + '</option></select></label></div>';
+        html += '<p class="erdo-rn-safety" id="erdo-ai-estimate"><span class="erdo-spinner"></span></p>';
+        html += '<div class="erdo-rn-actions"><button type="button" class="button button-primary" id="erdo-ai-run" disabled>' + esc(i18n.aiStart) + '</button>';
+        html += '<button type="button" class="button hidden" id="erdo-ai-stop">' + esc(i18n.aiStop) + '</button><span id="erdo-ai-status" role="status"></span></div></div>';
+        openModal(html);
+        loadAiEstimate();
+    });
+
+    var aiIds = [];
+    function loadAiEstimate() {
+        $('#erdo-ai-run').prop('disabled', true);
+        $.post(erdo_vars.ajax_url, { action: 'erdo_ai_candidates', nonce: erdo_vars.nonce, scope: $('#erdo-ai-scope').val() }, function(res) {
+            if ( ! res || ! res.success ) { $('#erdo-ai-estimate').text(i18n.error); return; }
+            aiIds = res.data.ids;
+            $('#erdo-ai-estimate').text(aiIds.length ? fmt(i18n.aiEstimate, aiIds.length).replace('%2$s', res.data.low).replace('%3$s', res.data.high) : i18n.aiNone);
+            $('#erdo-ai-run').prop('disabled', ! aiIds.length);
+        });
+    }
+    $(document).on('change', '#erdo-ai-scope', loadAiEstimate);
+
+    $(document).on('click', '#erdo-ai-run', function() {
+        var queue = aiIds.slice(), total = queue.length, done = 0, ok = 0, failed = 0, wait = 0;
+        aiRun = { stop: false };
+        var run = aiRun;
+        $('#erdo-ai-run, #erdo-ai-scope').prop('disabled', true);
+        $('#erdo-ai-stop').removeClass('hidden');
+
+        (function next() {
+            if ( run.stop || ! queue.length ) {
+                $('#erdo-ai-stop').addClass('hidden');
+                $('#erdo-ai-status').text(fmt(i18n.aiDone, ok, failed));
+                setAiCount(parseInt($('#count-ai').text(), 10) + ok);
+                return;
+            }
+            $('#erdo-ai-status').text(fmt(i18n.aiProgress, done, total));
+            var id = queue[0];
+            $.post(erdo_vars.ajax_url, { action: 'erdo_ai_suggest', nonce: erdo_vars.nonce, id: id }, function(res) {
+                if ( res && ! res.success && res.data && res.data.retry && wait < 5 ) {
+                    // Hız sınırı: artan beklemeyle aynı görseli yeniden dene.
+                    wait++;
+                    $('#erdo-ai-status').text(res.data.message);
+                    setTimeout(next, 5000 * wait);
+                    return;
+                }
+                wait = 0;
+                queue.shift();
+                done++;
+                if ( res && res.success ) { ok++; } else { failed++; }
+                next();
+            }).fail(function() { queue.shift(); done++; failed++; next(); });
+        })();
+    });
+
+    $(document).on('click', '#erdo-ai-stop', function() {
+        if ( aiRun ) aiRun.stop = true;
+        $(this).prop('disabled', true);
     });
 
 });  // jQuery ready END

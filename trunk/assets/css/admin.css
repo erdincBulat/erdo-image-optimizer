@@ -1859,3 +1859,56 @@
     margin-top: 14px;
 }
 #erdo-rn-status { font-size: 13px; color: var(--e-text-2); }
+
+/* ─── FAZ 5: AI ÖNERİLERİ ───────────────────────────────────────────────────── */
+.erdo-ai-suggest-btn.button { width: 100%; margin-bottom: 12px; justify-content: center; display: flex; align-items: center; gap: 6px; }
+.erdo-ai-suggest-btn .dashicons, .erdo-ai-box h4 .dashicons, .erdo-ai-setup > .dashicons { color: var(--e-blue-mid); }
+.erdo-ai-hint { font-size: 12px; color: var(--e-text-muted); margin: 0 0 12px; }
+.erdo-ai-box {
+    margin-bottom: 12px;
+    padding: 12px 14px;
+    background: var(--e-blue-pale);
+    border: 1.5px solid var(--e-blue-border);
+    border-radius: var(--e-radius-sm);
+}
+.erdo-ai-box h4 { margin: 0 0 8px; font-size: 13px; display: flex; align-items: center; gap: 6px; }
+.erdo-ai-row { display: grid; grid-template-columns: 18px 72px 1fr; align-items: center; gap: 6px; margin: 6px 0; font-size: 12px; }
+.erdo-ai-label { font-weight: 700; color: var(--e-text-2); }
+.erdo-ai-issue { font-size: 12px; color: var(--e-orange); margin: 4px 0 8px; }
+.erdo-ai-decorative { font-size: 12px; color: var(--e-text-muted); }
+.erdo-ai-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
+.erdo-ai-actions .erdo-ai-suggest-btn { width: auto; margin: 0; }
+
+.erdo-ai-setup {
+    display: flex;
+    gap: 12px;
+    padding: 14px 16px;
+    margin-bottom: 14px;
+    background: var(--e-surface);
+    border: 1px solid var(--e-blue-border);
+    border-left: 4px solid var(--e-blue-mid);
+    border-radius: var(--e-radius-sm);
+}
+.erdo-ai-setup p, .erdo-ai-setup ol { margin: 4px 0 8px; font-size: 13px; color: var(--e-text-2); }
+.erdo-ai-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+.erdo-ai-list { display: flex; flex-direction: column; gap: 8px; margin-top: 10px; }
+.erdo-ai-item {
+    display: grid;
+    grid-template-columns: 72px 1fr auto;
+    gap: 12px;
+    align-items: center;
+    padding: 10px;
+    background: var(--e-surface);
+    border: 1px solid var(--e-border);
+    border-radius: var(--e-radius-sm);
+}
+.erdo-ai-item img { width: 72px; height: 72px; object-fit: cover; border-radius: 4px; }
+.erdo-ai-item-body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+.erdo-ai-item-name { font-size: 12px; font-weight: 700; color: var(--e-text); word-break: break-all; }
+.erdo-ai-item-current { font-size: 12px; color: var(--e-text-muted); }
+.erdo-ai-item-actions { display: flex; gap: 6px; }
+@media (max-width: 600px) {
+    .erdo-ai-item { grid-template-columns: 56px 1fr; }
+    .erdo-ai-item img { width: 56px; height: 56px; }
+    .erdo-ai-item-actions { grid-column: 1 / -1; }
+}

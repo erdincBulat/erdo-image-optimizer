@@ -150,6 +150,19 @@ Yes. Erdo exposes two REST endpoints: `/wp-json/erdo/v1/stats` returns optimizat
 
 Yes. Erdo includes a BunnyCDN integration that automatically uploads converted images to your BunnyCDN storage zone. Configure your Storage Zone name, API key, and hostname in the Settings tab to enable it.
 
+== External services ==
+
+**AI suggestions (optional, off until you set it up).** On WordPress 7.0 and newer, Erdo can ask an AI provider for alt text, filename, title and caption suggestions. It uses WordPress' built-in AI Client and the provider you connect under Settings > Connectors with your own API key; Erdo does not store or see the key and has no server of its own.
+
+* When: only when you click "Suggest with AI", run "AI Suggestions…" from the Tools menu, or turn on "AI Suggestions on Upload" (off by default).
+* What is sent: the image, resized to at most 1024 px, plus the title of the page it appears on, up to 500 characters of text around it, the page's SEO focus keyword, the current alt text and image title, and the site language. No user names, e-mail addresses or other personal data are sent.
+* Where: to the provider you connected, under its own terms:
+  * Anthropic (Claude): [Terms](https://www.anthropic.com/legal/commercial-terms), [Privacy](https://www.anthropic.com/legal/privacy)
+  * Google (Gemini): [Terms](https://ai.google.dev/gemini-api/terms), [Privacy](https://policies.google.com/privacy)
+  * OpenAI: [Terms](https://openai.com/policies/business-terms/), [Privacy](https://openai.com/policies/privacy-policy/)
+
+Suggestions are never saved automatically: each one waits for your review in the "AI Suggestions" tab.
+
 == Changelog ==
 
 = 2.2.2 =

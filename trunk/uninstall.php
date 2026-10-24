@@ -37,6 +37,8 @@ foreach ( $erdo_quarantined as $erdo_q ) {
 $wpdb->query( "DROP TABLE IF EXISTS {$wpdb->prefix}erdo_usage" ); // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.DirectDatabaseQuery.SchemaChange
 wp_clear_scheduled_hook( 'erdo_usage_build' );
 wp_clear_scheduled_hook( 'erdo_quarantine_purge' );
+wp_unschedule_hook( 'erdo_ai_suggest' );
+delete_transient( 'erdo_ai_status' );
 
 // Üretilen kardeş dosyaları sil ("foto.jpg.webp" vb.). 2.x'ten kalan eski
 // .webp dosyalarına (_erdo_legacy_files) dokunulmaz: içerikte kullanılıyor olabilirler.
@@ -81,6 +83,7 @@ $erdo_meta_keys = array(
     '_erdo_redirects',
     '_erdo_old_rel',
     '_erdo_rename_log',
+    '_erdo_ai_suggestion',
 );
 
 foreach ( $erdo_meta_keys as $erdo_meta_key ) {

@@ -27,6 +27,7 @@ require_once ERDO_PATH . 'includes/class-quarantine.php';
 require_once ERDO_PATH . 'includes/class-seo.php';
 require_once ERDO_PATH . 'includes/class-renamer.php';
 require_once ERDO_PATH . 'includes/class-sitemap.php';
+require_once ERDO_PATH . 'includes/class-ai.php';
 require_once ERDO_PATH . 'includes/class-admin-page.php';
 require_once ERDO_PATH . 'includes/class-webp-server.php';
 require_once ERDO_PATH . 'includes/class-queue.php';
@@ -49,6 +50,7 @@ function erdo_init() {
     ERDO_Usage::init();
     ERDO_Renamer::init();
     ERDO_Sitemap::init();
+    ERDO_AI::init();
     new ERDO_Admin_Page();
     ERDO_Queue::register_interval();
     ERDO_WebP_Server::init();
@@ -75,6 +77,7 @@ function erdo_deactivate() {
     wp_clear_scheduled_hook( ERDO_Queue::HOOK );
     wp_clear_scheduled_hook( ERDO_Usage::CRON_HOOK );
     wp_clear_scheduled_hook( ERDO_Quarantine::PURGE_HOOK );
+    wp_unschedule_hook( ERDO_AI::CRON_HOOK );
 }
 register_deactivation_hook( __FILE__, 'erdo_deactivate' );
 

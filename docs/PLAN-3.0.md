@@ -219,7 +219,31 @@ Plandaki maddeler (referans):
 - Görsel site haritası: core `wp-sitemaps`'e `image:loc` eklenir; yalnızca SEO eklentisi bunu zaten yapmıyorsa.
 - CSV dışa aktarma yeni puanlamayla güncellenir.
 
-### Faz 5 — AI özellikleri (kullanıcının kendi anahtarı, core Connectors)
+### Faz 5 — AI özellikleri (kullanıcının kendi anahtarı, core Connectors) ✅ (2026-10-24)
+**Teslim edildi:**
+- `ERDO_AI`: çekirdek `wp_ai_client_prompt()` kullanılıyor; anahtar eklentide saklanmıyor.
+  - Hazırlık kontrolü istek atmadan yapılıyor. Durumlar: "WP 7.0 gerekli", "AI kapalı", "sağlayıcı bağlı değil".
+  - Tek çağrıda JSON şemasıyla alt metin, dosya adı, başlık, altyazı, dekoratif kararı ve mevcut alt metnin denetimi alınıyor.
+  - Önce ucuz görsel modeller tercih ediliyor (Haiku 4.5, Gemini 2.5 Flash, GPT-5 mini).
+- Görsel ≤1024 px gönderiliyor. AVIF, HEIC, GIF ve büyük PNG geçici JPEG'e çevriliyor; 150 px küçük resim gönderilmiyor.
+- Bağlam:
+  - Görselin içerikte göründüğü sayfa (galeri/meta değil), odak anahtar kelime ve çevresindeki ~500 karakter metin.
+  - Dil (WPML/Polylang dahil), Woo ürün adı ve kategorisi.
+  - Kişisel veri gönderilmiyor.
+- Önce incele, sonra kaydet:
+  - Öneriler `_erdo_ai_suggestion` meta'sında bekliyor.
+  - Detay panelindeki kutuda alan alan seçilip düzenlenerek kabul ediliyor.
+  - "AI Suggestions" sekmesinde tek tek ya da toptan kabul/ret yapılabiliyor.
+  - Dosya adı kabulü güvenli yeniden adlandırmadan (301 dahil) geçiyor.
+- Toplu üretim: "eksik alt" ya da "eksik veya zayıf alt" kapsamı, maliyet tahmini, durdurma, hız sınırında artan beklemeyle yeniden deneme.
+- Yüklemede otomatik öneri: ayarı var, varsayılan kapalı, arka planda (cron) çalışıyor.
+- REST: `POST erdo/v1/ai/{id}/suggest|accept|reject`, o görsel için `edit_post` yetkisi gerekiyor (E1/E2 için hazır).
+- readme'ye "External services" bölümü eklendi: ne zaman, hangi veri, hangi sağlayıcı, şartlar ve gizlilik linkleri.
+- Test: `55-ai` (21 test). Sağlayıcı `erdo_ai_pre_generate` filtresiyle taklit ediliyor.
+  - Gerçek çağrı zinciri anahtarsız çalıştırıldı: beklenen "model bulunamadı" hatasıyla bitiyor, fatal hata yok.
+  - **Gerçek bir sağlayıcıyla uçtan uca deneme yapılmadı** (anahtar gerekiyor).
+
+Plandaki maddeler (referans):
 - **Özellikler** (hepsi kullanıcının başlattığı eylemler; yüklemede otomatik çalışma opsiyonel ve varsayılan kapalı):
   1. Alt metin üretimi: tekli + toplu.
   2. Dekoratif görsel tespiti (W3C karar ağacı → `alt=""` önerisi).

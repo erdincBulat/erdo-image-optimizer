@@ -43,6 +43,11 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_rename_apply',      array( $this, 'ajax_rename_apply' ) );
         add_action( 'wp_ajax_erdo_rename_undo',       array( $this, 'ajax_rename_undo' ) );
         add_action( 'wp_ajax_erdo_rename_undo_last',  array( $this, 'ajax_rename_undo_last' ) );
+        add_action( 'wp_ajax_erdo_ai_suggest',        array( $this, 'ajax_ai_suggest' ) );
+        add_action( 'wp_ajax_erdo_ai_accept',         array( $this, 'ajax_ai_accept' ) );
+        add_action( 'wp_ajax_erdo_ai_reject',         array( $this, 'ajax_ai_reject' ) );
+        add_action( 'wp_ajax_erdo_ai_list',           array( $this, 'ajax_ai_list' ) );
+        add_action( 'wp_ajax_erdo_ai_candidates',     array( $this, 'ajax_ai_candidates' ) );
         add_action( 'admin_notices',                  array( $this, 'migration_notice' ) );
 
         add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
@@ -123,7 +128,26 @@ class ERDO_Admin_Page {
                 'renameSelected'  => __( 'Rename…', 'erdo-image-optimizer' ),
                 'selectHint'      => __( 'Select images', 'erdo-image-optimizer' ),
                 'error'           => __( 'Something went wrong. Please try again.', 'erdo-image-optimizer' ),
+                'aiWorking'       => __( 'Looking at the image…', 'erdo-image-optimizer' ),
+                /* translators: 1: images done, 2: images in total */
+                'aiProgress'      => __( 'Generating suggestions… %1$d / %2$d', 'erdo-image-optimizer' ),
+                /* translators: 1: suggestions created, 2: failures */
+                'aiDone'          => __( 'Done: %1$d suggestions ready for review, %2$d failed.', 'erdo-image-optimizer' ),
+                /* translators: 1: number of images, 2: low cost estimate in US dollars, 3: high cost estimate */
+                'aiEstimate'      => __( '%1$d images. Each image is sent once, resized to 1024 px. Estimated provider cost: about $%2$s–$%3$s with a small vision model. Nothing is saved until you review it.', 'erdo-image-optimizer' ),
+                'aiNone'          => __( 'No images need suggestions right now.', 'erdo-image-optimizer' ),
+                'aiEmpty'         => __( 'No suggestions waiting for review.', 'erdo-image-optimizer' ),
+                'aiStart'         => __( 'Generate suggestions', 'erdo-image-optimizer' ),
+                'aiStop'          => __( 'Stop', 'erdo-image-optimizer' ),
+                'aiAccept'        => __( 'Accept', 'erdo-image-optimizer' ),
+                'aiReject'        => __( 'Dismiss', 'erdo-image-optimizer' ),
+                'aiAcceptAll'     => __( 'Accept all alt texts', 'erdo-image-optimizer' ),
+                'aiDecorative'    => __( 'Decorative: empty alt', 'erdo-image-optimizer' ),
+                'aiCurrent'       => __( 'Current', 'erdo-image-optimizer' ),
+                'aiMissingAlt'    => __( 'Images missing alt text', 'erdo-image-optimizer' ),
+                'aiWeakAlt'       => __( 'Missing or weak alt text', 'erdo-image-optimizer' ),
             ),
+            'ai'       => ERDO_AI::status(),
         ) );
     }
 
@@ -212,6 +236,10 @@ class ERDO_Admin_Page {
                                 <span class="dashicons dashicons-format-image"></span>
                                 <?php esc_html_e( 'Auto Alt Text', 'erdo-image-optimizer' ); ?>
                             </button>
+                            <button class="erdo-dropdown-item" id="erdo-ai-bulk-btn">
+                                <span class="dashicons dashicons-lightbulb"></span>
+                                <?php esc_html_e( 'AI Suggestions…', 'erdo-image-optimizer' ); ?>
+                            </button>
                             <button class="erdo-dropdown-item" id="erdo-export-csv-btn">
                                 <span class="dashicons dashicons-download"></span>
                                 <?php esc_html_e( 'Export SEO CSV', 'erdo-image-optimizer' ); ?>
@@ -283,6 +311,10 @@ class ERDO_Admin_Page {
                         <?php esc_html_e( 'Quarantine', 'erdo-image-optimizer' ); ?>
                         <span class="count-badge" id="count-quarantine"><?php echo esc_html( count( ERDO_Quarantine::ids() ) ); ?></span>
                     </button>
+                    <button class="tab-btn btn-gray" data-target="tab-ai" id="erdo-ai-tab">
+                        <?php esc_html_e( 'AI Suggestions', 'erdo-image-optimizer' ); ?>
+                        <span class="count-badge" id="count-ai"><?php echo esc_html( count( ERDO_AI::pending_ids() ) ); ?></span>
+                    </button>
                 </div>
                 <div class="erdo-tab-actions">
                     <button id="erdo-alt-filter-btn" class="button button-secondary"
@@ -319,6 +351,16 @@ class ERDO_Admin_Page {
                         <?php esc_html_e( 'Images moved here are hidden from your site and media library, but nothing is deleted yet. Restore puts the files back exactly as they were.', 'erdo-image-optimizer' ); ?>
                     </p>
                     <div class="erdo-grid" id="erdo-quarantine-grid"></div>
+                </div>
+                <div id="tab-ai" class="erdo-content">
+                    <?php $this->render_ai_setup_notice(); ?>
+                    <div class="erdo-ai-toolbar">
+                        <p class="erdo-quarantine-help">
+                            <?php esc_html_e( 'Suggestions are never saved automatically. Check each one against the image, edit if needed, then accept or dismiss it.', 'erdo-image-optimizer' ); ?>
+                        </p>
+                        <button type="button" class="button button-primary" id="erdo-ai-accept-all" disabled></button>
+                    </div>
+                    <div id="erdo-ai-list" class="erdo-ai-list"></div>
                 </div>
             </div>
 
@@ -747,6 +789,7 @@ class ERDO_Admin_Page {
                 </div>
 
                 <div class="erdo-modal-right">
+                    <?php $this->render_ai_box( $id ); ?>
                     <ul class="erdo-checklist">
                         <?php foreach ( $data['checklist'] as $item ) : ?>
                         <?php
@@ -1089,6 +1132,7 @@ class ERDO_Admin_Page {
         if ( ! ERDO_SEO::seo_plugin_handles_image_sitemap() ) {
             update_option( 'erdo_image_sitemap', isset( $_POST['erdo_image_sitemap'] ) ? 1 : 0 );
         }
+        update_option( 'erdo_ai_on_upload', isset( $_POST['erdo_ai_on_upload'] ) && ERDO_AI::is_ready() ? 1 : 0 );
 
         if ( isset( $_POST['erdo_webp_serve_method'] ) ) {
             $meth = sanitize_text_field( wp_unslash( $_POST['erdo_webp_serve_method'] ) );
@@ -1146,6 +1190,8 @@ class ERDO_Admin_Page {
         $ll   = get_option( 'erdo_lossless', 0 );
         $aof  = get_option( 'erdo_append_original_filename', 0 );
         $ism  = get_option( 'erdo_image_sitemap', 1 );
+        $aiu  = get_option( 'erdo_ai_on_upload', 0 );
+        $ai   = ERDO_AI::status();
         $avif = ERDO_Encoder::supports( 'avif' );
         $webp = ERDO_Encoder::supports( 'webp' );
         ?>
@@ -1237,6 +1283,24 @@ class ERDO_Admin_Page {
                                 esc_html_e( 'Your SEO plugin already lists images in its sitemap, so this is turned off.', 'erdo-image-optimizer' );
                             } else {
                                 esc_html_e( 'Adds the images of every published page to the WordPress sitemap (wp-sitemap.xml) so Google Images can find them.', 'erdo-image-optimizer' );
+                            }
+                            ?>
+                        </p>
+                    </span>
+                </label>
+                <label>
+                    <input type="checkbox" name="erdo_ai_on_upload" value="1" <?php checked( $aiu, 1 ); ?> <?php disabled( empty( $ai['ready'] ) ); ?>>
+                    <span>
+                        <strong><?php esc_html_e( 'AI Suggestions on Upload', 'erdo-image-optimizer' ); ?></strong>
+                        <p>
+                            <?php
+                            if ( empty( $ai['ready'] ) ) {
+                                echo esc_html( $ai['message'] ) . ' ';
+                                if ( 'provider' === $ai['reason'] ) {
+                                    echo '<a href="' . esc_url( $ai['setup_url'] ) . '">' . esc_html__( 'Open Connectors', 'erdo-image-optimizer' ) . '</a>';
+                                }
+                            } else {
+                                esc_html_e( 'After an upload, send the image to your connected AI provider in the background and queue an alt text suggestion for review. Nothing is saved without your approval. Off by default because each image costs a few provider tokens.', 'erdo-image-optimizer' );
                             }
                             ?>
                         </p>
@@ -1857,6 +1921,175 @@ class ERDO_Admin_Page {
         wp_send_json_success();
     }
 
+    /* ------------------------------------------------------------------
+       AI ÖNERİLERİ (Faz 5) — öneri üret, incele, kabul et / reddet
+    ------------------------------------------------------------------ */
+
+    /** AI kullanılamıyorsa nedenini ve Connectors bağlantısını gösterir. */
+    private function render_ai_setup_notice() {
+        $ai = ERDO_AI::status();
+        if ( ! empty( $ai['ready'] ) ) {
+            return;
+        }
+        ?>
+        <div class="erdo-ai-setup">
+            <span class="dashicons dashicons-lightbulb"></span>
+            <div>
+                <strong><?php esc_html_e( 'Set up AI suggestions', 'erdo-image-optimizer' ); ?></strong>
+                <p><?php echo esc_html( $ai['message'] ); ?></p>
+                <?php if ( 'provider' === $ai['reason'] ) : ?>
+                <ol>
+                    <li><?php esc_html_e( 'Open Settings > Connectors and install the provider (Anthropic, Google or OpenAI).', 'erdo-image-optimizer' ); ?></li>
+                    <li><?php esc_html_e( 'Paste your own API key there. Erdo never stores it.', 'erdo-image-optimizer' ); ?></li>
+                    <li><?php esc_html_e( 'Come back here: suggestions become available right away.', 'erdo-image-optimizer' ); ?></li>
+                </ol>
+                <a class="button" href="<?php echo esc_url( $ai['setup_url'] ); ?>"><?php esc_html_e( 'Open Connectors', 'erdo-image-optimizer' ); ?></a>
+                <?php endif; ?>
+            </div>
+        </div>
+        <?php
+    }
+
+    /** Detay paneli: öneri varsa inceleme kutusu, yoksa "AI ile öner" butonu. */
+    private function render_ai_box( $id ) {
+        $ai = ERDO_AI::status();
+        $s  = ERDO_AI::get( $id );
+        if ( ! $s ) {
+            if ( empty( $ai['ready'] ) ) {
+                if ( 'wp' !== $ai['reason'] ) {
+                    echo '<p class="erdo-ai-hint">' . esc_html( $ai['message'] ) . ' <a href="' . esc_url( $ai['setup_url'] ) . '">' . esc_html__( 'Set up', 'erdo-image-optimizer' ) . '</a></p>';
+                }
+                return;
+            }
+            ?>
+            <button type="button" class="button erdo-ai-suggest-btn" data-id="<?php echo esc_attr( $id ); ?>">
+                <span class="dashicons dashicons-lightbulb"></span>
+                <?php esc_html_e( 'Suggest alt text, filename and title with AI', 'erdo-image-optimizer' ); ?>
+            </button>
+            <?php
+            return;
+        }
+        $audit = ERDO_Auditor::analyze( $id );
+        $weak  = array();
+        foreach ( (array) ( $audit['checklist'] ?? array() ) as $c ) {
+            $weak[ $c['key'] ?? '' ] = empty( $c['pass'] ) || ( ! empty( $c['weight'] ) && $c['points'] < $c['weight'] );
+        }
+        $rows = array(
+            'alt'      => array( __( 'Alt text', 'erdo-image-optimizer' ), true ),
+            'filename' => array( __( 'Filename', 'erdo-image-optimizer' ), ! empty( $weak['filename'] ) ),
+            'title'    => array( __( 'Title', 'erdo-image-optimizer' ), ! empty( $weak['title'] ) ),
+            'caption'  => array( __( 'Caption', 'erdo-image-optimizer' ), '' === (string) get_post_field( 'post_excerpt', $id ) ),
+        );
+        ?>
+        <div class="erdo-ai-box" data-id="<?php echo esc_attr( $id ); ?>">
+            <h4><span class="dashicons dashicons-lightbulb"></span> <?php esc_html_e( 'AI suggestion — review before saving', 'erdo-image-optimizer' ); ?></h4>
+            <?php if ( false === $s['current_alt_ok'] && '' !== $s['current_alt_issue'] ) : ?>
+                <p class="erdo-ai-issue"><?php echo esc_html( $s['current_alt_issue'] ); ?></p>
+            <?php endif; ?>
+            <?php foreach ( $rows as $field => $row ) : ?>
+                <?php
+                $value = (string) $s[ $field ];
+                if ( 'alt' !== $field && '' === $value ) {
+                    continue;
+                }
+                ?>
+                <label class="erdo-ai-row">
+                    <input type="checkbox" class="erdo-ai-field" value="<?php echo esc_attr( $field ); ?>" <?php checked( $row[1] ); ?>>
+                    <span class="erdo-ai-label"><?php echo esc_html( $row[0] ); ?></span>
+                    <?php if ( 'alt' === $field && ! empty( $s['decorative'] ) ) : ?>
+                        <em class="erdo-ai-decorative"><?php esc_html_e( 'Decorative image: alt will be left empty on purpose.', 'erdo-image-optimizer' ); ?></em>
+                    <?php else : ?>
+                        <input type="text" class="erdo-input erdo-ai-value" data-field="<?php echo esc_attr( $field ); ?>" value="<?php echo esc_attr( $value ); ?>">
+                    <?php endif; ?>
+                </label>
+            <?php endforeach; ?>
+            <div class="erdo-ai-actions">
+                <button type="button" class="button button-primary erdo-ai-accept-btn"><?php esc_html_e( 'Accept selected', 'erdo-image-optimizer' ); ?></button>
+                <button type="button" class="button erdo-ai-reject-btn"><?php esc_html_e( 'Dismiss', 'erdo-image-optimizer' ); ?></button>
+                <button type="button" class="button-link erdo-ai-suggest-btn" data-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Try again', 'erdo-image-optimizer' ); ?></button>
+            </div>
+        </div>
+        <?php
+    }
+
+    public function ajax_ai_suggest() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
+        $r  = ERDO_AI::suggest( $id );
+        if ( is_wp_error( $r ) ) {
+            $data = $r->get_error_data();
+            wp_send_json_error( array( 'message' => $r->get_error_message(), 'code' => $r->get_error_code(), 'retry' => ! empty( $data['retry'] ) ) );
+        }
+        wp_send_json_success( $r );
+    }
+
+    public function ajax_ai_accept() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $id     = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
+        $fields = isset( $_POST['fields'] ) ? array_map( 'sanitize_key', (array) wp_unslash( $_POST['fields'] ) ) : array( 'alt' );
+        $edits  = array();
+        if ( isset( $_POST['edits'] ) && is_array( $_POST['edits'] ) ) {
+            foreach ( wp_unslash( $_POST['edits'] ) as $k => $v ) { // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized per field below and in ERDO_AI::accept()
+                $edits[ sanitize_key( $k ) ] = sanitize_text_field( (string) $v );
+            }
+        }
+        $r = ERDO_AI::accept( $id, $fields, $edits );
+        if ( is_wp_error( $r ) ) {
+            wp_send_json_error( array( 'message' => $r->get_error_message() ) );
+        }
+        wp_send_json_success( array_merge( $r, array( 'audit' => ERDO_Auditor::analyze( $id ) ) ) );
+    }
+
+    public function ajax_ai_reject() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
+        ERDO_AI::reject( $id );
+        wp_send_json_success();
+    }
+
+    /** İnceleme listesi (AI Suggestions sekmesi). */
+    public function ajax_ai_list() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $rows = array();
+        foreach ( ERDO_AI::pending_ids() as $id ) {
+            $s      = ERDO_AI::get( $id );
+            $rows[] = array(
+                'id'          => $id,
+                'thumb'       => (string) wp_get_attachment_image_url( $id, 'thumbnail' ),
+                'filename'    => wp_basename( (string) get_attached_file( $id ) ),
+                'current_alt' => (string) get_post_meta( $id, '_wp_attachment_image_alt', true ),
+                'alt'         => $s['alt'],
+                'decorative'  => ! empty( $s['decorative'] ),
+                'issue'       => (string) $s['current_alt_issue'],
+            );
+        }
+        wp_send_json_success( array( 'rows' => $rows, 'status' => ERDO_AI::status() ) );
+    }
+
+    /** Toplu öneri için aday görseller + maliyet tahmini. */
+    public function ajax_ai_candidates() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $scope = isset( $_POST['scope'] ) && 'weak' === $_POST['scope'] ? 'weak' : 'missing';
+        $ids   = ERDO_AI::candidate_ids( $scope );
+        $n     = count( $ids );
+        // Görsel başına ~1.500 girdi + ~150 çıktı token; küçük görsel modellerde 1.000 görsel ≈ $0,15–0,40.
+        wp_send_json_success( array(
+            'ids'  => $ids,
+            'low'  => number_format( max( 0.01, $n * 0.00015 ), 2 ),
+            'high' => number_format( max( 0.02, $n * 0.0004 ), 2 ),
+        ) );
+    }
+
     public function ajax_usage_build_step() {
         check_ajax_referer( 'erdo_nonce', 'nonce' );
         $this->verify_capability();
@@ -1952,6 +2185,17 @@ class ERDO_Admin_Page {
             'permission_callback' => array( $this, 'rest_permission' ),
         ) );
 
+        register_rest_route( 'erdo/v1', '/ai/(?P<id>\\d+)/(?P<action>suggest|accept|reject)', array(
+            'methods'             => WP_REST_Server::CREATABLE,
+            'callback'            => array( $this, 'rest_ai' ),
+            'permission_callback' => array( $this, 'rest_ai_permission' ),
+            'args'                => array(
+                'id'     => array( 'sanitize_callback' => 'absint' ),
+                'fields' => array( 'default' => array( 'alt' ) ),
+                'edits'  => array( 'default' => array() ),
+            ),
+        ) );
+
         register_rest_route( 'erdo/v1', '/audit', array(
             'methods'             => WP_REST_Server::READABLE,
             'callback'            => array( $this, 'rest_audit' ),
@@ -1961,6 +2205,25 @@ class ERDO_Admin_Page {
                 'status' => array( 'default' => '', 'sanitize_callback' => 'sanitize_text_field' ),
             ),
         ) );
+    }
+
+    /** Tekil AI işlemleri: o görseli düzenleyebilen herkes (yazarlar dahil). */
+    public function rest_ai_permission( WP_REST_Request $request ) {
+        $id = (int) $request['id'];
+        return 'attachment' === get_post_type( $id ) && current_user_can( 'upload_files' ) && current_user_can( 'edit_post', $id );
+    }
+
+    public function rest_ai( WP_REST_Request $request ) {
+        $id     = (int) $request['id'];
+        $action = $request['action'];
+        if ( 'suggest' === $action ) {
+            $r = ERDO_AI::suggest( $id );
+        } elseif ( 'accept' === $action ) {
+            $r = ERDO_AI::accept( $id, array_map( 'sanitize_key', (array) $request->get_param( 'fields' ) ), (array) $request->get_param( 'edits' ) );
+        } else {
+            $r = ERDO_AI::reject( $id );
+        }
+        return is_wp_error( $r ) ? $r : rest_ensure_response( $r );
     }
 
     public function rest_permission() {
