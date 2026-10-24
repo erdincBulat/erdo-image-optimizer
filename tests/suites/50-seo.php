@@ -68,3 +68,59 @@ et_test( 'alt from filename: descriptive name gives usable alt', function () use
 et_test( 'alt from filename: camera names are skipped, not turned into "Img 1234"', function () use ( $m ) {
     et_eq( false, et_alt_from_filename( $m['img']['camera'] ) );
 }, 'F4' );
+
+update_post_meta( $m['img']['good'], '_wp_attachment_image_alt', 'Blue running shoes on a wooden floor' );
+
+et_test( 'score is on a 0-100 scale and a well-described image scores high', function () use ( $m ) {
+    $r = et_audit( $m['img']['good'] );
+    et_assert( $r['score'] >= 70 && $r['score'] <= 100, 'score ' . $r['score'] );
+} );
+
+et_test( 'alt: a single-word alt (logo) passes', function () use ( $m ) {
+    et_eq( true, et_audit( $m['img']['logo'] )['checks']['alt'] ?? null );
+} );
+
+et_test( 'alt: empty alt passes once the image is marked decorative', function () use ( $m ) {
+    $id = $m['img']['siteicon'];
+    et_eq( false, et_audit( $id )['checks']['alt'] ?? null, 'before marking' );
+    et_set_decorative( $id );
+    et_eq( true, et_audit( $id )['checks']['alt'] ?? null, 'after marking' );
+    et_set_decorative( $id, false );
+} );
+
+et_test( 'filename: screenshot, WhatsApp, phone and hash names fail', function () use ( $m ) {
+    foreach ( array( 'Screenshot-2024-05-01-at-10.32.11', 'WhatsApp-Image-2024-01-01-at-12.00.00', 'PXL_20240101_123456789', '8f14e45fceea167a5a36dedd4bea2543' ) as $name ) {
+        et_eq( false, ERDO_SEO::check_filename( $name )['pass'], $name );
+    }
+} );
+
+et_test( 'context: an image only used in a draft scores lower than a published one', function () use ( $m ) {
+    et_index_rebuild();
+    $points = function ( $id ) {
+        foreach ( et_audit( $id )['raw']['checklist'] as $c ) {
+            if ( 'context' === $c['key'] ) {
+                return $c;
+            }
+        }
+        return null;
+    };
+    $draft = $points( $m['img']['draft_only'] );
+    $pub   = $points( $m['img']['block'] );
+    et_assert( $draft['pass'], 'draft usage still counts as used' );
+    et_assert( $draft['points'] < $pub['points'], "draft={$draft['points']} published={$pub['points']}" );
+} );
+
+/* --- Image sitemap (core wp-sitemap.xml) --------------------------- */
+et_test( 'image sitemap: listed in wp-sitemap.xml with image:loc for published pages only', function () use ( $m ) {
+    if ( ! get_option( 'blog_public' ) ) {
+        et_skip( 'site is not public, core sitemaps are off' );
+    }
+    et_index_rebuild();
+    $index = et_fetch( home_url( '/wp-sitemap.xml' ) );
+    et_assert( false !== strpos( $index, 'wp-sitemap-erdoimages-1.xml' ), 'not in the sitemap index' );
+    $xml = et_fetch( home_url( '/wp-sitemap-erdoimages-1.xml' ) );
+    et_assert( false !== strpos( $xml, 'xmlns:image=' ), 'no image namespace' );
+    et_assert( false !== strpos( $xml, esc_xml( wp_get_attachment_url( $m['img']['block'] ) ) ), 'published block image missing' );
+    et_assert( false === strpos( $xml, basename( get_attached_file( $m['img']['draft_only'] ) ) ), 'draft-only image listed' );
+    et_assert( false === strpos( $xml, basename( get_attached_file( $m['img']['unused'] ) ) ), 'unused image listed' );
+} );

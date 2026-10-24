@@ -17,6 +17,7 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) { return; }
  *   wp erdo index
  *   wp erdo unused
  *   wp erdo quarantine list
+ *   wp erdo rename --all --dry-run
  *   wp erdo clean-cache
  */
 class ERDO_CLI {
@@ -170,13 +171,16 @@ class ERDO_CLI {
             $rows[] = array(
                 'id'       => $id,
                 'filename' => $data['filename'],
-                'score'    => $data['score'] . '/6',
+                'score'    => (int) $data['score'],
                 'status'   => $data['status'],
                 'is_used'  => $data['is_used'] ? 'yes' : 'no',
+                'issues'   => implode( ',', array_keys( array_filter( array_column( $data['checklist'], 'pass', 'key' ), function ( $pass ) {
+                    return ! $pass;
+                } ) ) ),
             );
         }
 
-        WP_CLI\Utils\format_items( $format, $rows, array( 'id', 'filename', 'score', 'status', 'is_used' ) );
+        WP_CLI\Utils\format_items( $format, $rows, array( 'id', 'filename', 'score', 'status', 'is_used', 'issues' ) );
         WP_CLI::log( count( $rows ) . ' images listed.' );
     }
 
@@ -423,6 +427,110 @@ class ERDO_CLI {
             ),
             array( 'Key', 'Value' )
         );
+    }
+
+    /* ------------------------------------------------------------------
+       wp erdo rename
+    ------------------------------------------------------------------ */
+
+    /**
+     * Rename images safely: every size and WebP/AVIF copy moves together, every
+     * reference is updated and old URLs redirect (301) to the new ones.
+     *
+     * ## OPTIONS
+     *
+     * [<id>...]
+     * : Attachment IDs. Without IDs (and with --all) every image is checked.
+     *
+     * [--all]
+     * : Fix the filenames of the whole library (only names that would change).
+     *
+     * [--name=<name>]
+     * : New name for a single image.
+     *
+     * [--pattern=<pattern>]
+     * : Name pattern for several images. Tokens: {keyword} {n} {parent} {title} {original} {alt}
+     *
+     * [--keyword=<keyword>]
+     * : Value of {keyword}. Empty = the parent post's SEO focus keyword or title.
+     *
+     * [--dry-run]
+     * : Only show what would change.
+     *
+     * [--undo=<batch>]
+     * : Undo an earlier batch (its ID is printed after every rename).
+     *
+     * ## EXAMPLES
+     *
+     *   wp erdo rename --all --dry-run
+     *   wp erdo rename 42 --name="blue running shoes"
+     *   wp erdo rename 12 13 14 --pattern="{keyword}-{n}" --keyword=istanbul
+     *   wp erdo rename --undo=b1729760000123
+     *
+     * @subcommand rename
+     */
+    public function rename( $args, $assoc ) {
+        if ( ! empty( $assoc['undo'] ) ) {
+            $r = ERDO_Renamer::undo_batch( sanitize_key( $assoc['undo'] ) );
+            is_wp_error( $r ) ? WP_CLI::error( $r->get_error_message() ) : WP_CLI::success( sprintf( '%d images restored, %d errors.', $r['restored'], $r['errors'] ) );
+            return;
+        }
+
+        $ids = array_map( 'intval', $args );
+        if ( ! $ids ) {
+            if ( empty( $assoc['all'] ) ) {
+                WP_CLI::error( 'Give attachment IDs or --all.' );
+            }
+            $ids = get_posts( array(
+                'post_type'      => 'attachment',
+                'post_status'    => 'inherit',
+                'post_mime_type' => 'image',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+                'orderby'        => 'ID',
+                'order'          => 'ASC',
+            ) );
+        }
+
+        $pattern = $assoc['pattern'] ?? null;
+        if ( isset( $assoc['name'] ) ) {
+            if ( 1 !== count( $ids ) ) {
+                WP_CLI::error( '--name works with a single ID; use --pattern for several.' );
+            }
+            $pattern = $assoc['name'];
+        }
+        $rows = ERDO_Renamer::preview( $ids, $pattern, array( 'keyword' => $assoc['keyword'] ?? '' ), null === $pattern );
+
+        WP_CLI\Utils\format_items( 'table', $rows, array( 'id', 'old', 'new', 'error' ) );
+        $todo = array();
+        foreach ( $rows as $row ) {
+            if ( '' === $row['error'] ) {
+                $todo[ $row['id'] ] = $row['stem'];
+            }
+        }
+        if ( isset( $assoc['dry-run'] ) || ! $todo ) {
+            WP_CLI::log( count( $todo ) . ' images would be renamed.' );
+            return;
+        }
+
+        $batch  = ERDO_Renamer::new_batch_id();
+        $done   = 0;
+        $errors = 0;
+        $bar    = WP_CLI\Utils\make_progress_bar( 'Renaming', count( $todo ) );
+        foreach ( array_chunk( $todo, 25, true ) as $chunk ) {
+            foreach ( ERDO_Renamer::apply_items( $chunk, $batch ) as $id => $r ) {
+                if ( is_wp_error( $r ) ) {
+                    $errors++;
+                    WP_CLI::warning( "#$id: " . $r->get_error_message() );
+                } else {
+                    $done++;
+                }
+                $bar->tick();
+            }
+        }
+        $bar->finish();
+        WP_CLI::success( sprintf( '%d renamed, %d errors. Undo with: wp erdo rename --undo=%s', $done, $errors, $batch ) );
     }
 
     /* ------------------------------------------------------------------

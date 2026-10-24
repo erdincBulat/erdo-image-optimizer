@@ -1701,3 +1701,161 @@
 .erdo-q-thumb .dashicons { font-size: 32px; width: 32px; height: 32px; color: #94a3b8; }
 .erdo-q-meta { padding: 0 10px; font-size: 11px; color: #64748b; }
 .erdo-q-actions { display: flex; gap: 6px; padding: 8px 10px 10px; flex-wrap: wrap; }
+
+/* ─── FAZ 4: PUAN SATIRLARI, SEÇİM, YENİDEN ADLANDIRMA ─────────────────────── */
+.erdo-checklist li.partial {
+    border-color: var(--e-orange-border);
+    background: var(--e-orange-pale);
+    border-left: 4px solid var(--e-orange);
+}
+.erdo-checklist li.info {
+    background: var(--e-gray-pale);
+    border-left: 4px solid var(--e-gray-border);
+}
+.erdo-checklist li.partial .audit-label strong::before { content: "! "; color: var(--e-orange); }
+.erdo-points {
+    margin-left: 6px;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--e-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+.erdo-points-info { font-weight: 500; font-style: italic; }
+.erdo-checklist .desc { margin-top: 6px; }
+.erdo-decorative-toggle {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    margin-top: 8px;
+    font-size: 12px;
+    color: var(--e-text-2);
+}
+.erdo-focus-kw { color: var(--e-blue); }
+.erdo-last-rename {
+    font-size: 12px;
+    color: var(--e-text-muted);
+    margin: 6px 0;
+}
+
+/* Kart seçimi: köşedeki kutu hover'da ya da seçim sürerken görünür */
+.erdo-card-check {
+    position: absolute;
+    top: 6px;
+    left: 6px;
+    z-index: 2;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border: 2px solid #fff;
+    border-radius: 5px;
+    background: rgba(15, 23, 42, .35);
+    box-shadow: var(--e-shadow);
+    cursor: pointer;
+    opacity: 0;
+    transition: var(--e-transition);
+}
+.erdo-card:hover .erdo-card-check,
+.erdo-card-check:focus-visible,
+.erdo-selecting .erdo-card-check { opacity: 1; }
+.erdo-card-check:focus-visible { outline: 2px solid var(--e-blue-mid); outline-offset: 2px; }
+.erdo-card.erdo-selected { outline: 3px solid var(--e-blue-mid); outline-offset: -3px; }
+.erdo-card.erdo-selected .erdo-card-check { background: var(--e-blue-mid); opacity: 1; }
+.erdo-card.erdo-selected .erdo-card-check::after {
+    content: "";
+    position: absolute;
+    left: 5px;
+    top: 1px;
+    width: 6px;
+    height: 11px;
+    border: solid #fff;
+    border-width: 0 2px 2px 0;
+    transform: rotate(45deg);
+}
+
+.erdo-selection-bar {
+    position: fixed;
+    left: 50%;
+    bottom: 24px;
+    transform: translateX(-50%);
+    z-index: 9990;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    background: var(--e-text);
+    color: #fff;
+    border-radius: var(--e-radius);
+    box-shadow: var(--e-shadow-lg);
+    font-size: 13px;
+}
+.erdo-selection-bar.hidden { display: none; }
+.erdo-selection-bar .button .dashicons { margin-top: 3px; }
+.erdo-selection-bar .button:not(.button-primary) {
+    background: transparent;
+    color: #fff;
+    border-color: rgba(255, 255, 255, .5);
+}
+.erdo-selection-bar .button:not(.button-primary):hover,
+.erdo-selection-bar .button:not(.button-primary):focus { background: rgba(255, 255, 255, .12); color: #fff; }
+
+/* Yeniden adlandırma penceresi */
+.erdo-rename-body { padding: 0 24px 24px; }
+.erdo-rn-fields {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+}
+.erdo-rn-fields label {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--e-text-2);
+}
+.erdo-rn-hint, .erdo-rn-safety {
+    font-size: 12px;
+    color: var(--e-text-muted);
+    margin: 10px 0;
+}
+.erdo-rn-safety {
+    padding: 8px 10px;
+    background: var(--e-blue-pale);
+    border: 1px solid var(--e-blue-border);
+    border-radius: var(--e-radius-sm);
+    color: var(--e-text-2);
+}
+.erdo-rn-safety .dashicons { color: var(--e-blue-mid); font-size: 16px; width: 16px; height: 16px; vertical-align: text-bottom; }
+#erdo-rn-table {
+    max-height: 45vh;
+    overflow: auto;
+    border: 1px solid var(--e-border);
+    border-radius: var(--e-radius-sm);
+}
+.erdo-rn-list { width: 100%; border-collapse: collapse; font-size: 12.5px; }
+.erdo-rn-list th {
+    position: sticky;
+    top: 0;
+    background: var(--e-gray-pale);
+    text-align: left;
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--e-border);
+}
+.erdo-rn-list td { padding: 6px 10px; border-bottom: 1px solid var(--e-border); vertical-align: middle; }
+.erdo-rn-list td:last-child { display: flex; align-items: center; gap: 2px; }
+.erdo-rn-old { color: var(--e-text-muted); word-break: break-all; width: 45%; }
+.erdo-rn-stem { padding: 4px 8px; }
+.erdo-rn-ext { color: var(--e-text-muted); white-space: nowrap; }
+.erdo-rn-error { color: var(--e-red); }
+.erdo-rn-row-done td:last-child { color: var(--e-green); font-weight: 600; }
+.erdo-rn-loading, .erdo-rn-empty { padding: 16px; margin: 0; color: var(--e-text-muted); }
+.erdo-rn-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
+    margin-top: 14px;
+}
+#erdo-rn-status { font-size: 13px; color: var(--e-text-2); }

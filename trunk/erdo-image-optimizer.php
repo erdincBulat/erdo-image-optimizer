@@ -24,6 +24,9 @@ require_once ERDO_PATH . 'includes/class-references.php';
 require_once ERDO_PATH . 'includes/class-migration.php';
 require_once ERDO_PATH . 'includes/class-usage.php';
 require_once ERDO_PATH . 'includes/class-quarantine.php';
+require_once ERDO_PATH . 'includes/class-seo.php';
+require_once ERDO_PATH . 'includes/class-renamer.php';
+require_once ERDO_PATH . 'includes/class-sitemap.php';
 require_once ERDO_PATH . 'includes/class-admin-page.php';
 require_once ERDO_PATH . 'includes/class-webp-server.php';
 require_once ERDO_PATH . 'includes/class-queue.php';
@@ -44,6 +47,8 @@ function erdo_init() {
     ERDO_Migration::maybe_upgrade();
     ERDO_Converter::init();
     ERDO_Usage::init();
+    ERDO_Renamer::init();
+    ERDO_Sitemap::init();
     new ERDO_Admin_Page();
     ERDO_Queue::register_interval();
     ERDO_WebP_Server::init();

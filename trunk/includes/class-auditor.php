@@ -12,6 +12,9 @@ class ERDO_Auditor {
     public static function clear_cache( $post_id ) {
         delete_post_meta( $post_id, '_erdo_audit_cache' );
         wp_cache_delete( $post_id, 'post_meta' );
+        // bulk_analyze() ham meta satırlarını bu grupta 300 sn tutar; temizlenmezse
+        // kalıcı object cache'li sitelerde az önce kaydedilen alt metin bayat görünür.
+        self::flush_usage_cache();
     }
 
     /**
@@ -191,7 +194,7 @@ class ERDO_Auditor {
         if ( false === $metadata_rows ) {
                 // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $metadata_rows = $wpdb->get_results( $wpdb->prepare(
-                "SELECT post_id, meta_key, meta_value FROM $wpdb->postmeta WHERE post_id IN ($placeholders) AND meta_key IN ('_wp_attached_file','_wp_attachment_metadata','_wp_attachment_image_alt','_erdo_audit_cache','_erdo_savings_bytes','_erdo_original_size','_erdo_formats','_erdo_saved_bytes')",
+                "SELECT post_id, meta_key, meta_value FROM $wpdb->postmeta WHERE post_id IN ($placeholders) AND meta_key IN ('_wp_attached_file','_wp_attachment_metadata','_wp_attachment_image_alt','_erdo_audit_cache','_erdo_savings_bytes','_erdo_original_size','_erdo_formats','_erdo_saved_bytes','_erdo_decorative')",
                 ...$attachment_ids
             ), ARRAY_A );
             // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -266,7 +269,8 @@ class ERDO_Auditor {
 
         // 5. Sadece cache'siz görseller için usage kontrolü — indeks hazırsa tek sorgu,
         //    değilse (ilk kurulum sürerken) eski LIKE taraması.
-        $usage_results = ERDO_Usage::is_ready() ? ERDO_Usage::bulk_used( $uncached_ids ) : self::bulk_check_usage( $uncached_ids );
+        $usage_results     = ERDO_Usage::is_ready() ? ERDO_Usage::bulk_used( $uncached_ids ) : self::bulk_check_usage( $uncached_ids );
+        $indexable_results = ERDO_Usage::is_ready() ? ERDO_Usage::bulk_indexable( $uncached_ids ) : array();
 
         // 6. Cache'siz görselleri analiz et
         foreach ( $uncached_ids as $post_id ) {
@@ -285,46 +289,83 @@ class ERDO_Auditor {
             $parent_title = ( $post['post_parent'] > 0 && isset( $parent_titles[ $post['post_parent'] ] ) )
                 ? $parent_titles[ $post['post_parent'] ]
                 : '';
-            $width        = $meta['width'] ?? 0;
-            $height       = $meta['height'] ?? 0;
+            $width        = (int) ( $meta['width'] ?? 0 );
+            $height       = (int) ( $meta['height'] ?? 0 );
             $is_used      = $usage_results[ $post_id ] ?? false;
+            $w            = ERDO_SEO::WEIGHTS;
 
+            // Puan kuralları ERDO_SEO'da; burada yalnızca veri toplanır ve satırlar kurulur.
+            // Her satır: key, label, pass, points, weight, value, msg. weight 0 = bilgi amaçlı.
             $checklist = array();
 
-            // --- Filename: sadece underscore ve boşluk kötü, rakam dizisi normal ---
-            $checklist[] = array(
-                'label' => 'Filename',
-                'pass'  => ! preg_match( '/[_\s]/', $name ),
-                'value' => $name,
-                'msg'   => __( 'Filename contains underscores or spaces. Use hyphens for better SEO.', 'erdo-image-optimizer' ),
+            // --- Alt metin (40) ---
+            $decorative  = ! empty( $meta_by_post[ $post_id ][ ERDO_SEO::DECORATIVE_META ] );
+            $c           = ERDO_SEO::check_alt( $alt, $name, $decorative );
+            $checklist[] = array_merge( $c, array(
+                'key'        => 'alt',
+                'label'      => __( 'Alt Text', 'erdo-image-optimizer' ),
+                'weight'     => $w['alt'],
+                'value'      => $alt,
+                'decorative' => $decorative,
+            ) );
+
+            // --- Dosya adı (20) ---
+            $c           = ERDO_SEO::check_filename( $name );
+            $checklist[] = array_merge( $c, array(
+                'key'    => 'filename',
+                'label'  => __( 'Filename', 'erdo-image-optimizer' ),
+                'weight' => $w['filename'],
+                'value'  => $name,
+            ) );
+
+            // --- Format (10): dosyanın kendisi ya da kardeşi WebP/AVIF ise geçer ---
+            $record       = $meta_by_post[ $post_id ][ ERDO_Converter::META ] ?? null;
+            $record       = is_array( $record ) ? $record : array();
+            $is_optimized = ERDO_Converter::is_optimized( $post_id, $mime, $record );
+            $best_sibling = ERDO_Converter::best_main_sibling( $post_id, $record, $file );
+            $checklist[]  = array(
+                'key'    => 'format',
+                'label'  => __( 'Format', 'erdo-image-optimizer' ),
+                'pass'   => $is_optimized,
+                'points' => $is_optimized ? $w['format'] : 0,
+                'weight' => $w['format'],
+                'msg'    => $is_optimized
+                    ? __( 'A WebP/AVIF version is served to browsers that support it.', 'erdo-image-optimizer' )
+                    : sprintf(
+                        // translators: %s: mevcut format (JPG, PNG vb.).
+                        __( 'Current format is %s. Create a WebP or AVIF version for faster loading.', 'erdo-image-optimizer' ),
+                        strtoupper( str_replace( 'image/', '', $mime ) )
+                    ),
             );
 
-            // --- Alt Text ---
-            $checklist[] = array(
-                'label' => 'Alt Text',
-                'pass'  => ! empty( $alt ),
-                'value' => $alt,
-                'msg'   => __( 'Alt text is missing. Search engines use this to understand your image.', 'erdo-image-optimizer' ),
+            // --- Dosya boyutu (10): ziyaretçiye giden boyut (varsa en küçük kardeş). filesize meta yoksa (WP < 6.0) geçer ---
+            $served_size  = $best_sibling ? $best_sibling['bytes'] : (int) ( $meta['filesize'] ?? 0 );
+            $has_filesize = $served_size > 0;
+            $size_pass    = ! $has_filesize || $served_size < ERDO_SEO::MAX_BYTES;
+            $checklist[]  = array(
+                'key'    => 'filesize',
+                'label'  => __( 'File Size', 'erdo-image-optimizer' ),
+                'pass'   => $size_pass,
+                'points' => $size_pass ? $w['filesize'] : ( $served_size < 2 * ERDO_SEO::MAX_BYTES ? (int) round( $w['filesize'] / 2 ) : 0 ),
+                'weight' => $w['filesize'],
+                'msg'    => $has_filesize
+                    ? sprintf(
+                        // translators: %s: dosya boyutu KB cinsinden.
+                        __( 'File size is %s KB. Aim for under 250 KB.', 'erdo-image-optimizer' ),
+                        round( $served_size / 1024 )
+                    )
+                    : __( 'File size unknown. Re-save or regenerate thumbnails to detect it.', 'erdo-image-optimizer' ),
             );
 
-            // --- Image Title: sadece underscore kötü, tire tamamen normal ---
-            $title_pass = ! empty( $title ) && false === strpos( $title, '_' );
+            // --- Boyutlar (5): genişlik VE yükseklik (0 = bilinmiyor, kaybettirmez) ---
+            $limit       = ERDO_SEO::MAX_DIMENSION;
+            $oversized   = $width > $limit || $height > $limit;
             $checklist[] = array(
-                'label' => 'Image Title',
-                'pass'  => $title_pass,
-                'value' => $title,
-                'msg'   => __( 'Title is empty or contains underscores. Keep it clean and readable.', 'erdo-image-optimizer' ),
-            );
-
-            // --- Dimensions: genişlik VE yükseklik kontrol edilir (0 = bilinmiyor, FAİL olmaz) ---
-            $limit      = 2560;
-            $width_ok   = ( 0 === $width ) || ( $width <= $limit );
-            $height_ok  = ( 0 === $height ) || ( $height <= $limit );
-            $dim_pass   = $width_ok && $height_ok;
-            $oversized  = ( $width > $limit ) || ( $height > $limit );
-            $checklist[] = array(
-                'label'  => 'Dimensions',
-                'pass'   => $dim_pass,
+                'key'    => 'dimensions',
+                'label'  => __( 'Dimensions', 'erdo-image-optimizer' ),
+                'pass'   => ! $oversized,
+                'points' => $oversized ? 0 : $w['dimensions'],
+                'weight' => $w['dimensions'],
                 'width'  => $width,
                 'height' => $height,
                 'msg'    => $oversized
@@ -335,56 +376,38 @@ class ERDO_Auditor {
                         $height,
                         $limit
                     )
-                    : __( 'Image dimensions could not be detected. This may resolve after re-saving.', 'erdo-image-optimizer' ),
+                    : ( $width ? __( 'Dimensions are within the recommended size.', 'erdo-image-optimizer' ) : __( 'Image dimensions could not be detected. This may resolve after re-saving.', 'erdo-image-optimizer' ) ),
             );
 
-            // --- Format: dosyanın kendisi ya da kardeşi WebP/AVIF ise geçer ---
-            $record       = $meta_by_post[ $post_id ][ ERDO_Converter::META ] ?? null;
-            $record       = is_array( $record ) ? $record : array();
-            $is_optimized = ERDO_Converter::is_optimized( $post_id, $mime, $record );
-            $best_sibling = ERDO_Converter::best_main_sibling( $post_id, $record, $file );
-            $checklist[]  = array(
-                'label' => 'Format',
-                'pass'  => $is_optimized,
-                'msg'   => sprintf(
-                    // translators: %s: mevcut format (JPG, PNG vb.).
-                    __( 'Current format is %s. WebP or AVIF is recommended for better performance.', 'erdo-image-optimizer' ),
-                    strtoupper( str_replace( 'image/', '', $mime ) )
-                ),
-            );
-
-            // --- File Size: ziyaretçiye giden boyut (varsa en küçük kardeş). filesize meta yoksa (WP < 6.0) geçer ---
-            $served_size  = $best_sibling ? $best_sibling['bytes'] : (int) ( $meta['filesize'] ?? 0 );
-            $has_filesize = $served_size > 0;
-            $checklist[]  = array(
-                'label' => 'File Size',
-                'pass'  => ! $has_filesize || $served_size < 256000,
-                'msg'   => $has_filesize
-                    ? sprintf(
-                        // translators: %s: dosya boyutu KB cinsinden.
-                        __( 'File size is %s KB. Aim for under 250 KB.', 'erdo-image-optimizer' ),
-                        round( $served_size / 1024 )
-                    )
-                    : __( 'File size unknown. Re-save or regenerate thumbnails to detect it.', 'erdo-image-optimizer' ),
-            );
-
-            // --- Skor ve Durum ---
-            $score = 0;
-            foreach ( $checklist as $c ) {
-                if ( $c['pass'] ) {
-                    $score++;
-                }
-            }
-
+            // --- Bağlam (15): kullanılıyor mu, dizinlenebilir bir yerde mi ---
+            $indexable = $is_used && ( $indexable_results[ $post_id ] ?? true );
             if ( ! $is_used ) {
-                $status = 'gray';
-            } elseif ( 6 === $score ) {
-                $status = 'green';
-            } elseif ( $score >= 3 ) {
-                $status = 'orange';
+                $ctx = array( 'pass' => false, 'points' => 0, 'msg' => __( 'Not used anywhere on the site, so search engines never see it.', 'erdo-image-optimizer' ) );
+            } elseif ( ! $indexable ) {
+                $ctx = array( 'pass' => true, 'points' => 8, 'msg' => __( 'Only used where search engines do not look (drafts, private or noindex pages, CSS backgrounds).', 'erdo-image-optimizer' ) );
             } else {
-                $status = 'red';
+                $ctx = array( 'pass' => true, 'points' => $w['context'], 'msg' => __( 'Used on a page search engines can index.', 'erdo-image-optimizer' ) );
             }
+            $checklist[] = array_merge( $ctx, array(
+                'key'    => 'context',
+                'label'  => __( 'Usage', 'erdo-image-optimizer' ),
+                'weight' => $w['context'],
+            ) );
+
+            // --- Başlık: bilgi amaçlı, puana katılmaz (title niteliğinin SEO karşılığı yok) ---
+            $checklist[] = array(
+                'key'    => 'title',
+                'label'  => __( 'Image Title', 'erdo-image-optimizer' ),
+                'pass'   => '' !== trim( (string) $title ) && false === strpos( $title, '_' ),
+                'points' => 0,
+                'weight' => 0,
+                'value'  => $title,
+                'msg'    => __( 'Shown in the media library and as a tooltip. Not used for ranking, so it does not affect the score.', 'erdo-image-optimizer' ),
+            );
+
+            // --- Skor ve durum ---
+            $score  = min( 100, (int) array_sum( wp_list_pluck( $checklist, 'points' ) ) );
+            $status = ERDO_SEO::status( $score, $is_used );
 
             // Ana dosya için kazanç: orijinal ↔ en küçük kardeş (3.0). 2.x'ten kalan
             // (onarılmamış) görsellerde eski meta alanları kullanılır.
@@ -416,6 +439,8 @@ class ERDO_Auditor {
             );
 
             update_post_meta( $post_id, '_erdo_audit_cache', $result );
+            // Ayrı küçük meta: panel genel ortalamayı tek AVG sorgusuyla hesaplar.
+            update_post_meta( $post_id, ERDO_SEO::SCORE_META, $score );
             $results[ $post_id ] = $result;
         }
 
@@ -532,11 +557,22 @@ class ERDO_Auditor {
             update_post_meta( $post_id, '_wp_attachment_image_alt', sanitize_text_field( $new_data['alt_text'] ) );
         }
 
+        if ( isset( $new_data['decorative'] ) ) {
+            if ( '1' === (string) $new_data['decorative'] ) {
+                update_post_meta( $post_id, ERDO_SEO::DECORATIVE_META, 1 );
+            } else {
+                delete_post_meta( $post_id, ERDO_SEO::DECORATIVE_META );
+            }
+        }
+
         if ( isset( $new_data['title'] ) ) {
             wp_update_post( array( 'ID' => $post_id, 'post_title' => sanitize_text_field( $new_data['title'] ) ) );
         }
 
-        if ( ! empty( $new_data['filename'] ) ) {
+        // Alan formda hep dolu gelir; yalnızca kullanıcı adı gerçekten değiştirdiyse
+        // yeniden adlandır (yoksa alt metni kaydetmek "IMG_1234"ü sessizce taşırdı).
+        $current_stem = pathinfo( (string) get_attached_file( $post_id ), PATHINFO_FILENAME );
+        if ( ! empty( $new_data['filename'] ) && trim( (string) $new_data['filename'] ) !== $current_stem ) {
             // rename_file() thumbnail'leri, guid'i ve post_content/postmeta URL
             // referanslarını da günceller — "Fix Filename" butonuyla aynı, tam
             // yeniden adlandırma yolunu kullanır. WP_Error dönüşleri (isim zaten
@@ -561,140 +597,21 @@ class ERDO_Auditor {
        DOSYA ADI YENİDEN ADLANDIRMA + TÜM DB REFERANSLARI GÜNCELLEME
     ------------------------------------------------------------------ */
 
+    /**
+     * Geriye dönük uyumluluk: tek görseli yeniden adlandırır (ERDO_Renamer).
+     * $new_name null ise mevcut ad temizlenir ("Fix Filename"); verilirse ve
+     * "orijinal adı ekle" ayarı açıksa eski ad sona eklenir.
+     */
     public static function rename_file( $post_id, $new_name = null ) {
-        global $wpdb;
-
-        $old_path = get_attached_file( $post_id );
-        if ( ! $old_path || ! file_exists( $old_path ) ) {
-            return new WP_Error( 'not_found', 'File not found.' );
+        $append = null !== $new_name && get_option( 'erdo_append_original_filename' );
+        $r      = ERDO_Renamer::rename( $post_id, $new_name, array( 'append_original' => $append ) );
+        if ( is_wp_error( $r ) ) {
+            return $r;
         }
-
-        $path_info      = pathinfo( $old_path );
-        $ext            = strtolower( $path_info['extension'] );
-        $old_name       = $path_info['filename'];
-        $is_custom_name = ( null !== $new_name );
-        // $new_name verilmezse (Fix Filename butonu) mevcut adı sanitize eder;
-        // verilirse (modal'daki Filename alanı) kullanıcının girdiği adı sanitize eder.
-        $new_name  = sanitize_title( null === $new_name ? $old_name : $new_name );
-        // sanitize_title() alt çizgiyi olduğu gibi bırakır (yalnızca küçük harfe çevirir) —
-        // "photo_001" öz adla birebir aynı kalıp yanlışlıkla "already clean" sayılmasın diye
-        // tireye çeviriyoruz (upload-time sanitizer'la aynı davranış).
-        $new_name  = str_replace( '_', '-', $new_name );
-
-        if ( '' === $new_name ) {
-            return new WP_Error( 'invalid_name', 'Filename cannot be empty.' );
-        }
-
-        if ( $old_name === $new_name ) {
-            return new WP_Error( 'clean', 'Filename already clean.' );
-        }
-
-        // Kullanıcı modal'dan özel bir isim girdiyse (Fix Filename butonu değil) ve
-        // ayar açıksa, orijinal dosya adını sona ekle — "istanbul" → "istanbul-img-1234".
-        // Bu, yeniden adlandırılan görseller arasında çakışmayı önler ve kırık bağlantı
-        // durumunda orijinal ada referans bırakır.
-        if ( $is_custom_name && get_option( 'erdo_append_original_filename' ) ) {
-            $new_name = $new_name . '-' . str_replace( '_', '-', sanitize_title( $old_name ) );
-        }
-
-        $new_path = $path_info['dirname'] . '/' . $new_name . '.' . $ext;
-
-        // Hedef dosya zaten varsa benzersiz isim üret
-        if ( file_exists( $new_path ) ) {
-            $new_name = $new_name . '-' . $post_id;
-            $new_path = $path_info['dirname'] . '/' . $new_name . '.' . $ext;
-        }
-
-        // Thumbnail dosyalarını da yeniden adlandır (önce, ana dosya taşınmadan)
-        $old_meta = wp_get_attachment_metadata( $post_id );
-        $thumb_renames = array();
-        if ( ! empty( $old_meta['sizes'] ) ) {
-            foreach ( $old_meta['sizes'] as $size_data ) {
-                if ( empty( $size_data['file'] ) ) {
-                    continue;
-                }
-                $old_thumb     = $path_info['dirname'] . '/' . $size_data['file'];
-                $thumb_info    = pathinfo( $old_thumb );
-                $suffix        = substr( $thumb_info['filename'], strlen( $old_name ) );
-                $new_thumb     = $path_info['dirname'] . '/' . $new_name . $suffix . '.' . $thumb_info['extension'];
-                if ( file_exists( $old_thumb ) ) {
-                    $thumb_renames[] = array( 'old' => $old_thumb, 'new' => $new_thumb );
-                }
-            }
-        }
-
-        // Kardeş WebP/AVIF dosyaları eski adı taşıyor — sil, taşımadan sonra yeni adla yeniden üret.
-        $was_optimized = ERDO_Converter::is_optimized( $post_id );
-        ERDO_Converter::revert( $post_id );
-
-        // Ana dosyayı taşı
-        require_once ABSPATH . 'wp-admin/includes/file.php';
-        WP_Filesystem();
-        global $wp_filesystem;
-
-        if ( ! $wp_filesystem || ! $wp_filesystem->move( $old_path, $new_path ) ) {
-            return new WP_Error( 'move_failed', 'Could not rename file.' );
-        }
-
-        // Thumbnail'leri taşı
-        foreach ( $thumb_renames as $tr ) {
-            $wp_filesystem->move( $tr['old'], $tr['new'] );
-        }
-
-        // Upload base URL hesapla
-        $upload_dir = wp_upload_dir();
-        $base_dir   = trailingslashit( $upload_dir['basedir'] );
-        $base_url   = trailingslashit( $upload_dir['baseurl'] );
-        $rel_dir    = ltrim( str_replace( $base_dir, '', trailingslashit( $path_info['dirname'] ) ), '/' );
-        $old_url    = $base_url . $rel_dir . $old_name . '.' . $ext;
-        $new_url    = $base_url . $rel_dir . $new_name . '.' . $ext;
-
-        // DB: _wp_attached_file
-        update_attached_file( $post_id, $new_path );
-
-        // DB: guid
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $wpdb->update( $wpdb->posts, array( 'guid' => $new_url ), array( 'ID' => $post_id ) );
-
-        // DB: post_title (sadece eski dosya adıyla aynıysa güncelle)
-        $current_post = get_post( $post_id );
-        if ( $current_post && $current_post->post_title === $old_name ) {
-            wp_update_post( array( 'ID' => $post_id, 'post_title' => $new_name ) );
-        }
-
-        // DB: Metadata yeniden oluştur
-        require_once ABSPATH . 'wp-admin/includes/image.php';
-        ERDO_Converter::suspend_upload_hook();
-        $attach_data             = wp_generate_attachment_metadata( $post_id, $new_path );
-        ERDO_Converter::resume_upload_hook();
-        clearstatcache();
-        $attach_data['filesize'] = file_exists( $new_path ) ? filesize( $new_path ) : 0;
-        wp_update_attachment_metadata( $post_id, $attach_data );
-        if ( $was_optimized ) {
-            ERDO_Converter::convert( $post_id );
-        }
-
-        // DB: post_content URL referansları
-        $like_old = '%' . $wpdb->esc_like( $old_name . '.' . $ext ) . '%';
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $wpdb->query( $wpdb->prepare(
-            "UPDATE {$wpdb->posts} SET post_content = REPLACE(post_content, %s, %s) WHERE post_content LIKE %s",
-            $old_url, $new_url, $like_old
-        ) );
-
-        // DB: postmeta referansları (page builder meta, gallery IDs vb.)
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $wpdb->query( $wpdb->prepare(
-            "UPDATE {$wpdb->postmeta} SET meta_value = REPLACE(meta_value, %s, %s) WHERE meta_value LIKE %s",
-            $old_url, $new_url, $like_old
-        ) );
-
-        self::clear_cache( $post_id );
-
         return array(
-            'old_name' => $old_name,
-            'new_name' => $new_name,
-            'new_url'  => $new_url,
+            'old_name' => $r['old_stem'],
+            'new_name' => $r['new_stem'],
+            'new_url'  => wp_get_attachment_url( $post_id ),
         );
     }
 
@@ -724,14 +641,20 @@ class ERDO_Auditor {
             if ( $status_filter && $status_filter !== $cat ) {
                 continue;
             }
+            $issues = array();
+            foreach ( (array) ( $r['checklist'] ?? array() ) as $c ) {
+                if ( ! empty( $c['weight'] ) && $c['points'] < $c['weight'] ) {
+                    $issues[] = $c['label'] . ': ' . $c['msg'];
+                }
+            }
             $rows[] = array(
                 'id'       => $id,
                 'filename' => $r['filename'],
-                'score'    => $r['score'] . '/6',
+                'score'    => (int) $r['score'],
                 'status'   => $cat,
-                'format'   => strtoupper( str_replace( 'image/', '', $r['mime'] ?? '' ) ),
+                'format'   => strtoupper( $r['served_format'] ?? str_replace( 'image/', '', $r['mime'] ?? '' ) ),
                 'alt_text' => get_post_meta( $id, '_wp_attachment_image_alt', true ),
-                'title'    => get_the_title( $id ),
+                'issues'   => implode( ' | ', $issues ),
                 'edit_url' => admin_url( 'post.php?post=' . $id . '&action=edit' ),
             );
         }
@@ -748,8 +671,11 @@ class ERDO_Auditor {
         if ( ! $file ) {
             return false;
         }
-        $name    = pathinfo( $file, PATHINFO_FILENAME );
-        $alt     = ucwords( str_replace( array( '-', '_' ), ' ', sanitize_title( $name ) ) );
+        // Kamera / ekran görüntüsü adları atlanır: "Img 1234" bir alt metin değildir.
+        $alt = ERDO_SEO::alt_from_filename( pathinfo( $file, PATHINFO_FILENAME ) );
+        if ( false === $alt ) {
+            return false;
+        }
         update_post_meta( $post_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
         self::clear_cache( $post_id );
         return $alt;

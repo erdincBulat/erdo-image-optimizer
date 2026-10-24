@@ -76,6 +76,11 @@ $erdo_meta_keys = array(
     '_erdo_original_size',
     '_erdo_backup_path',
     '_erdo_cdn_url',
+    '_erdo_seo_score',
+    '_erdo_decorative',
+    '_erdo_redirects',
+    '_erdo_old_rel',
+    '_erdo_rename_log',
 );
 
 foreach ( $erdo_meta_keys as $erdo_meta_key ) {

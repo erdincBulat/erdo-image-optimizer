@@ -706,6 +706,42 @@ class ERDO_Usage {
         return $out;
     }
 
+    /**
+     * array( id => bool ) — arama motorlarının görebileceği bir yerde mi:
+     * yayımlanmış, herkese açık, noindex olmayan bir yazı ya da site geneli
+     * bir ayar/terim (logo, site ikonu, kategori görseli). Taslak, çöp,
+     * özel CSS (arka plan görselleri dizinlenmez) sayılmaz.
+     */
+    public static function bulk_indexable( array $ids ) {
+        global $wpdb;
+        $ids = array_values( array_unique( array_map( 'intval', $ids ) ) );
+        if ( ! $ids ) {
+            return array();
+        }
+        $types = array_values( array_diff( get_post_types( array( 'public' => true ) ), array( 'attachment' ) ) );
+        $types = $types ? $types : array( 'post' );
+        $ph    = implode( ',', array_fill( 0, count( $ids ), '%d' ) );
+        $tph   = implode( ',', array_fill( 0, count( $types ), '%s' ) );
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $hits = $wpdb->get_col( $wpdb->prepare(
+            "SELECT DISTINCT u.attachment_id FROM {$wpdb->erdo_usage} u
+             LEFT JOIN {$wpdb->posts} p ON u.source_type = 'post' AND p.ID = u.source_id
+             WHERE u.attachment_id IN ($ph)
+             AND ( u.source_type IN ('option','term')
+                OR ( p.post_status = 'publish' AND p.post_password = '' AND p.post_type IN ($tph)
+                     AND NOT EXISTS ( SELECT 1 FROM {$wpdb->postmeta} n WHERE n.post_id = p.ID
+                        AND ( ( n.meta_key = '_yoast_wpseo_meta-robots-noindex' AND n.meta_value = '1' )
+                           OR ( n.meta_key = 'rank_math_robots' AND n.meta_value LIKE %s ) ) ) ) )",
+            ...array_merge( $ids, $types, array( '%noindex%' ) )
+        ) );
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching, WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare
+        $out = array_fill_keys( $ids, false );
+        foreach ( $hits as $id ) {
+            $out[ (int) $id ] = true;
+        }
+        return $out;
+    }
+
     /** Hiçbir kaynakta geçmeyen, karantinada olmayan görseller. */
     public static function unused_ids() {
         global $wpdb;

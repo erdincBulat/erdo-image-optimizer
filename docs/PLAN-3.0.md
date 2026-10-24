@@ -179,7 +179,30 @@ Plandaki maddeler (referans):
 - Karantina + geri alma + yok sayma listesi. Toplu karantina sunucu tarafında taze kontrol yapar (`only_unused` koruması).
 - Görsel detayında **kullanım haritası**: hangi yazı/sayfa/ayar, linkleriyle.
 
-### Faz 4 — Image SEO motoru 2.0
+### Faz 4 — Image SEO motoru 2.0 ✅ (2026-10-24)
+**Teslim edildi:**
+- `ERDO_SEO`: 0–100 puan (alt 40, dosya adı 20, format 10, dosya boyutu 10, boyutlar 5, bağlam 15). `title` bilgi amaçlı, puana katılmıyor.
+  - Anlamsız ad tespiti: kamera/telefon önekleri (IMG, DSC, PXL…), ekran görüntüsü, WhatsApp, "adsız", hash/UUID.
+  - Alt kalitesi: dosya adına benzeyen, "image of …", anahtar kelime listesi, çok uzun; dekoratif işaretli görselde boş alt geçerli.
+  - Bağlam: yayımlanmış, herkese açık, noindex olmayan sayfada mı (taslak ya da yalnızca CSS'te kullanılan görsel daha düşük puan alıyor).
+  - Odak anahtar kelime: Yoast, Rank Math, SEOPress, AIOSEO.
+- `ERDO_Renamer`: dosyalar yalnızca taşınıyor (yeniden kodlama yok). Kapsam: tüm boyutlar, `-scaled` orijinali, düzenleme yedekleri, WebP/AVIF kardeşleri.
+  - Referanslar `ERDO_References` ile güncelleniyor; K14–K17 kapandı.
+  - Eski URL'ler 301 ile yeni adrese gidiyor; zincirler tek adıma iniyor.
+  - Geri alma iki düzeyde: görsel başına ve toplu işlem başına.
+- Desenli toplu yeniden adlandırma: `{keyword} {n} {parent} {title} {original} {alt}`; `{keyword}` boşsa sayfanın odak anahtar kelimesi kullanılıyor.
+- Arayüz:
+  - Kartlarda çoklu seçim ve seçim çubuğu.
+  - Yeniden adlandırma penceresi: önizleme → adları düzenle → uygula → geri al. "Fix All Filenames" de artık önce önizleme gösteriyor.
+  - Detay paneli: puan satırları, "dekoratif" işareti, odak anahtar kelime ipucu, "Renamed from … Undo".
+  - Panel kartı: ortalama SEO puanı.
+- Görsel site haritası: core `wp-sitemap.xml` içinde `wp-sitemap-erdoimages-1.xml`. SEO eklentisi varsa kapanıyor; ayarı var.
+- CLI: `wp erdo rename` (`--all`, `--pattern`, `--dry-run`, `--undo`); `wp erdo audit` 0–100 + sorun listesi. CSV'de formül enjeksiyonu koruması.
+- Ek düzeltme: detay panelinde yalnızca alt metni kaydetmek, dosya adı alanına dokunulmasa da `IMG_1234`'ü yeniden adlandırıyordu (2.x'ten kalma).
+
+**Faz 6'ya not:** `uninstall.php` karantinadaki dosyayı geri taşıyamazsa (Windows'ta kilitli dosya) yine de durumu `inherit` yapıp kaydı siliyor. Dosyalar karantina klasöründe sahipsiz kalıyor. Test sitesinde 7 gerçek görselde bu belirti görüldü; nedeni kesin değil, dosyalar elle geri taşındı.
+
+Plandaki maddeler (referans):
 - **0–100 puan, ağırlıklı kategoriler.**
   - Alt metin (%40): var mı; kalitesi (dosya adına benzemiyor, "image of / resim" yok, makul uzunluk, anahtar kelime doldurma yok); dekoratif işaretli mi.
   - Dosya adı (%20): tanımlayıcı mı, kamera kalıbı mı (`IMG_`, `DSC_`, `Screenshot`, `WhatsApp Image`), tire mi alt çizgi mi, uzunluk.

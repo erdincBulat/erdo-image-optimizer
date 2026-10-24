@@ -39,6 +39,10 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_quarantine_restore', array( $this, 'ajax_quarantine_restore' ) );
         add_action( 'wp_ajax_erdo_quarantine_purge',  array( $this, 'ajax_quarantine_purge' ) );
         add_action( 'wp_ajax_erdo_usage_build_step',  array( $this, 'ajax_usage_build_step' ) );
+        add_action( 'wp_ajax_erdo_rename_preview',    array( $this, 'ajax_rename_preview' ) );
+        add_action( 'wp_ajax_erdo_rename_apply',      array( $this, 'ajax_rename_apply' ) );
+        add_action( 'wp_ajax_erdo_rename_undo',       array( $this, 'ajax_rename_undo' ) );
+        add_action( 'wp_ajax_erdo_rename_undo_last',  array( $this, 'ajax_rename_undo_last' ) );
         add_action( 'admin_notices',                  array( $this, 'migration_notice' ) );
 
         add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
@@ -90,6 +94,36 @@ class ERDO_Admin_Page {
         wp_localize_script( 'erdo-js', 'erdo_vars', array(
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'erdo_nonce' ),
+            'i18n'     => array(
+                /* translators: %d: number of selected images */
+                'selected'        => __( '%d selected', 'erdo-image-optimizer' ),
+                'renameTitle'     => __( 'Rename images', 'erdo-image-optimizer' ),
+                'fixTitle'        => __( 'Fix filenames', 'erdo-image-optimizer' ),
+                'pattern'         => __( 'Pattern', 'erdo-image-optimizer' ),
+                'keyword'         => __( 'Keyword', 'erdo-image-optimizer' ),
+                'keywordHint'     => __( 'Leave empty to use each image’s page focus keyword (Yoast, Rank Math, AIOSEO, SEOPress) or page title.', 'erdo-image-optimizer' ),
+                'tokens'          => __( 'Tokens: {keyword} {n} {parent} {title} {original} {alt}', 'erdo-image-optimizer' ),
+                'preview'         => __( 'Preview', 'erdo-image-optimizer' ),
+                /* translators: %d: number of images to rename */
+                'apply'           => __( 'Rename %d images', 'erdo-image-optimizer' ),
+                'current'         => __( 'Current', 'erdo-image-optimizer' ),
+                'newName'         => __( 'New name', 'erdo-image-optimizer' ),
+                'loading'         => __( 'Checking…', 'erdo-image-optimizer' ),
+                'nothing'         => __( 'All filenames are already clean.', 'erdo-image-optimizer' ),
+                'safety'          => __( 'All sizes and WebP/AVIF copies are renamed together, every reference on the site is updated, and old URLs redirect (301) to the new ones. You can undo this afterwards.', 'erdo-image-optimizer' ),
+                /* translators: 1: images done, 2: images in total */
+                'renaming'        => __( 'Renaming… %1$d / %2$d', 'erdo-image-optimizer' ),
+                /* translators: 1: images renamed, 2: images skipped */
+                'done'            => __( '%1$d renamed, %2$d skipped.', 'erdo-image-optimizer' ),
+                'undo'            => __( 'Undo', 'erdo-image-optimizer' ),
+                /* translators: %d: number of images restored */
+                'undone'          => __( 'Renaming undone: %d images restored.', 'erdo-image-optimizer' ),
+                'close'           => __( 'Close', 'erdo-image-optimizer' ),
+                'clear'           => __( 'Clear', 'erdo-image-optimizer' ),
+                'renameSelected'  => __( 'Rename…', 'erdo-image-optimizer' ),
+                'selectHint'      => __( 'Select images', 'erdo-image-optimizer' ),
+                'error'           => __( 'Something went wrong. Please try again.', 'erdo-image-optimizer' ),
+            ),
         ) );
     }
 
@@ -122,7 +156,7 @@ class ERDO_Admin_Page {
                     <div class="stat-info">
                         <h3><?php esc_html_e( 'SEO Health', 'erdo-image-optimizer' ); ?></h3>
                         <div class="stat-value" id="stat-seo-score">—</div>
-                        <div class="stat-sub"><?php esc_html_e( 'Alt Tags Present', 'erdo-image-optimizer' ); ?></div>
+                        <div class="stat-sub"><?php esc_html_e( 'Average image SEO score', 'erdo-image-optimizer' ); ?></div>
                     </div>
                     <div class="erdo-chart-ring" id="chart-seo-ring" style="--color:#00a32a;"><span>0%</span></div>
                 </div>
@@ -306,6 +340,15 @@ class ERDO_Admin_Page {
             </div>
         </div>
 
+        <div id="erdo-selection-bar" class="erdo-selection-bar hidden" role="region" aria-label="<?php esc_attr_e( 'Selected images', 'erdo-image-optimizer' ); ?>">
+            <span id="erdo-selection-count"></span>
+            <button type="button" class="button button-primary" id="erdo-selection-rename">
+                <span class="dashicons dashicons-tag"></span>
+                <?php esc_html_e( 'Rename…', 'erdo-image-optimizer' ); ?>
+            </button>
+            <button type="button" class="button" id="erdo-selection-clear"><?php esc_html_e( 'Clear', 'erdo-image-optimizer' ); ?></button>
+        </div>
+
         <div id="erdo-safety-modal-overlay" class="hidden">
             <div class="erdo-safety-box">
                 <span class="dashicons dashicons-warning erdo-safety-icon"></span>
@@ -356,14 +399,14 @@ class ERDO_Admin_Page {
                 $counts[ $cat ]++;
 
                 $format_label = strtoupper( $res['served_format'] ?? str_replace( 'image/', '', $res['mime'] ?? '' ) );
-                $score_label  = isset( $res['score'] ) ? intval( $res['score'] ) . '/6' : '';
+                $score_label  = isset( $res['score'] ) ? (string) intval( $res['score'] ) : '';
 
                 // Alt text durumu bulk_analyze() checklist'inde zaten hesaplanmış —
                 // "Missing Alt" filtresi bunu kart üzerinden okur, kart başına
                 // ayrı bir AJAX isteği atmasına gerek kalmaz.
                 $has_alt = true;
                 foreach ( $res['checklist'] ?? array() as $item ) {
-                    if ( 'Alt Text' === $item['label'] ) {
+                    if ( 'alt' === ( $item['key'] ?? '' ) ) {
                         $has_alt = ! empty( $item['pass'] );
                         break;
                     }
@@ -371,7 +414,8 @@ class ERDO_Admin_Page {
 
                 $html  = '<div class="erdo-card border-' . esc_attr( $cat ) . '" data-id="' . esc_attr( $id ) . '" data-has-alt="' . ( $has_alt ? '1' : '0' ) . '">';
                 $html .= '<div class="card-img-holder">';
-                $html .= '<img src="' . esc_url( $res['thumbnail'] ) . '" loading="lazy">';
+                $html .= '<button type="button" class="erdo-card-check" role="checkbox" aria-checked="false" aria-label="' . esc_attr__( 'Select image', 'erdo-image-optimizer' ) . '"></button>';
+                $html .= '<img src="' . esc_url( $res['thumbnail'] ) . '" loading="lazy" alt="">';
                 if ( $format_label ) {
                     $html .= '<span class="erdo-format-badge">' . esc_html( $format_label ) . '</span>';
                 }
@@ -379,7 +423,7 @@ class ERDO_Admin_Page {
                 $html .= '<div class="erdo-card-footer">';
                 $html .= '<span class="erdo-card-info">' . esc_html( $res['filename'] ) . '</span>';
                 if ( $score_label ) {
-                    $html .= '<span class="erdo-score-badge erdo-score-' . esc_attr( $cat ) . '">' . esc_html( $score_label ) . '</span>';
+                    $html .= '<span class="erdo-score-badge erdo-score-' . esc_attr( $cat ) . '" title="' . esc_attr__( 'SEO score (0–100)', 'erdo-image-optimizer' ) . '">' . esc_html( $score_label ) . '</span>';
                 }
                 $html .= '</div>';
                 $html .= '</div>';
@@ -412,30 +456,13 @@ class ERDO_Admin_Page {
             return;
         }
 
-        global $wpdb;
-
         $lib             = ERDO_Converter::library_stats();
         $total           = $lib['total'];
         $count_optimized = $lib['optimized'];
 
-        $seo_cache_key = 'erdo_count_seo';
-        $count_seo     = wp_cache_get( $seo_cache_key, $cache_group );
-
-        if ( false === $count_seo ) {
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $count_seo = (int) $wpdb->get_var(
-                "SELECT COUNT(p.ID)
-                 FROM {$wpdb->posts} p
-                 INNER JOIN {$wpdb->postmeta} pm ON p.ID = pm.post_id
-                 WHERE p.post_type = 'attachment'
-                 AND pm.meta_key = '_wp_attachment_image_alt'
-                 AND pm.meta_value != ''"
-            );
-            wp_cache_set( $seo_cache_key, $count_seo, $cache_group, 300 );
-        }
+        $seo_score = self::average_seo_score();
 
         $opt_score = ( $total > 0 ) ? round( ( $count_optimized / $total ) * 100 ) : 0;
-        $seo_score = ( $total > 0 ) ? round( ( $count_seo / $total ) * 100 ) : 0;
         $saved     = $lib['saved'];
 
         $result = array(
@@ -450,6 +477,35 @@ class ERDO_Admin_Page {
         // library_version cache'e dahil edilmez — her istekte taze okunur
         $result['library_version'] = (int) get_option( 'erdo_library_version', 0 );
         wp_send_json_success( $result );
+    }
+
+    /**
+     * Kütüphanenin ortalama SEO puanı (0–100). Puanı henüz hesaplanmamış
+     * görseller her çağrıda en fazla 300'lük partiyle hesaplanır, böylece
+     * büyük kütüphanelerde de ortalama birkaç yüklemede tamamlanır.
+     */
+    public static function average_seo_score() {
+        global $wpdb;
+        // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        $missing = $wpdb->get_col( $wpdb->prepare(
+            "SELECT p.ID FROM {$wpdb->posts} p
+             LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s
+             WHERE p.post_type = 'attachment' AND p.post_status = 'inherit' AND p.post_mime_type LIKE %s AND m.meta_id IS NULL
+             LIMIT 300",
+            ERDO_SEO::SCORE_META,
+            $wpdb->esc_like( 'image/' ) . '%'
+        ) );
+        if ( $missing ) {
+            ERDO_Auditor::bulk_analyze( array_map( 'intval', $missing ) );
+        }
+        $avg = $wpdb->get_var( $wpdb->prepare(
+            "SELECT AVG(CAST(m.meta_value AS UNSIGNED)) FROM {$wpdb->postmeta} m
+             INNER JOIN {$wpdb->posts} p ON p.ID = m.post_id
+             WHERE m.meta_key = %s AND p.post_type = 'attachment' AND p.post_status = 'inherit'",
+            ERDO_SEO::SCORE_META
+        ) );
+        // phpcs:enable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+        return null === $avg ? 0 : (int) round( (float) $avg );
     }
 
     /* ------------------------------------------------------------------
@@ -469,12 +525,13 @@ class ERDO_Admin_Page {
         ob_start();
 
         $help = array(
-            'Filename'    => __( 'Search engines prefer descriptive file names with hyphens (-) as separators. Avoid underscores or spaces.', 'erdo-image-optimizer' ),
-            'Alt Text'    => __( 'Alt text helps search engines understand the image and is read by screen readers for accessibility.', 'erdo-image-optimizer' ),
-            'Image Title' => __( 'A clean, readable title helps users and search engines. Avoid slug-style formatting.', 'erdo-image-optimizer' ),
-            'Dimensions'  => __( 'Oversized images slow down your site. Resize to the maximum width your theme needs (usually 1920px or less).', 'erdo-image-optimizer' ),
-            'Format'      => __( 'WebP and AVIF offer better compression than JPEG/PNG without quality loss, making your site faster.', 'erdo-image-optimizer' ),
-            'File Size'   => __( 'Large images are the #1 cause of slow websites. Aim to keep images under 250 KB.', 'erdo-image-optimizer' ),
+            'filename'   => __( 'Search engines read the file name. Use a few descriptive words separated by hyphens; camera names like IMG_1234 say nothing.', 'erdo-image-optimizer' ),
+            'alt'        => __( 'Alt text is the most important image signal for Google and is read aloud by screen readers. Describe what the image shows in one natural sentence. Purely decorative images should be marked decorative instead.', 'erdo-image-optimizer' ),
+            'title'      => __( 'The title appears in the media library and as a hover tooltip. Search engines do not use it for ranking.', 'erdo-image-optimizer' ),
+            'dimensions' => __( 'Oversized images slow down your site. Resize to the maximum width your theme needs (usually 1920px or less).', 'erdo-image-optimizer' ),
+            'format'     => __( 'WebP and AVIF offer better compression than JPEG/PNG, making your site faster. The original stays untouched.', 'erdo-image-optimizer' ),
+            'filesize'   => __( 'Large images are the #1 cause of slow websites. Aim to keep images under 250 KB.', 'erdo-image-optimizer' ),
+            'context'    => __( 'Images only count for search when they appear on a published page that search engines may index.', 'erdo-image-optimizer' ),
         );
 
         $usage_msg = ( isset( $data['is_used'] ) && ! $data['is_used'] )
@@ -498,13 +555,16 @@ class ERDO_Admin_Page {
         }
 
         $score      = $data['score'] ?? 0;
-        $score_class = $score >= 5 ? 'score-high' : ( $score >= 3 ? 'score-mid' : 'score-low' );
+        $score_class = $score >= 80 ? 'score-high' : ( $score >= 50 ? 'score-mid' : 'score-low' );
+        $parent_id   = (int) wp_get_post_parent_id( $id );
+        $focus_kw    = $parent_id ? ERDO_SEO::focus_keyword( $parent_id ) : '';
+        $last_rename = ERDO_Renamer::last_rename( $id );
         ?>
         <div class="modal-header">
             <h2>
                 <?php esc_html_e( 'Audit Report', 'erdo-image-optimizer' ); ?>
-                <span class="score-pill <?php echo esc_attr( $score_class ); ?>">
-                    <?php echo esc_html( $score ); ?>/6
+                <span class="score-pill <?php echo esc_attr( $score_class ); ?>" title="<?php esc_attr_e( 'SEO score (0–100)', 'erdo-image-optimizer' ); ?>">
+                    <?php echo esc_html( $score ); ?>/100
                 </span>
             </h2>
         </div>
@@ -632,7 +692,7 @@ class ERDO_Admin_Page {
                         <?php
                         $filename_raw  = get_attached_file( $id );
                         $filename_base = $filename_raw ? pathinfo( $filename_raw, PATHINFO_FILENAME ) : '';
-                        $sanitized     = sanitize_title( $filename_base );
+                        $sanitized     = ERDO_Renamer::sanitize_stem( $filename_base );
                         $bunny_on      = get_option( 'erdo_bunny_enabled' ) && get_option( 'erdo_bunny_api_key' );
                         $has_tools     = ( $filename_base && $filename_base !== $sanitized ) || $bunny_on;
                         if ( $has_tools ) :
@@ -650,6 +710,16 @@ class ERDO_Admin_Page {
                                 <small>→ <?php echo esc_html( $sanitized ); ?></small>
                             </span>
                         </button>
+                        <?php endif; ?>
+
+                        <?php if ( $last_rename ) : ?>
+                        <div class="erdo-last-rename">
+                            <?php
+                            /* translators: %s: previous file name (without extension) */
+                            echo esc_html( sprintf( __( 'Renamed from "%s".', 'erdo-image-optimizer' ), $last_rename['from'] ) );
+                            ?>
+                            <button type="button" class="button-link erdo-undo-rename-btn" data-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Undo', 'erdo-image-optimizer' ); ?></button>
+                        </div>
                         <?php endif; ?>
 
                         <?php if ( $bunny_on ) :
@@ -679,22 +749,32 @@ class ERDO_Admin_Page {
                 <div class="erdo-modal-right">
                     <ul class="erdo-checklist">
                         <?php foreach ( $data['checklist'] as $item ) : ?>
-                        <li class="<?php echo esc_attr( $item['pass'] ? 'pass' : 'fail' ); ?>">
+                        <?php
+                        $key     = $item['key'] ?? '';
+                        $partial = $item['pass'] && ! empty( $item['weight'] ) && $item['points'] < $item['weight'];
+                        $state   = empty( $item['weight'] ) ? 'info' : ( $item['pass'] ? ( $partial ? 'partial' : 'pass' ) : 'fail' );
+                        ?>
+                        <li class="<?php echo esc_attr( $state ); ?>">
                             <div class="label-row">
                                 <span class="audit-label">
                                     <strong><?php echo esc_html( $item['label'] ); ?></strong>
+                                    <?php if ( ! empty( $item['weight'] ) ) : ?>
+                                        <span class="erdo-points"><?php echo esc_html( $item['points'] . '/' . $item['weight'] ); ?></span>
+                                    <?php else : ?>
+                                        <span class="erdo-points erdo-points-info"><?php esc_html_e( 'not scored', 'erdo-image-optimizer' ); ?></span>
+                                    <?php endif; ?>
                                 </span>
-                                <?php if ( isset( $help[ $item['label'] ] ) ) : ?>
+                                <?php if ( isset( $help[ $key ] ) ) : ?>
                                 <div class="hotspot-container">
                                     <span class="erdo-hotspot">i</span>
                                     <div class="erdo-help-content">
-                                        <?php echo esc_html( $help[ $item['label'] ] ); ?>
+                                        <?php echo esc_html( $help[ $key ] ); ?>
                                     </div>
                                 </div>
                                 <?php endif; ?>
                             </div>
 
-                            <?php if ( 'Dimensions' === $item['label'] ) : ?>
+                            <?php if ( 'dimensions' === $key ) : ?>
                             <div style="display:flex; gap:5px; align-items:center;">
                                 <input type="number" id="erdo-w-<?php echo esc_attr( $id ); ?>"
                                        value="<?php echo esc_attr( $item['width'] ); ?>"
@@ -709,10 +789,10 @@ class ERDO_Admin_Page {
                                 </button>
                             </div>
 
-                            <?php elseif ( in_array( $item['label'], array( 'Filename', 'Alt Text', 'Image Title' ), true ) ) : ?>
+                            <?php elseif ( in_array( $key, array( 'filename', 'alt', 'title' ), true ) ) : ?>
                             <?php
-                            $field = ( 'Filename' === $item['label'] ) ? 'filename'
-                                : ( ( 'Alt Text' === $item['label'] ) ? 'alt_text' : 'title' );
+                            $field = ( 'filename' === $key ) ? 'filename'
+                                : ( ( 'alt' === $key ) ? 'alt_text' : 'title' );
                             ?>
                             <?php if ( 'filename' === $field ) : ?>
                             <div id="erdo-filename-preview" style="font-size:11px; color:#64748b; margin-bottom:3px; display:none;">
@@ -726,7 +806,7 @@ class ERDO_Admin_Page {
                                        value="<?php echo esc_attr( $item['value'] ?? '' ); ?>"
                                        class="erdo-input">
 
-                                <?php if ( 'Alt Text' === $item['label'] ) : ?>
+                                <?php if ( 'alt' === $key ) : ?>
                                     <?php if ( ! empty( $data['parent_title'] ) ) : ?>
                                     <button type="button" class="button button-small erdo-magic-btn"
                                             data-target="alt_text" data-source="parent"
@@ -737,12 +817,30 @@ class ERDO_Admin_Page {
                                             title="<?php esc_attr_e( 'Generate from Filename', 'erdo-image-optimizer' ); ?>">&#10024;</button>
                                 <?php endif; ?>
 
-                                <?php if ( 'Image Title' === $item['label'] ) : ?>
+                                <?php if ( 'title' === $key ) : ?>
                                     <button type="button" class="button button-small erdo-magic-btn"
                                             data-target="title" data-source="filename"
                                             title="<?php esc_attr_e( 'Generate from Filename', 'erdo-image-optimizer' ); ?>">&#10024;</button>
                                 <?php endif; ?>
                             </div>
+                            <?php if ( ! $item['pass'] || $partial || 'title' === $key ) : ?>
+                            <div class="desc"><?php echo esc_html( $item['msg'] ); ?></div>
+                            <?php endif; ?>
+                            <?php if ( 'alt' === $key ) : ?>
+                            <label class="erdo-decorative-toggle">
+                                <input type="hidden" name="decorative" value="0">
+                                <input type="checkbox" name="decorative" value="1" <?php checked( ! empty( $item['decorative'] ) ); ?>>
+                                <?php esc_html_e( 'Decorative image (adds nothing to the content, empty alt is correct)', 'erdo-image-optimizer' ); ?>
+                            </label>
+                                <?php if ( $focus_kw ) : ?>
+                                <div class="desc erdo-focus-kw">
+                                    <?php
+                                    /* translators: %s: focus keyword from the SEO plugin */
+                                    echo esc_html( sprintf( __( 'Page focus keyword: "%s". Use it in the alt text only if it describes the image.', 'erdo-image-optimizer' ), $focus_kw ) );
+                                    ?>
+                                </div>
+                                <?php endif; ?>
+                            <?php endif; ?>
 
                             <?php else : ?>
                             <div class="desc"><?php echo esc_html( $item['msg'] ); ?></div>
@@ -988,6 +1086,9 @@ class ERDO_Admin_Page {
         update_option( 'erdo_smart_quality',       isset( $_POST['erdo_smart_quality'] ) ? 1 : 0 );
         update_option( 'erdo_allow_svg',           isset( $_POST['erdo_allow_svg'] ) ? 1 : 0 );
         update_option( 'erdo_append_original_filename', isset( $_POST['erdo_append_original_filename'] ) ? 1 : 0 );
+        if ( ! ERDO_SEO::seo_plugin_handles_image_sitemap() ) {
+            update_option( 'erdo_image_sitemap', isset( $_POST['erdo_image_sitemap'] ) ? 1 : 0 );
+        }
 
         if ( isset( $_POST['erdo_webp_serve_method'] ) ) {
             $meth = sanitize_text_field( wp_unslash( $_POST['erdo_webp_serve_method'] ) );
@@ -1044,6 +1145,7 @@ class ERDO_Admin_Page {
         $q    = get_option( 'erdo_quality', 80 );
         $ll   = get_option( 'erdo_lossless', 0 );
         $aof  = get_option( 'erdo_append_original_filename', 0 );
+        $ism  = get_option( 'erdo_image_sitemap', 1 );
         $avif = ERDO_Encoder::supports( 'avif' );
         $webp = ERDO_Encoder::supports( 'webp' );
         ?>
@@ -1123,6 +1225,21 @@ class ERDO_Admin_Page {
                     <span>
                         <strong><?php esc_html_e( 'Append Original Filename When Renaming', 'erdo-image-optimizer' ); ?></strong>
                         <p><?php esc_html_e( 'When you set a custom filename in the image detail panel, keep the original name as a suffix (e.g. "istanbul" becomes "istanbul-img-1234") to avoid collisions and preserve a reference to the source file.', 'erdo-image-optimizer' ); ?></p>
+                    </span>
+                </label>
+                <label>
+                    <input type="checkbox" name="erdo_image_sitemap" value="1" <?php checked( $ism, 1 ); ?> <?php disabled( ERDO_SEO::seo_plugin_handles_image_sitemap() ); ?>>
+                    <span>
+                        <strong><?php esc_html_e( 'Image Sitemap', 'erdo-image-optimizer' ); ?></strong>
+                        <p>
+                            <?php
+                            if ( ERDO_SEO::seo_plugin_handles_image_sitemap() ) {
+                                esc_html_e( 'Your SEO plugin already lists images in its sitemap, so this is turned off.', 'erdo-image-optimizer' );
+                            } else {
+                                esc_html_e( 'Adds the images of every published page to the WordPress sitemap (wp-sitemap.xml) so Google Images can find them.', 'erdo-image-optimizer' );
+                            }
+                            ?>
+                        </p>
                     </span>
                 </label>
             </div>
@@ -1399,19 +1516,98 @@ class ERDO_Admin_Page {
             ) );
         }
 
-        $renamed = 0;
-        $skipped = 0;
+        // Tek toplu işlem kaydı: arayüzden ya da CLI'dan geri alınabilir.
+        $batch   = ERDO_Renamer::new_batch_id();
+        $results = ERDO_Renamer::apply_items( array_fill_keys( $ids, null ), $batch );
+        $renamed = count( array_filter( $results, function ( $r ) {
+            return ! is_wp_error( $r );
+        } ) );
 
-        foreach ( $ids as $id ) {
-            $result = ERDO_Auditor::rename_file( $id );
-            if ( is_wp_error( $result ) ) {
-                $skipped++;
-            } else {
-                $renamed++;
-            }
+        wp_send_json_success( array( 'renamed' => $renamed, 'skipped' => count( $results ) - $renamed, 'batch' => $batch ) );
+    }
+
+    /* ------------------------------------------------------------------
+       AJAX: Yeniden adlandırma önizlemesi (hiçbir şeyi değiştirmez)
+       ids boş → tüm kütüphane; pattern boş → "Fix Filename" (yalnızca değişecekler).
+    ------------------------------------------------------------------ */
+    public function ajax_rename_preview() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $ids     = isset( $_POST['ids'] ) ? array_filter( array_map( 'intval', (array) wp_unslash( $_POST['ids'] ) ) ) : array();
+        $pattern = isset( $_POST['pattern'] ) ? sanitize_text_field( wp_unslash( $_POST['pattern'] ) ) : '';
+        $keyword = isset( $_POST['keyword'] ) ? sanitize_text_field( wp_unslash( $_POST['keyword'] ) ) : '';
+
+        if ( empty( $ids ) ) {
+            $ids = get_posts( array(
+                'post_type'      => 'attachment',
+                'post_status'    => 'inherit',
+                'post_mime_type' => 'image',
+                'posts_per_page' => -1,
+                'fields'         => 'ids',
+                'no_found_rows'  => true,
+                'orderby'        => 'ID',
+                'order'          => 'ASC',
+            ) );
         }
 
-        wp_send_json_success( array( 'renamed' => $renamed, 'skipped' => $skipped ) );
+        $rows = ERDO_Renamer::preview( $ids, '' === $pattern ? null : $pattern, array( 'keyword' => $keyword ), '' === $pattern );
+        wp_send_json_success( array( 'rows' => $rows ) );
+    }
+
+    /* ------------------------------------------------------------------
+       AJAX: Önizlemedeki adları uygula — parça parça, aynı batch kimliğiyle
+       items[id] = yeni ad kökü ('' = mevcut adı temizle).
+    ------------------------------------------------------------------ */
+    public function ajax_rename_apply() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $raw   = isset( $_POST['items'] ) && is_array( $_POST['items'] ) ? wp_unslash( $_POST['items'] ) : array(); // phpcs:ignore WordPress.Security.ValidatedSanitizedInput.InputNotSanitized -- sanitized per item below
+        $batch = isset( $_POST['batch'] ) ? sanitize_key( wp_unslash( $_POST['batch'] ) ) : '';
+        $batch = '' === $batch ? ERDO_Renamer::new_batch_id() : $batch;
+        $items = array();
+        foreach ( array_slice( $raw, 0, 50, true ) as $id => $stem ) {
+            $items[ (int) $id ] = '' === (string) $stem ? null : ERDO_Renamer::sanitize_stem( sanitize_text_field( (string) $stem ) );
+        }
+
+        $out = array();
+        foreach ( ERDO_Renamer::apply_items( $items, $batch ) as $id => $r ) {
+            $out[] = is_wp_error( $r )
+                ? array( 'id' => $id, 'error' => $r->get_error_message() )
+                : array( 'id' => $id, 'filename' => wp_basename( (string) get_attached_file( $id ) ) );
+        }
+        wp_send_json_success( array( 'batch' => $batch, 'results' => $out ) );
+    }
+
+    /* ------------------------------------------------------------------
+       AJAX: Toplu yeniden adlandırmayı geri al
+    ------------------------------------------------------------------ */
+    public function ajax_rename_undo() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $batch = isset( $_POST['batch'] ) ? sanitize_key( wp_unslash( $_POST['batch'] ) ) : '';
+        $r     = ERDO_Renamer::undo_batch( $batch );
+        if ( is_wp_error( $r ) ) {
+            wp_send_json_error( array( 'message' => $r->get_error_message() ) );
+        }
+        wp_send_json_success( $r );
+    }
+
+    /* ------------------------------------------------------------------
+       AJAX: Tek görselin son yeniden adlandırmasını geri al
+    ------------------------------------------------------------------ */
+    public function ajax_rename_undo_last() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
+        $r  = ERDO_Renamer::undo_last( $id );
+        if ( is_wp_error( $r ) ) {
+            wp_send_json_error( array( 'message' => $r->get_error_message() ) );
+        }
+        wp_send_json_success( array( 'filename' => wp_basename( (string) get_attached_file( $id ) ) ) );
     }
 
     /* ------------------------------------------------------------------
@@ -1424,9 +1620,14 @@ class ERDO_Admin_Page {
         $status_filter = isset( $_POST['status'] ) ? sanitize_text_field( wp_unslash( $_POST['status'] ) ) : '';
         $rows          = ERDO_Auditor::get_csv_rows( $status_filter );
 
-        $csv  = "ID,Filename,Score,Status,Format,Alt Text,Title,Edit URL\n";
+        $csv  = "ID,Filename,Score (0-100),Status,Format,Alt Text,Issues,Edit URL\n";
         foreach ( $rows as $r ) {
             $csv .= implode( ',', array_map( function( $v ) {
+                $v = (string) $v;
+                // Formül enjeksiyonu: =, +, -, @ ile başlayan hücreler Excel'de çalıştırılmasın.
+                if ( '' !== $v && in_array( $v[0], array( '=', '+', '-', '@' ), true ) ) {
+                    $v = "'" . $v;
+                }
                 return '"' . str_replace( '"', '""', $v ) . '"';
             }, $r ) ) . "\n";
         }

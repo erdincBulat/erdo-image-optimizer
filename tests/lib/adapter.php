@@ -47,27 +47,18 @@ function et_cached_used( $id ) {
 
 /**
  * SEO audit normalised to array( 'score' => 0-100, 'checks' => key => bool ).
- * Canonical keys: alt, filename, title, dimensions, format, filesize.
- * 2.2.2 scores 0-6; that is scaled so suites can assert on one scale.
+ * Canonical keys: alt, filename, title, dimensions, format, filesize, context.
+ * Since Faz 4 the plugin scores 0-100 itself and every row carries its key.
  */
 function et_audit( $id ) {
-    $keys = array(
-        'Alt Text'    => 'alt',
-        'Filename'    => 'filename',
-        'Image Title' => 'title',
-        'Dimensions'  => 'dimensions',
-        'Format'      => 'format',
-        'File Size'   => 'filesize',
-    );
     ERDO_Auditor::clear_cache( $id );
     $r      = ERDO_Auditor::analyze( $id );
     $checks = array();
     foreach ( (array) ( $r['checklist'] ?? array() ) as $c ) {
-        $checks[ $keys[ $c['label'] ] ?? $c['label'] ] = (bool) $c['pass'];
+        $checks[ $c['key'] ] = (bool) $c['pass'];
     }
-    $max = max( 1, count( $checks ) );
     return array(
-        'score'  => (int) round( ( (int) ( $r['score'] ?? 0 ) / $max ) * 100 ),
+        'score'  => (int) ( $r['score'] ?? 0 ),
         'checks' => $checks,
         'raw'    => $r,
     );
@@ -183,11 +174,49 @@ function et_modern_files( $id ) {
 }
 
 /**
- * Bulk rename with a pattern, e.g. '{keyword}-{n}' (3.0, PLAN E/F4).
+ * Bulk rename with a pattern, e.g. '{keyword}-{n}' (PLAN F4).
  * Returns array( id => new basename ) | WP_Error.
  */
 function et_rename_pattern( array $ids, $pattern, array $vars = array() ) {
-    return new WP_Error( 'not_implemented', 'pattern rename arrives in 3.0 (F4)' );
+    $out = ERDO_Renamer::rename_pattern( $ids, $pattern, $vars );
+    foreach ( $out as $r ) {
+        if ( is_wp_error( $r ) ) {
+            return $r;
+        }
+    }
+    return $out;
+}
+
+/** Dry-run of a bulk rename: list of array( id, old, new, error ). Changes nothing. */
+function et_rename_preview( array $ids, $pattern = null, array $vars = array() ) {
+    return ERDO_Renamer::preview( $ids, $pattern, $vars );
+}
+
+/** Applies id => new stem as one undoable batch. Returns array( batch_id, results ). */
+function et_rename_batch( array $items ) {
+    $batch = ERDO_Renamer::new_batch_id();
+    return array( $batch, ERDO_Renamer::apply_items( $items, $batch ) );
+}
+
+/** Undoes a whole rename batch. Returns array|WP_Error. */
+function et_rename_undo( $batch_id ) {
+    return ERDO_Renamer::undo_batch( $batch_id );
+}
+
+/** Undoes the last rename of one image. Returns array|WP_Error. */
+function et_rename_undo_last( $id ) {
+    return ERDO_Renamer::undo_last( $id );
+}
+
+/** Saves the detail-panel form (alt_text, title, filename, decorative) as the UI does. */
+function et_save_details( $id, array $data ) {
+    return ERDO_Auditor::save_image_data( $id, $data );
+}
+
+/** Marks an image as decorative (empty alt is then correct). */
+function et_set_decorative( $id, $on = true ) {
+    $on ? update_post_meta( $id, '_erdo_decorative', 1 ) : delete_post_meta( $id, '_erdo_decorative' );
+    ERDO_Auditor::clear_cache( $id );
 }
 
 /** The .htaccess block the plugin writes for Apache WebP/AVIF delivery. */

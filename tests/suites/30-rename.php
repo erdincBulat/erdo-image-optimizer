@@ -12,6 +12,14 @@ $ref = function ( $id ) {
     return array( 'files' => et_attachment_files( $id ), 'urls' => et_attachment_urls( $id ) );
 };
 
+/* --- Saving other details must not rename -------------------------- */
+et_test( 'saving alt text in the detail panel leaves an untouched filename alone', function () use ( $m ) {
+    $id = $m['img']['badname'];
+    et_save_details( $id, array( 'alt_text' => 'A test image', 'filename' => 'Fx_Bad_Name', 'decorative' => '0' ) );
+    et_eq( 'Fx_Bad_Name.jpg', basename( get_attached_file( $id ) ) );
+    et_eq( 'A test image', get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+} );
+
 /* --- Fix Filename on a full-size reference ------------------------- */
 $bad_before = $ref( $m['img']['badname'] );
 $bad_res    = et_rename( $m['img']['badname'] );
@@ -126,3 +134,116 @@ et_test( 'pattern rename: {keyword}-{n} over a selection', function () use ( $m 
     et_eq( 'istanbul-1.jpg', basename( get_attached_file( $ids[0] ) ) );
     et_eq( 'istanbul-2.jpg', basename( get_attached_file( $ids[1] ) ) );
 }, 'F4' );
+
+/* --- WebP/AVIF siblings move with the image ------------------------ */
+et_options( array( 'erdo_convert_format' => 'webp' ) );
+et_convert( $m['img']['block'], 'webp' );
+$block_siblings = et_modern_files( $m['img']['block'] );
+$block_sib_url  = wp_get_attachment_url( $m['img']['block'] ) . '.webp';
+et_rename( $m['img']['block'], 'renamed-block' );
+
+et_test( 'rename: WebP siblings are moved, not left under the old name', function () use ( $m, $block_siblings ) {
+    et_assert( count( $block_siblings ) > 0, 'fixture has no siblings' );
+    foreach ( $block_siblings as $f ) {
+        et_assert( ! file_exists( $f ), 'old sibling still on disk: ' . basename( $f ) );
+    }
+    $now = et_modern_files( $m['img']['block'] );
+    et_eq( count( $block_siblings ), count( $now ), 'sibling count' );
+    foreach ( $now as $f ) {
+        et_assert( 0 === strpos( basename( $f ), 'renamed-block' ), 'unexpected sibling ' . basename( $f ) );
+    }
+    et_eq( 'webp', et_audit( $m['img']['block'] )['raw']['served_format'], 'record no longer finds the sibling' );
+    et_assert_page_ok( $m['post']['block'], '', array( 'broken' ) );
+} );
+
+et_test( 'rename: old sibling URL (x.jpg.webp) redirects to the new sibling', function () use ( $block_sib_url ) {
+    $s = et_status( $block_sib_url );
+    et_eq( 301, $s ? $s['code'] : 0 );
+    et_assert( false !== strpos( $s['location'], 'renamed-block.jpg.webp' ), 'redirect target: ' . $s['location'] );
+} );
+
+/* --- "-scaled" image: main, original and sizes all move ------------- */
+$over_before = et_attachment_files( $m['img']['oversized'] );
+et_rename( $m['img']['oversized'], 'renamed-oversized' );
+
+et_test( 'rename: -scaled image moves main, original and every size', function () use ( $m, $over_before ) {
+    $meta = wp_get_attachment_metadata( $m['img']['oversized'] );
+    et_eq( 'renamed-oversized.jpg', $meta['original_image'] ?? '' );
+    et_eq( 'renamed-oversized-scaled.jpg', basename( get_attached_file( $m['img']['oversized'] ) ) );
+    foreach ( $over_before as $f ) {
+        et_assert( ! file_exists( $f ), 'still on disk: ' . basename( $f ) );
+    }
+    foreach ( et_attachment_files( $m['img']['oversized'] ) as $f ) {
+        et_assert( file_exists( $f ), 'missing: ' . basename( $f ) );
+    }
+    et_assert_page_ok( $m['post']['misc'], '', array( 'broken' ) );
+} );
+
+/* --- Redirect chains ------------------------------------------------ */
+$header_url = wp_get_attachment_url( $m['img']['header'] );
+et_rename( $m['img']['header'], 'chain-b' );
+et_rename( $m['img']['header'], 'chain-c' );
+
+et_test( 'redirects: renaming twice sends the first URL straight to the latest name', function () use ( $header_url ) {
+    $s = et_status( $header_url );
+    et_eq( 301, $s ? $s['code'] : 0 );
+    et_assert( false !== strpos( $s['location'], 'chain-c.jpg' ), 'redirect target: ' . $s['location'] );
+} );
+
+et_test( 'redirects: a missing upload that was never renamed stays 404', function () use ( $m ) {
+    $s = et_status( dirname( wp_get_attachment_url( $m['img']['good'] ) ) . '/never-existed.jpg' );
+    et_eq( 404, $s ? $s['code'] : 0 );
+} );
+
+/* --- Preview, batch and undo --------------------------------------- */
+et_test( 'preview: shows the new name and changes nothing', function () use ( $m ) {
+    $id     = $m['img']['gallery_child'];
+    $before = get_attached_file( $id );
+    $rows   = et_rename_preview( array( $id ), '{parent}-photo' );
+    et_eq( 'fx-gallery-photo.jpg', $rows[0]['new'] ?? '' );
+    et_eq( $before, get_attached_file( $id ) );
+    et_assert( file_exists( $before ), 'file moved by a preview' );
+} );
+
+et_test( 'pattern: empty {keyword} falls back to the parent post SEO focus keyword', function () use ( $m ) {
+    update_post_meta( $m['post']['gallery'], '_yoast_wpseo_focuskw', 'Kapadokya Balon' );
+    $rows = et_rename_preview( array( $m['img']['gallery_child'] ), '{keyword}-{n}' );
+    et_eq( 'kapadokya-balon-1.jpg', $rows[0]['new'] ?? '' );
+} );
+
+$alpha_old = wp_get_attachment_url( $m['img']['alpha'] );
+list( $batch, $batch_res ) = et_rename_batch( array( $m['img']['featured'] => 'batch-featured', $m['img']['alpha'] => 'batch-alpha' ) );
+$alpha_new = wp_get_attachment_url( $m['img']['alpha'] );
+$undo      = et_rename_undo( $batch );
+
+et_test( 'undo batch: every image gets its old name and the content follows', function () use ( $m, $batch_res, $undo ) {
+    foreach ( $batch_res as $r ) {
+        et_not_error( $r );
+    }
+    et_not_error( $undo );
+    et_eq( 'fx-featured.jpg', basename( get_attached_file( $m['img']['featured'] ) ) );
+    et_eq( 'fx-alpha.png', basename( get_attached_file( $m['img']['alpha'] ) ) );
+    et_assert( false !== strpos( et_post_content( $m['post']['misc'] ), 'fx-alpha' ), 'content not restored' );
+    et_assert_page_ok( $m['post']['misc'], '', array( 'broken' ) );
+} );
+
+et_test( 'undo batch: restored URL is served again, the interim URL redirects back', function () use ( $alpha_old, $alpha_new ) {
+    $old = et_status( $alpha_old );
+    et_eq( 200, $old ? $old['code'] : 0, 'restored URL' );
+    $new = et_status( $alpha_new );
+    et_eq( 301, $new ? $new['code'] : 0, 'interim URL' );
+    et_assert( false !== strpos( $new['location'], 'fx-alpha.png' ), 'redirect target: ' . $new['location'] );
+} );
+
+et_test( 'undo last: single rename can be reverted from the image', function () use ( $m ) {
+    et_not_error( et_rename( $m['img']['widget_block'], 'temp-name' ) );
+    et_not_error( et_rename_undo_last( $m['img']['widget_block'] ) );
+    et_eq( 'fx-widget-block.jpg', basename( get_attached_file( $m['img']['widget_block'] ) ) );
+} );
+
+et_test( 'a quarantined image cannot be renamed', function () use ( $m ) {
+    $id = $m['img']['attached_only'];
+    et_not_error( et_quarantine( $id, false ) );
+    et_assert( is_wp_error( et_rename( $id, 'should-not-happen' ) ), 'rename accepted' );
+    et_not_error( et_unquarantine( $id ) );
+} );

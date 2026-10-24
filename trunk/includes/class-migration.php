@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  */
 class ERDO_Migration {
 
-    const DB_VERSION     = 4;
+    const DB_VERSION     = 5;
     const LEGACY_OPTION  = 'erdo_legacy_present';
     const LEGACY_MARKERS = array( '_erdo_savings_bytes', '_erdo_original_size', '_erdo_backup_path' );
 
@@ -50,6 +50,11 @@ class ERDO_Migration {
         if ( $from < 4 ) {
             // Kullanım indeksi tablosu + arka planda ilk kurulum
             ERDO_Usage::start_build();
+        }
+
+        if ( $from < 5 ) {
+            // 0–100 SEO puanı: önbellekteki eski 0–6 sonuçları geçersiz.
+            ERDO_Auditor::clear_all_cache();
         }
 
         update_option( 'erdo_db_version', self::DB_VERSION );

@@ -9,7 +9,7 @@ jQuery(document).ready(function($) {
     var libraryVersion   = 0;             // sunucudan gelen versiyon
     var counts           = { red: 0, orange: 0, green: 0, gray: 0 };
 
-    var CACHE_KEY = 'erdo_grid_v2';
+    var CACHE_KEY = 'erdo_grid_v3'; // v3: 0–100 puan rozeti + seçim kutusu
 
     /* -------------------------------------------------------
        sessionStorage CACHE YARDIMCILARI
@@ -46,6 +46,7 @@ jQuery(document).ready(function($) {
         $('#tab-orange .erdo-grid').html(cache.html.orange);
         $('#tab-green  .erdo-grid').html(cache.html.green);
         $('#tab-gray   .erdo-grid').html(cache.html.gray);
+        $('.erdo-card.erdo-selected').removeClass('erdo-selected').find('.erdo-card-check').attr('aria-checked', 'false');
         counts = $.extend({}, cache.counts);
         updateCounts();
         $('#stat-unused-count').text(counts.gray);
@@ -289,7 +290,12 @@ jQuery(document).ready(function($) {
     /* -------------------------------------------------------
        OPEN IMAGE MODAL
     ------------------------------------------------------- */
-    $(document).on('click', '.erdo-card', function() {
+    $(document).on('click', '.erdo-card', function(e) {
+        // Seçim: onay kutusu, Ctrl/Cmd+tık ya da seçim varken herhangi bir tık
+        if ( $(e.target).closest('.erdo-card-check').length || e.ctrlKey || e.metaKey || selectedIds().length ) {
+            toggleSelect($(this));
+            return;
+        }
         var id = $(this).data('id');
         openModal('<p style="text-align:center;padding:60px 20px;">Analyzing image...</p>');
         $.post(
@@ -316,6 +322,9 @@ jQuery(document).ready(function($) {
                 card.removeClass('border-red border-orange border-green border-gray');
                 card.addClass('border-' + ( d.is_used === false ? 'gray' : d.status ));
                 card.find('.erdo-card-info').text(d.filename);
+                card.find('.erdo-score-badge').text(d.score)
+                    .removeClass('erdo-score-red erdo-score-orange erdo-score-green erdo-score-gray')
+                    .addClass('erdo-score-' + ( d.is_used === false ? 'gray' : d.status ));
                 clearGridCache(); // Kart değişti, cache'i güncelle
                 saveGridCache(libraryVersion);
                 loadStats();
@@ -851,26 +860,9 @@ jQuery(document).ready(function($) {
     /* -------------------------------------------------------
        BULK RENAME — Tüm kötü dosya adlarını düzelt
     ------------------------------------------------------- */
+    // Önce önizleme: yalnızca adı değişecek görseller listelenir, sonra uygula/geri al.
     $('#erdo-bulk-rename-btn').on('click', function() {
-        if ( ! confirm('Sanitize all image filenames? This will rename files on disk and update all post references. Cannot be undone.') ) return;
-        var btn = $(this);
-        btn.html('<span class="erdo-spinner"></span> Renaming...').prop('disabled', true);
-
-        $.post(
-            erdo_vars.ajax_url,
-            { action: 'erdo_bulk_rename', nonce: erdo_vars.nonce },
-            function(res) {
-                if ( res.success ) {
-                    btn.prop('disabled', false).html('<span class="dashicons dashicons-tag"></span> Fix Filenames');
-                    alert('Done! ' + res.data.renamed + ' files renamed, ' + res.data.skipped + ' already clean.');
-                    clearGridCache();
-                    loadImages(true);
-                } else {
-                    btn.prop('disabled', false).html('<span class="dashicons dashicons-tag"></span> Fix Filenames');
-                    alert('An error occurred.');
-                }
-            }
-        );
+        openRenameModal([], 'fix');
     });
 
     /* -------------------------------------------------------
@@ -1130,6 +1122,208 @@ jQuery(document).ready(function($) {
             $.post(erdo_vars.ajax_url, { action: 'erdo_delete_image', id: id, nonce: erdo_vars.nonce },
                 function() { clearGridCache(); location.reload(); });
         }
+    });
+
+    /* -------------------------------------------------------
+       ÇOKLU SEÇİM — kart köşesindeki kutu ya da Ctrl/Cmd+tık
+    ------------------------------------------------------- */
+    var i18n = erdo_vars.i18n || {};
+
+    function fmt(str) {
+        var args = Array.prototype.slice.call(arguments, 1), i = 0;
+        return String(str || '').replace(/%(\d)\$d|%d/g, function(m, pos) {
+            return pos ? args[pos - 1] : args[i++];
+        });
+    }
+
+    function esc(str) {
+        return $('<div>').text(str == null ? '' : String(str)).html();
+    }
+
+    function selectedIds() {
+        return $('.erdo-card.erdo-selected').map(function() { return $(this).data('id'); }).get();
+    }
+
+    function updateSelectionBar() {
+        var n = selectedIds().length;
+        $('#erdo-selection-count').text(fmt(i18n.selected, n));
+        $('#erdo-selection-bar').toggleClass('hidden', n === 0);
+        $('body').toggleClass('erdo-selecting', n > 0);
+    }
+
+    function toggleSelect($card) {
+        var on = ! $card.hasClass('erdo-selected');
+        $card.toggleClass('erdo-selected', on);
+        $card.find('.erdo-card-check').attr('aria-checked', on ? 'true' : 'false');
+        updateSelectionBar();
+    }
+
+    function clearSelection() {
+        $('.erdo-card.erdo-selected').removeClass('erdo-selected').find('.erdo-card-check').attr('aria-checked', 'false');
+        updateSelectionBar();
+    }
+
+    $('#erdo-selection-clear').on('click', clearSelection);
+    $('#erdo-selection-rename').on('click', function() {
+        openRenameModal(selectedIds(), 'pattern');
+    });
+
+    /* -------------------------------------------------------
+       YENİDEN ADLANDIRMA PENCERESİ
+       mode 'fix'    : tüm kütüphanede adı değişecek olanlar (desen yok)
+       mode 'pattern': seçili görseller + desen ({keyword}-{n} …)
+       Akış: önizleme → (adları düzenle) → uygula (25'lik parçalar) → sonuç + geri al
+    ------------------------------------------------------- */
+    var renameIds  = [];
+    var renameMode = 'fix';
+
+    function openRenameModal(ids, mode) {
+        renameIds  = ids;
+        renameMode = mode;
+        var html = '<div class="modal-header"><h2>' + esc(mode === 'fix' ? i18n.fixTitle : i18n.renameTitle) + '</h2></div>';
+        html += '<div class="erdo-rename-body">';
+        if ( mode === 'pattern' ) {
+            html += '<div class="erdo-rn-fields">';
+            html += '<label>' + esc(i18n.pattern) + '<input type="text" id="erdo-rn-pattern" class="erdo-input" value="{keyword}-{n}"></label>';
+            html += '<label>' + esc(i18n.keyword) + '<input type="text" id="erdo-rn-keyword" class="erdo-input"></label>';
+            html += '<button type="button" class="button" id="erdo-rn-preview">' + esc(i18n.preview) + '</button>';
+            html += '</div>';
+            html += '<p class="erdo-rn-hint">' + esc(i18n.tokens) + '<br>' + esc(i18n.keywordHint) + '</p>';
+        }
+        html += '<p class="erdo-rn-safety"><span class="dashicons dashicons-shield"></span> ' + esc(i18n.safety) + '</p>';
+        html += '<div id="erdo-rn-table"></div>';
+        html += '<div class="erdo-rn-actions"><button type="button" class="button button-primary" id="erdo-rn-apply" disabled></button><span id="erdo-rn-status" role="status"></span></div>';
+        html += '</div>';
+        openModal(html);
+        loadRenamePreview();
+    }
+
+    function loadRenamePreview() {
+        $('#erdo-rn-table').html('<p class="erdo-rn-loading"><span class="erdo-spinner"></span> ' + esc(i18n.loading) + '</p>');
+        $('#erdo-rn-apply').prop('disabled', true).text(fmt(i18n.apply, 0));
+        $.post(erdo_vars.ajax_url, {
+            action  : 'erdo_rename_preview',
+            nonce   : erdo_vars.nonce,
+            ids     : renameIds,
+            pattern : renameMode === 'pattern' ? $('#erdo-rn-pattern').val() : '',
+            keyword : renameMode === 'pattern' ? $('#erdo-rn-keyword').val() : ''
+        }, function(res) {
+            if ( ! res || ! res.success ) {
+                $('#erdo-rn-table').html('<p class="erdo-rn-error">' + esc(i18n.error) + '</p>');
+                return;
+            }
+            renderRenameRows(res.data.rows);
+        }).fail(function() {
+            $('#erdo-rn-table').html('<p class="erdo-rn-error">' + esc(i18n.error) + '</p>');
+        });
+    }
+
+    function renderRenameRows(rows) {
+        if ( ! rows.length ) {
+            $('#erdo-rn-table').html('<p class="erdo-rn-empty">' + esc(i18n.nothing) + '</p>');
+            return;
+        }
+        var ok = 0;
+        var html = '<table class="erdo-rn-list"><thead><tr><th>' + esc(i18n.current) + '</th><th>' + esc(i18n.newName) + '</th></tr></thead><tbody>';
+        $.each(rows, function(_, r) {
+            html += '<tr data-id="' + parseInt(r.id, 10) + '"' + ( r.error ? ' class="erdo-rn-row-error"' : '' ) + '>';
+            html += '<td class="erdo-rn-old">' + esc(r.old) + '</td><td>';
+            if ( r.error ) {
+                html += '<span class="erdo-rn-error">' + esc(r.error) + '</span>';
+            } else {
+                ok++;
+                var ext = r['new'].slice(r.stem.length);
+                html += '<input type="text" class="erdo-input erdo-rn-stem" value="' + esc(r.stem) + '" aria-label="' + esc(i18n.newName) + ' — ' + esc(r.old) + '"><span class="erdo-rn-ext">' + esc(ext) + '</span>';
+            }
+            html += '</td></tr>';
+        });
+        html += '</tbody></table>';
+        $('#erdo-rn-table').html(html);
+        $('#erdo-rn-apply').prop('disabled', ok === 0).text(fmt(i18n.apply, ok));
+    }
+
+    $(document).on('click', '#erdo-rn-preview', loadRenamePreview);
+    $(document).on('keydown', '#erdo-rn-pattern, #erdo-rn-keyword', function(e) {
+        if ( e.key === 'Enter' ) { e.preventDefault(); loadRenamePreview(); }
+    });
+
+    $(document).on('click', '#erdo-rn-apply', function() {
+        var items = [];
+        $('#erdo-rn-table tr[data-id]').each(function() {
+            var $in = $(this).find('.erdo-rn-stem');
+            if ( $in.length ) items.push([ $(this).data('id'), $.trim($in.val()) ]);
+        });
+        if ( ! items.length ) return;
+
+        var total = items.length, done = 0, renamed = 0, batch = '';
+        $('#erdo-rn-apply, #erdo-rn-preview').prop('disabled', true);
+        $('#erdo-rn-table input').prop('disabled', true);
+
+        function next() {
+            var chunk = items.splice(0, 25);
+            if ( ! chunk.length ) return finish();
+            var data = { action: 'erdo_rename_apply', nonce: erdo_vars.nonce, batch: batch, items: {} };
+            $.each(chunk, function(_, it) { data.items[it[0]] = it[1]; });
+            $('#erdo-rn-status').text(fmt(i18n.renaming, done, total));
+            $.post(erdo_vars.ajax_url, data, function(res) {
+                if ( ! res || ! res.success ) return finish(true);
+                batch = res.data.batch;
+                $.each(res.data.results, function(_, r) {
+                    var $row = $('#erdo-rn-table tr[data-id="' + parseInt(r.id, 10) + '"]');
+                    if ( r.error ) {
+                        $row.addClass('erdo-rn-row-error').find('td:last').html('<span class="erdo-rn-error">' + esc(r.error) + '</span>');
+                    } else {
+                        renamed++;
+                        $row.addClass('erdo-rn-row-done').find('td:last').text(r.filename);
+                    }
+                });
+                done += chunk.length;
+                next();
+            }).fail(function() { finish(true); });
+        }
+
+        function finish(failed) {
+            var msg = fmt(i18n.done, renamed, total - renamed) + ( failed ? ' ' + i18n.error : '' );
+            var $status = $('#erdo-rn-status').text(msg);
+            if ( batch && renamed ) {
+                $('<button type="button" class="button erdo-rn-undo"></button>').text(i18n.undo).attr('data-batch', batch).appendTo($status.parent());
+            }
+            $('#erdo-rn-apply').remove();
+            clearSelection();
+            clearGridCache();
+            loadImages(true);
+            loadStats();
+        }
+
+        next();
+    });
+
+    $(document).on('click', '.erdo-rn-undo', function() {
+        var $btn = $(this).prop('disabled', true);
+        $.post(erdo_vars.ajax_url, { action: 'erdo_rename_undo', nonce: erdo_vars.nonce, batch: $btn.data('batch') }, function(res) {
+            $btn.remove();
+            $('#erdo-rn-status').text(res && res.success ? fmt(i18n.undone, res.data.restored) : ( res && res.data && res.data.message ) || i18n.error);
+            clearGridCache();
+            loadImages(true);
+            loadStats();
+        });
+    });
+
+    // Detay paneli: tek görselin son yeniden adlandırmasını geri al
+    $(document).on('click', '.erdo-undo-rename-btn', function() {
+        var id = $(this).data('id');
+        $(this).prop('disabled', true);
+        $.post(erdo_vars.ajax_url, { action: 'erdo_rename_undo_last', nonce: erdo_vars.nonce, id: id }, function(res) {
+            if ( ! res || ! res.success ) {
+                alert(( res && res.data && res.data.message ) || i18n.error);
+                return;
+            }
+            $('.erdo-card[data-id="' + id + '"] .erdo-card-info').text(res.data.filename);
+            $.post(erdo_vars.ajax_url, { action: 'erdo_get_detail', id: id, nonce: erdo_vars.nonce }, function(html) {
+                $('#erdo-modal-content').html(html);
+            });
+            clearGridCache();
+        });
     });
 
 });  // jQuery ready END
