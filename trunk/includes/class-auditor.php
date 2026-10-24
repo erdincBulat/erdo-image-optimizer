@@ -5,13 +5,6 @@ if ( ! defined( 'ABSPATH' ) ) {
 
 class ERDO_Auditor {
 
-    /**
-     * convert_to_webp() bu değeri döndürdüğünde görsel zaten hedef formatta
-     * demektir — bu bir hata değil, atlanan (skip) bir durumdur. Çağıranlar
-     * bunu `false` (gerçek hata) ile karıştırmamalı.
-     */
-    const ALREADY_OPTIMIZED = 'already_optimized';
-
     /* ------------------------------------------------------------------
        CACHE YÖNETİMİ
     ------------------------------------------------------------------ */
@@ -194,7 +187,7 @@ class ERDO_Auditor {
         if ( false === $metadata_rows ) {
                 // phpcs:disable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
             $metadata_rows = $wpdb->get_results( $wpdb->prepare(
-                "SELECT post_id, meta_key, meta_value FROM $wpdb->postmeta WHERE post_id IN ($placeholders) AND meta_key IN ('_wp_attached_file','_wp_attachment_metadata','_wp_attachment_image_alt','_erdo_audit_cache','_erdo_savings_bytes','_erdo_original_size')",
+                "SELECT post_id, meta_key, meta_value FROM $wpdb->postmeta WHERE post_id IN ($placeholders) AND meta_key IN ('_wp_attached_file','_wp_attachment_metadata','_wp_attachment_image_alt','_erdo_audit_cache','_erdo_savings_bytes','_erdo_original_size','_erdo_formats','_erdo_saved_bytes')",
                 ...$attachment_ids
             ), ARRAY_A );
             // phpcs:enable WordPress.DB.PreparedSQL.InterpolatedNotPrepared, WordPress.DB.PreparedSQLPlaceholders.UnfinishedPrepare, WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -340,8 +333,11 @@ class ERDO_Auditor {
                     : __( 'Image dimensions could not be detected. This may resolve after re-saving.', 'erdo-image-optimizer' ),
             );
 
-            // --- Format ---
-            $is_optimized = ( false !== strpos( $mime, 'webp' ) || false !== strpos( $mime, 'avif' ) );
+            // --- Format: dosyanın kendisi ya da kardeşi WebP/AVIF ise geçer ---
+            $record       = $meta_by_post[ $post_id ][ ERDO_Converter::META ] ?? null;
+            $record       = is_array( $record ) ? $record : array();
+            $is_optimized = ERDO_Converter::is_optimized( $post_id, $mime, $record );
+            $best_sibling = ERDO_Converter::best_main_sibling( $post_id, $record, $file );
             $checklist[]  = array(
                 'label' => 'Format',
                 'pass'  => $is_optimized,
@@ -352,16 +348,17 @@ class ERDO_Auditor {
                 ),
             );
 
-            // --- File Size: filesize meta yoksa (WP < 6.0) geçer, sıfır göstermez ---
-            $has_filesize = isset( $meta['filesize'] ) && $meta['filesize'] > 0;
+            // --- File Size: ziyaretçiye giden boyut (varsa en küçük kardeş). filesize meta yoksa (WP < 6.0) geçer ---
+            $served_size  = $best_sibling ? $best_sibling['bytes'] : (int) ( $meta['filesize'] ?? 0 );
+            $has_filesize = $served_size > 0;
             $checklist[]  = array(
                 'label' => 'File Size',
-                'pass'  => ! $has_filesize || $meta['filesize'] < 256000,
+                'pass'  => ! $has_filesize || $served_size < 256000,
                 'msg'   => $has_filesize
                     ? sprintf(
                         // translators: %s: dosya boyutu KB cinsinden.
                         __( 'File size is %s KB. Aim for under 250 KB.', 'erdo-image-optimizer' ),
-                        round( $meta['filesize'] / 1024 )
+                        round( $served_size / 1024 )
                     )
                     : __( 'File size unknown. Re-save or regenerate thumbnails to detect it.', 'erdo-image-optimizer' ),
             );
@@ -384,9 +381,17 @@ class ERDO_Auditor {
                 $status = 'red';
             }
 
-            $saved_bytes   = (int) ( $meta_by_post[ $post_id ]['_erdo_savings_bytes'] ?? 0 );
-            $original_size = (int) ( $meta_by_post[ $post_id ]['_erdo_original_size'] ?? 0 );
-            $current_size  = $meta['filesize'] ?? 0;
+            // Ana dosya için kazanç: orijinal ↔ en küçük kardeş (3.0). 2.x'ten kalan
+            // (onarılmamış) görsellerde eski meta alanları kullanılır.
+            if ( $best_sibling ) {
+                $original_size = (int) ( $meta['filesize'] ?? 0 );
+                $current_size  = $best_sibling['bytes'];
+                $saved_bytes   = max( 0, $original_size - $current_size );
+            } else {
+                $saved_bytes   = (int) ( $meta_by_post[ $post_id ]['_erdo_savings_bytes'] ?? 0 );
+                $original_size = (int) ( $meta_by_post[ $post_id ]['_erdo_original_size'] ?? 0 );
+                $current_size  = $meta['filesize'] ?? 0;
+            }
 
             $result = array(
                 'status'       => $status,
@@ -401,6 +406,8 @@ class ERDO_Auditor {
                 'original_size'=> $original_size,
                 'current_size' => $current_size,
                 'mime'         => $mime,
+                // Kartta gösterilecek format: kardeş varsa onun formatı.
+                'served_format'=> $best_sibling ? $best_sibling['format'] : strtolower( str_replace( 'image/', '', $mime ) ),
             );
 
             update_post_meta( $post_id, '_erdo_audit_cache', $result );
@@ -489,283 +496,22 @@ class ERDO_Auditor {
         clearstatcache();
 
         require_once ABSPATH . 'wp-admin/includes/image.php';
-        // Auto-convert hook'unu geçici kaldır: yeniden boyutlandırılan JPEG/PNG
-        // meta üretimi sırasında WebP'ye dönüşmesin.
-        remove_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10 );
+        $was_optimized = ERDO_Converter::is_optimized( $post_id );
+        ERDO_Converter::suspend_upload_hook();
         $attach_data = wp_generate_attachment_metadata( $post_id, $file_path );
-        add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10, 2 );
+        ERDO_Converter::resume_upload_hook();
 
         clearstatcache();
         $attach_data['filesize'] = file_exists( $file_path ) ? filesize( $file_path ) : 0;
         wp_update_attachment_metadata( $post_id, $attach_data );
+
+        // Kaynak değişti — kardeşleri yeni boyutlara göre yeniden üret (eskiler mtime ile bayat sayılır).
+        if ( $was_optimized ) {
+            ERDO_Converter::convert( $post_id );
+        }
         self::clear_cache( $post_id );
 
         return true;
-    }
-
-    /* ------------------------------------------------------------------
-       ORİJİNAL YEDEKLEME
-    ------------------------------------------------------------------ */
-
-    /**
-     * Orijinal dosyayı _erdo_backup/ klasörüne yedekler.
-     * Yedek zaten varsa tekrar oluşturmaz.
-     */
-    public static function backup_original( $post_id ) {
-        $file_path = get_attached_file( $post_id );
-        if ( ! $file_path || ! file_exists( $file_path ) ) {
-            return false;
-        }
-
-        $backup_dir = dirname( $file_path ) . '/_erdo_backup/';
-        if ( ! file_exists( $backup_dir ) ) {
-            wp_mkdir_p( $backup_dir );
-            // Klasörü web'den gizle
-            file_put_contents( $backup_dir . '.htaccess', 'deny from all' ); // phpcs:ignore WordPress.WP.AlternativeFunctions.file_system_operations_file_put_contents
-        }
-
-        $backup_path = $backup_dir . basename( $file_path );
-        if ( ! file_exists( $backup_path ) ) {
-            copy( $file_path, $backup_path );
-        }
-
-        update_post_meta( $post_id, '_erdo_backup_path', $backup_path );
-        return $backup_path;
-    }
-
-    /**
-     * Orijinal dosyayı yedeğinden geri yükler.
-     */
-    public static function restore_original( $post_id ) {
-        $backup_path = get_post_meta( $post_id, '_erdo_backup_path', true );
-        if ( ! $backup_path || ! file_exists( $backup_path ) ) {
-            return false;
-        }
-
-        $current_path = get_attached_file( $post_id );
-        $original_ext = strtolower( pathinfo( $backup_path, PATHINFO_EXTENSION ) );
-        $restore_path = pathinfo( $current_path, PATHINFO_DIRNAME )
-            . '/' . pathinfo( $current_path, PATHINFO_FILENAME )
-            . '.' . $original_ext;
-
-        // Yeni boyutları üretmeden önce eski (optimize edilmiş formattaki) metadata'yı
-        // sakla — aşağıda alt boyut dosyalarını (thumbnail'ları) temizlemek için gerekli.
-        $old_meta = wp_get_attachment_metadata( $post_id );
-
-        // Yedekten kopyala
-        if ( ! copy( $backup_path, $restore_path ) ) {
-            return false;
-        }
-
-        // Eski (optimize edilmiş) ana dosyayı sil
-        if ( $current_path !== $restore_path && file_exists( $current_path ) ) {
-            wp_delete_file( $current_path );
-        }
-
-        // Eski (optimize edilmiş formattaki) alt boyut dosyalarını da sil — aksi hâlde
-        // WebP/AVIF sunucusu diskte kalan bu dosyaları restore sonrasında da servis etmeye devam eder.
-        if ( ! empty( $old_meta['sizes'] ) ) {
-            $thumb_dir = trailingslashit( dirname( $current_path ) );
-            foreach ( $old_meta['sizes'] as $size_data ) {
-                if ( ! empty( $size_data['file'] ) ) {
-                    $old_thumb = $thumb_dir . $size_data['file'];
-                    if ( file_exists( $old_thumb ) ) {
-                        wp_delete_file( $old_thumb );
-                    }
-                }
-            }
-        }
-
-        // DB'yi orijinal mime type ile güncelle
-        $mime_map = array( 'jpg' => 'image/jpeg', 'jpeg' => 'image/jpeg', 'png' => 'image/png', 'gif' => 'image/gif' );
-        $mime     = $mime_map[ $original_ext ] ?? 'image/jpeg';
-
-        update_attached_file( $post_id, $restore_path );
-        wp_update_post( array( 'ID' => $post_id, 'post_mime_type' => $mime ) );
-
-        require_once ABSPATH . 'wp-admin/includes/image.php';
-
-        // Auto-convert hook'unu geçici kaldır: aksi hâlde restore edilen orijinal
-        // dosya wp_generate_attachment_metadata tetiklenirken yeniden WebP'ye dönüşür.
-        remove_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10 );
-        $attach_data = wp_generate_attachment_metadata( $post_id, $restore_path );
-        add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10, 2 );
-
-        clearstatcache();
-        $attach_data['filesize'] = file_exists( $restore_path ) ? filesize( $restore_path ) : 0;
-        wp_update_attachment_metadata( $post_id, $attach_data );
-
-        delete_post_meta( $post_id, '_erdo_backup_path' );
-        self::clear_cache( $post_id );
-
-        return true;
-    }
-
-    /* ------------------------------------------------------------------
-       WEBP / AVIF DÖNÜŞÜMÜ — thumbnail alt boyutları da dönüştürülür
-    ------------------------------------------------------------------ */
-
-    public static function convert_to_webp( $post_id, $update_db = true ) {
-        $file_path = get_attached_file( $post_id );
-
-        if ( ! $file_path || ! file_exists( $file_path ) ) {
-            return false;
-        }
-
-        $original_size = filesize( $file_path );
-        $info          = pathinfo( $file_path );
-        $ext           = strtolower( $info['extension'] );
-
-        if ( 'webp' === $ext || 'avif' === $ext ) {
-            return self::ALREADY_OPTIMIZED;
-        }
-
-        $target_format = get_option( 'erdo_convert_format', 'webp' );
-        if ( 'avif' === $target_format && ! function_exists( 'imageavif' ) ) {
-            $target_format = 'webp';
-        }
-
-        $quality     = (int) get_option( 'erdo_quality', 80 );
-        $lossless    = (bool) get_option( 'erdo_lossless', false );
-        $keep_orig   = (bool) get_option( 'erdo_keep_original', false );
-        $smart_q     = (bool) get_option( 'erdo_smart_quality', false );
-        $new_path    = $info['dirname'] . '/' . $info['filename'] . '.' . $target_format;
-
-        // Orijinali yedekle (ayar aktifse) — $update_db durumundan bağımsız,
-        // aksi hâlde upload-time dönüşümde ($update_db=false) hiç yedek alınmaz.
-        if ( $keep_orig ) {
-            self::backup_original( $post_id );
-        }
-
-        $heic_tmp = null;
-
-        // GD ile dönüştür — JPEG, PNG, GIF ve HEIC/HEIF desteklenir
-        if ( 'png' === $ext ) {
-            $image = @imagecreatefrompng( $file_path );
-            if ( $image ) {
-                imagepalettetotruecolor( $image );
-                imagealphablending( $image, true );
-                imagesavealpha( $image, true );
-            }
-        } elseif ( in_array( $ext, array( 'jpeg', 'jpg' ), true ) ) {
-            $image = @imagecreatefromjpeg( $file_path );
-        } elseif ( 'gif' === $ext ) {
-            $image = @imagecreatefromgif( $file_path );
-            if ( $image ) {
-                // GIF'in şeffaflığını koru
-                $new_image = imagecreatetruecolor( imagesx( $image ), imagesy( $image ) );
-                imagefill( $new_image, 0, 0, imagecolorallocatealpha( $new_image, 255, 255, 255, 127 ) );
-                imagealphablending( $new_image, true );
-                imagesavealpha( $new_image, true );
-                imagecopy( $new_image, $image, 0, 0, 0, 0, imagesx( $image ), imagesy( $image ) );
-                imagedestroy( $image );
-                $image = $new_image;
-            }
-        } elseif ( in_array( $ext, array( 'heic', 'heif' ), true ) && class_exists( 'Imagick' ) ) {
-            // HEIC/HEIF → önce Imagick ile JPEG'e çevir, sonra GD ile WebP/AVIF yap
-            try {
-                $imagick = new Imagick( $file_path );
-                $imagick->setImageFormat( 'jpeg' );
-                $heic_tmp = $info['dirname'] . '/' . $info['filename'] . '_heic_tmp.jpg';
-                $imagick->writeImage( $heic_tmp );
-                $imagick->clear();
-                $image = @imagecreatefromjpeg( $heic_tmp );
-            } catch ( Exception $e ) {
-                return false;
-            }
-        } else {
-            return false;
-        }
-
-        if ( ! $image ) {
-            return false;
-        }
-
-        // Smart quality — lossless devre dışıysa adaptif kalite hesapla
-        if ( ! $lossless && $smart_q ) {
-            $quality = self::find_best_quality( $image, $target_format );
-        }
-
-        // Lossless mod
-        if ( $lossless ) {
-            $quality = -1; // imagewebp: -1 = lossless
-        }
-
-        $success = ( 'avif' === $target_format )
-            ? imageavif( $image, $new_path, $lossless ? 0 : $quality )
-            : imagewebp( $image, $new_path, $quality );
-
-        imagedestroy( $image );
-
-        // HEIC geçici dosyasını temizle
-        if ( $heic_tmp && file_exists( $heic_tmp ) ) {
-            wp_delete_file( $heic_tmp );
-        }
-
-        if ( ! $success ) {
-            return false;
-        }
-
-        // Orijinal dosyayı sil — yedek isteniyorsa zaten backup_original() ile
-        // _erdo_backup/ klasörüne kopyalandı, o yüzden burada koşulsuz silinir
-        // (aksi hâlde orijinal + yedek + dönüştürülmüş dosya olmak üzere 3 kopya birikir).
-        wp_delete_file( $file_path );
-
-        clearstatcache();
-        $new_size = file_exists( $new_path ) ? filesize( $new_path ) : 0;
-
-        // Tasarruf istatistiklerini kaydet
-        if ( $new_size > 0 ) {
-            $saved_bytes = $original_size - $new_size;
-            if ( $saved_bytes > 0 ) {
-                $total_saved = (int) get_option( 'erdo_total_saved_bytes', 0 );
-                update_option( 'erdo_total_saved_bytes', $total_saved + $saved_bytes );
-                update_post_meta( $post_id, '_erdo_savings_bytes', $saved_bytes );
-                update_post_meta( $post_id, '_erdo_original_size', $original_size );
-            }
-        }
-
-        if ( $update_db ) {
-            update_attached_file( $post_id, $new_path );
-            wp_update_post( array(
-                'ID'             => $post_id,
-                'post_mime_type' => 'image/' . $target_format,
-            ) );
-
-            // Eski thumbnail dosyalarını sil (eski formattaki alt boyutlar)
-            $old_meta = wp_get_attachment_metadata( $post_id );
-            if ( ! empty( $old_meta['sizes'] ) ) {
-                $upload_dir = wp_upload_dir();
-                $thumb_dir  = trailingslashit( $upload_dir['basedir'] )
-                    . ( ! empty( $old_meta['file'] ) ? trailingslashit( dirname( $old_meta['file'] ) ) : '' );
-
-                foreach ( $old_meta['sizes'] as $size_data ) {
-                    if ( ! empty( $size_data['file'] ) ) {
-                        $old_thumb = $thumb_dir . $size_data['file'];
-                        if ( file_exists( $old_thumb ) ) {
-                            wp_delete_file( $old_thumb );
-                        }
-                    }
-                }
-            }
-
-            // Yeni formatta tüm boyutları (150x150, 300x300 vb.) yeniden oluştur
-            require_once ABSPATH . 'wp-admin/includes/image.php';
-            $attach_data             = wp_generate_attachment_metadata( $post_id, $new_path );
-            clearstatcache();
-            $attach_data['filesize'] = file_exists( $new_path ) ? filesize( $new_path ) : 0;
-            wp_update_attachment_metadata( $post_id, $attach_data );
-
-            self::clear_cache( $post_id );
-            return true;
-        }
-
-        // $update_db = false → sadece veriyi döndür (upload hook için)
-        return array(
-            'path'     => $new_path,
-            'mime'     => 'image/' . $target_format,
-            'filesize' => $new_size,
-        );
     }
 
     /* ------------------------------------------------------------------
@@ -804,46 +550,6 @@ class ERDO_Auditor {
 
     public static function delete_image( $post_id ) {
         return wp_delete_attachment( $post_id, true );
-    }
-
-    /* ------------------------------------------------------------------
-       SMART / ADAPTİF KALİTE  (Özellik 5)
-       Her görsel için en küçük kabul edilebilir kalite değerini bulur.
-       Yaklaşım: 85→70→55 arasında 3 probe; boyuttaki azalma eşiğinin
-       altına düşünce bir önceki değeri döndürür.
-    ------------------------------------------------------------------ */
-
-    public static function find_best_quality( $image_resource, string $format ): int {
-        $probes         = array( 85, 72, 58 );
-        $prev_size      = PHP_INT_MAX;
-        $best_quality   = 80;
-        $threshold_pct  = 0.08; // %8'den az kazanç varsa daha düşük kaliteye gitme
-
-        foreach ( $probes as $q ) {
-            ob_start();
-            if ( 'avif' === $format && function_exists( 'imageavif' ) ) {
-                imageavif( $image_resource, null, $q );
-            } else {
-                imagewebp( $image_resource, null, $q );
-            }
-            $size = strlen( ob_get_clean() );
-
-            if ( $size <= 0 ) {
-                break;
-            }
-
-            $saving = ( $prev_size - $size ) / $prev_size;
-
-            if ( $saving < $threshold_pct ) {
-                // Bu kalite artık anlamlı kazanç sağlamıyor; bir üst değeri kullan
-                break;
-            }
-
-            $best_quality = $q;
-            $prev_size    = $size;
-        }
-
-        return $best_quality;
     }
 
     /* ------------------------------------------------------------------
@@ -912,6 +618,10 @@ class ERDO_Auditor {
             }
         }
 
+        // Kardeş WebP/AVIF dosyaları eski adı taşıyor — sil, taşımadan sonra yeni adla yeniden üret.
+        $was_optimized = ERDO_Converter::is_optimized( $post_id );
+        ERDO_Converter::revert( $post_id );
+
         // Ana dosyayı taşı
         require_once ABSPATH . 'wp-admin/includes/file.php';
         WP_Filesystem();
@@ -949,12 +659,15 @@ class ERDO_Auditor {
 
         // DB: Metadata yeniden oluştur
         require_once ABSPATH . 'wp-admin/includes/image.php';
-        remove_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10 );
+        ERDO_Converter::suspend_upload_hook();
         $attach_data             = wp_generate_attachment_metadata( $post_id, $new_path );
-        add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10, 2 );
+        ERDO_Converter::resume_upload_hook();
         clearstatcache();
         $attach_data['filesize'] = file_exists( $new_path ) ? filesize( $new_path ) : 0;
         wp_update_attachment_metadata( $post_id, $attach_data );
+        if ( $was_optimized ) {
+            ERDO_Converter::convert( $post_id );
+        }
 
         // DB: post_content URL referansları
         $like_old = '%' . $wpdb->esc_like( $old_name . '.' . $ext ) . '%';

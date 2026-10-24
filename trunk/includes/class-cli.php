@@ -13,6 +13,7 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) { return; }
  *   wp erdo audit --format=csv > audit.csv
  *   wp erdo restore --id=42
  *   wp erdo stats
+ *   wp erdo migrate --dry-run
  *   wp erdo clean-cache
  */
 class ERDO_CLI {
@@ -22,7 +23,7 @@ class ERDO_CLI {
     ------------------------------------------------------------------ */
 
     /**
-     * Convert images to WebP/AVIF.
+     * Create WebP/AVIF copies next to the original images (originals are not changed).
      *
      * ## OPTIONS
      *
@@ -60,34 +61,22 @@ class ERDO_CLI {
                 WP_CLI::log( "Would convert ID {$id}: " . get_attached_file( $id ) );
                 return;
             }
-            $result = ERDO_Auditor::convert_to_webp( $id, true );
-            if ( ERDO_Auditor::ALREADY_OPTIMIZED === $result ) {
-                WP_CLI::warning( "ID {$id} is already in {$format} format." );
-            } elseif ( $result ) {
-                WP_CLI::success( "ID {$id} converted to {$format}." );
+            $result = ERDO_Converter::convert( $id );
+            if ( is_wp_error( $result ) ) {
+                WP_CLI::warning( "ID {$id} could not be converted: " . $result->get_error_message() );
+            } elseif ( 'ok' !== $result['status'] ) {
+                WP_CLI::warning( "ID {$id} skipped ({$result['status']}" . ( $result['reason'] ? ": {$result['reason']}" : '' ) . ').' );
             } else {
-                WP_CLI::warning( "ID {$id} could not be converted." );
+                WP_CLI::success( sprintf( 'ID %d: %d copies created, %d up to date, %s saved.', $id, $result['created'], $result['reused'], size_format( $result['before'] - $result['after'] ) ) );
             }
             return;
         }
 
-        // Toplu dönüşüm
-        $query_args = array(
-            'post_type'      => 'attachment',
-            'post_status'    => 'inherit',
-            'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/gif' ),
-            'posts_per_page' => isset( $assoc['limit'] ) ? (int) $assoc['limit'] : -1,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
+        // Toplu dönüşüm — yalnızca henüz kopyası olmayanlar
+        $ids = ERDO_Converter::pending_ids(
+            isset( $assoc['limit'] ) ? (int) $assoc['limit'] : -1,
+            isset( $assoc['year'] ) ? array( array( 'year' => (int) $assoc['year'] ) ) : null
         );
-
-        if ( isset( $assoc['year'] ) ) {
-            $query_args['date_query'] = array(
-                array( 'year' => (int) $assoc['year'] ),
-            );
-        }
-
-        $ids = get_posts( $query_args );
 
         if ( empty( $ids ) ) {
             WP_CLI::success( 'No convertible images found.' );
@@ -108,19 +97,19 @@ class ERDO_CLI {
         $fail    = 0;
 
         foreach ( $ids as $id ) {
-            $result = ERDO_Auditor::convert_to_webp( $id, true );
-            if ( ERDO_Auditor::ALREADY_OPTIMIZED === $result ) {
-                $skipped++;
-            } elseif ( $result ) {
-                $ok++;
-            } else {
+            $result = ERDO_Converter::convert( $id );
+            if ( is_wp_error( $result ) ) {
                 $fail++;
+            } elseif ( 'ok' !== $result['status'] ) {
+                $skipped++;
+            } else {
+                $ok++;
             }
             $progress->tick();
         }
 
         $progress->finish();
-        WP_CLI::success( "Done. Converted: {$ok} | Already optimized: {$skipped} | Failed: {$fail}" );
+        WP_CLI::success( "Done. Converted: {$ok} | Skipped (modern format, animated or no gain): {$skipped} | Failed: {$fail}" );
     }
 
     /* ------------------------------------------------------------------
@@ -193,7 +182,7 @@ class ERDO_CLI {
     ------------------------------------------------------------------ */
 
     /**
-     * Restore original file from backup.
+     * Remove the WebP/AVIF copies of an image (the original is always kept).
      *
      * ## OPTIONS
      *
@@ -211,14 +200,65 @@ class ERDO_CLI {
             WP_CLI::error( '--id is required.' );
         }
 
-        $id     = (int) $assoc['id'];
-        $result = ERDO_Auditor::restore_original( $id );
+        $id = (int) $assoc['id'];
+        ERDO_Converter::revert( $id );
+        WP_CLI::success( "ID {$id}: WebP/AVIF copies removed, original is served again." );
+    }
 
-        if ( $result ) {
-            WP_CLI::success( "ID {$id} restored to original." );
-        } else {
-            WP_CLI::error( "No backup found for ID {$id}, or restore failed." );
+    /* ------------------------------------------------------------------
+       wp erdo migrate
+    ------------------------------------------------------------------ */
+
+    /**
+     * Repair images converted by Erdo 2.x (which replaced the original file).
+     *
+     * ## OPTIONS
+     *
+     * [--dry-run]
+     * : Only report what would be done.
+     *
+     * [--batch=<n>]
+     * : Images per batch (default: 25).
+     *
+     * ## EXAMPLES
+     *
+     *   wp erdo migrate --dry-run
+     *   wp erdo migrate
+     *
+     * @subcommand migrate
+     */
+    public function migrate( $args, $assoc ) {
+        $ids = ERDO_Migration::find_legacy();
+        if ( empty( $ids ) ) {
+            ERDO_Migration::refresh_legacy_flag();
+            WP_CLI::success( 'Nothing to repair.' );
+            return;
         }
+
+        if ( isset( $assoc['dry-run'] ) ) {
+            WP_CLI\Utils\format_items( 'table', array_map( array( 'ERDO_Migration', 'plan' ), $ids ), array( 'id', 'file', 'mode', 'backup', 'refs' ) );
+            WP_CLI::log( count( $ids ) . ' images need repair. restore = original comes back from backup; repoint = links are updated to the WebP file.' );
+            return;
+        }
+
+        $batch    = max( 1, (int) ( $assoc['batch'] ?? 25 ) );
+        $progress = WP_CLI\Utils\make_progress_bar( 'Repairing', count( $ids ) );
+        $totals   = array( 'restore' => 0, 'repoint' => 0, 'errors' => 0 );
+        do {
+            $r = ERDO_Migration::run_batch( $batch );
+            $totals['restore'] += $r['restore'];
+            $totals['repoint'] += $r['repoint'];
+            $totals['errors']  += count( $r['errors'] );
+            foreach ( $r['errors'] as $id => $msg ) {
+                WP_CLI::warning( "ID {$id}: {$msg}" );
+            }
+            for ( $i = 0; $i < $r['restore'] + $r['repoint'] + count( $r['errors'] ); $i++ ) {
+                $progress->tick();
+            }
+        } while ( $r['remaining'] > 0 && ( $r['restore'] + $r['repoint'] + count( $r['errors'] ) ) > 0 );
+        $progress->finish();
+
+        WP_CLI::success( "Restored from backup: {$totals['restore']} | Links updated: {$totals['repoint']} | Errors: {$totals['errors']}" );
     }
 
     /* ------------------------------------------------------------------
@@ -235,27 +275,20 @@ class ERDO_CLI {
      * @subcommand stats
      */
     public function stats( $args, $assoc ) {
-        global $wpdb;
 
-        $total = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            "SELECT COUNT(ID) FROM {$wpdb->posts}
-             WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'"
-        );
-        $optimized = (int) $wpdb->get_var( // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            "SELECT COUNT(ID) FROM {$wpdb->posts}
-             WHERE post_type = 'attachment'
-             AND post_mime_type IN ('image/webp','image/avif')"
-        );
-        $saved  = (int) get_option( 'erdo_total_saved_bytes', 0 );
+        $lib    = ERDO_Converter::library_stats();
         $format = get_option( 'erdo_convert_format', 'webp' );
+        $caps   = ERDO_Encoder::capabilities();
 
         WP_CLI\Utils\format_items( 'table',
             array(
-                array( 'Key' => 'Total images',       'Value' => $total ),
-                array( 'Key' => 'Optimized images',   'Value' => $optimized ),
-                array( 'Key' => 'Opt. rate',          'Value' => ( $total > 0 ? round( $optimized / $total * 100 ) : 0 ) . '%' ),
-                array( 'Key' => 'Total disk saved',   'Value' => size_format( $saved, 2 ) ),
-                array( 'Key' => 'Target format',      'Value' => strtoupper( $format ) ),
+                array( 'Key' => 'Total images',            'Value' => $lib['total'] ),
+                array( 'Key' => 'With WebP/AVIF copy',     'Value' => $lib['optimized'] ),
+                array( 'Key' => 'Opt. rate',               'Value' => $lib['rate'] . '%' ),
+                array( 'Key' => 'Bytes saved per full set', 'Value' => size_format( $lib['saved'], 2 ) ),
+                array( 'Key' => 'Target format',           'Value' => strtoupper( $format ) ),
+                array( 'Key' => 'Encoders',                'Value' => sprintf( 'WebP: %s | AVIF: %s', implode( '+', array_keys( array_filter( array( 'GD' => $caps['webp']['gd'], 'Imagick' => $caps['webp']['imagick'] ) ) ) ) ?: 'none', implode( '+', array_keys( array_filter( array( 'GD' => $caps['avif']['gd'], 'Imagick' => $caps['avif']['imagick'] ) ) ) ) ?: 'none' ) ),
+                array( 'Key' => 'Images awaiting repair',  'Value' => (int) get_option( ERDO_Migration::LEGACY_OPTION, 0 ) ),
             ),
             array( 'Key', 'Value' )
         );

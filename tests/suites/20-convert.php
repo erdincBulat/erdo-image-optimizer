@@ -46,7 +46,7 @@ foreach ( $cases as $name => $label ) {
     $res = et_convert( $id, 'webp' );
 
     et_test( "convert $label: succeeds", function () use ( $res ) {
-        et_eq( 'ok', $res );
+        et_assert( in_array( $res, array( 'ok', 'larger' ), true ), "status $res" );
     } );
 
     et_test( "convert $label: original files untouched", function () use ( $before, $sizes ) {
@@ -60,25 +60,28 @@ foreach ( $cases as $name => $label ) {
         et_assert( empty( $gone ), 'missing/changed: ' . implode( ', ', $gone ) );
     }, 'F2' );
 
-    et_test( "convert $label: every rendition has a modern sibling (x.ext.webp)", function () use ( $before ) {
+    // Every served rendition (not the pre-"-scaled" original) gets x.ext.webp —
+    // unless the copy came out bigger than its source and was deliberately dropped.
+    et_test( "convert $label: every served rendition has a sibling (x.ext.webp) or a recorded 'larger' skip", function () use ( $id ) {
         $missing = array();
-        foreach ( $before as $f ) {
-            if ( ! file_exists( $f . '.webp' ) ) {
+        $larger  = et_larger_skips( $id );
+        foreach ( et_served_files( $id ) as $f ) {
+            if ( ! file_exists( $f . '.webp' ) && ! in_array( basename( $f ), $larger, true ) ) {
                 $missing[] = basename( $f ) . '.webp';
             }
         }
         et_assert( empty( $missing ), 'missing: ' . implode( ', ', $missing ) );
     }, 'F2' );
 
-    et_test( "convert $label: modern files are smaller than their source", function () use ( $id, $sizes ) {
-        $orig_total = array_sum( $sizes );
-        $new_total  = 0;
-        foreach ( et_modern_files( $id ) as $f ) {
-            $new_total += filesize( $f );
+    et_test( "convert $label: every kept sibling is smaller than its source", function () use ( $sizes ) {
+        $bigger = array();
+        foreach ( $sizes as $f => $bytes ) {
+            if ( file_exists( $f . '.webp' ) && filesize( $f . '.webp' ) >= $bytes ) {
+                $bigger[] = basename( $f );
+            }
         }
-        et_assert( $new_total > 0, 'no modern files' );
-        et_assert( $new_total < $orig_total, "modern $new_total B >= original $orig_total B" );
-    }, 'F2' ); // 3.0 keeps a sibling only when it is smaller
+        et_assert( empty( $bigger ), 'not smaller: ' . implode( ', ', $bigger ) );
+    }, 'F2' );
 
     et_test( "convert $label: every previously published URL still answers 200", function () use ( $urls ) {
         $bad = array();
@@ -97,21 +100,16 @@ et_test( 'pages using converted images render without broken images', function (
     et_assert_page_ok( $m['post']['misc'], 'misc' );
 }, 'F2' );
 
-et_test( 'transparent PNG keeps its transparency', function () use ( $m, $clear_px ) {
+// Encoder-level: the full-size copy of this fixture may be (correctly) dropped
+// for being bigger than the PNG, so encode explicitly to check alpha handling.
+et_test( 'transparent PNG keeps its transparency', function () use ( $alpha_file, $clear_px ) {
     if ( empty( $clear_px ) ) {
         et_skip( 'fixture has no transparent sample pixels' );
     }
-    $files = et_modern_files( $m['img']['alpha'] );
-    et_assert( ! empty( $files ), 'no modern file' );
-    $full = null;
-    foreach ( $files as $f ) {
-        $info = getimagesize( $f );
-        if ( 600 === $info[0] ) {
-            $full = $f;
-        }
-    }
-    et_assert( (bool) $full, 'no full-size modern file' );
-    $im = imagecreatefromwebp( $full );
+    $out = get_temp_dir() . 'et-alpha-' . wp_rand() . '.webp';
+    et_assert( ! is_wp_error( et_encode( $alpha_file, $out, 'webp' ) ), 'encode failed' );
+    $im = imagecreatefromwebp( $out );
+    wp_delete_file( $out );
     foreach ( $clear_px as $p ) {
         $a = ( imagecolorat( $im, $p[0], $p[1] ) >> 24 ) & 0x7F;
         et_assert( $a > 100, "pixel {$p[0]},{$p[1]} alpha=$a (expected transparent)" );
@@ -150,11 +148,15 @@ et_test( 'animated GIF is never flattened (skipped or converted to animated WebP
 }, 'F2' );
 
 et_test( 'lossless mode is pixel-identical', function () use ( $m ) {
-    $id  = $m['img']['logo'];
-    $src = imagecreatefrompng( get_attached_file( $id ) );
+    $id   = $m['img']['logo'];
+    $src  = imagecreatefrompng( get_attached_file( $id ) );
     update_option( 'erdo_lossless', 1 );
-    et_eq( 'ok', et_convert( $id, 'webp' ) );
+    $res = et_convert( $id, 'webp' );
     update_option( 'erdo_lossless', 0 );
+    if ( 'larger' === $res || in_array( basename( get_attached_file( $id ) ), et_larger_skips( $id ), true ) ) {
+        et_skip( 'lossless copy was bigger than the PNG, so (correctly) not kept' );
+    }
+    et_eq( 'ok', $res );
     $full = null;
     foreach ( et_modern_files( $id ) as $f ) {
         if ( 400 === getimagesize( $f )[0] ) {
@@ -173,6 +175,24 @@ et_test( 'lossless mode is pixel-identical', function () use ( $m ) {
     }
     et_eq( 0, $diff, 'differing sample pixels' );
 }, 'F2' );
+
+// Browsers try the AVIF <source> first, so an AVIF bigger than its WebP
+// would make visitors download more, not less.
+et_test( 'AVIF + WebP mode: an AVIF copy is only kept when it beats the WebP', function () use ( $m ) {
+    if ( ! function_exists( 'imageavif' ) ) {
+        et_skip( 'no AVIF encoder on this host' );
+    }
+    $id = $m['img']['oversized'];
+    et_restore( $id );
+    et_eq( 'ok', et_convert( $id, 'both' ) );
+    $worse = array();
+    foreach ( et_served_files( $id ) as $f ) {
+        if ( file_exists( $f . '.avif' ) && file_exists( $f . '.webp' ) && filesize( $f . '.avif' ) >= filesize( $f . '.webp' ) ) {
+            $worse[] = basename( $f );
+        }
+    }
+    et_assert( empty( $worse ), 'AVIF not smaller than WebP: ' . implode( ', ', $worse ) );
+} );
 
 et_test( 'AVIF output is a real, decodable AVIF', function () use ( $m ) {
     if ( ! function_exists( 'imageavif' ) ) {

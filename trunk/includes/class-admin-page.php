@@ -32,6 +32,9 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_export_csv',        array( $this, 'ajax_export_csv' ) );
         add_action( 'wp_ajax_erdo_bulk_alt_text',     array( $this, 'ajax_bulk_alt_text' ) );
         add_action( 'wp_ajax_erdo_cdn_upload',        array( $this, 'ajax_cdn_upload' ) );
+        add_action( 'wp_ajax_erdo_migrate_scan',      array( $this, 'ajax_migrate_scan' ) );
+        add_action( 'wp_ajax_erdo_migrate_step',      array( $this, 'ajax_migrate_step' ) );
+        add_action( 'admin_notices',                  array( $this, 'migration_notice' ) );
 
         add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
         add_action( 'rest_api_init',      array( $this, 'register_rest_routes' ) );
@@ -138,7 +141,7 @@ class ERDO_Admin_Page {
                     <div class="stat-info">
                         <h3><?php esc_html_e( 'Total Saved', 'erdo-image-optimizer' ); ?></h3>
                         <div class="stat-value" id="stat-total-saved">—</div>
-                        <div class="stat-sub"><?php esc_html_e( 'Disk Space Freed', 'erdo-image-optimizer' ); ?></div>
+                        <div class="stat-sub"><?php esc_html_e( 'Lighter for Visitors', 'erdo-image-optimizer' ); ?></div>
                     </div>
                     <div class="stat-icon green"><span class="dashicons dashicons-cloud-saved"></span></div>
                 </div>
@@ -331,7 +334,7 @@ class ERDO_Admin_Page {
                 $cat = ( isset( $res['is_used'] ) && false === $res['is_used'] ) ? 'gray' : $res['status'];
                 $counts[ $cat ]++;
 
-                $format_label = strtoupper( str_replace( 'image/', '', $res['mime'] ?? '' ) );
+                $format_label = strtoupper( $res['served_format'] ?? str_replace( 'image/', '', $res['mime'] ?? '' ) );
                 $score_label  = isset( $res['score'] ) ? intval( $res['score'] ) . '/6' : '';
 
                 // Alt text durumu bulk_analyze() checklist'inde zaten hesaplanmış —
@@ -390,18 +393,9 @@ class ERDO_Admin_Page {
 
         global $wpdb;
 
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $total = (int) $wpdb->get_var(
-            "SELECT COUNT(ID) FROM {$wpdb->posts}
-             WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'"
-        );
-
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $count_optimized = (int) $wpdb->get_var(
-            "SELECT COUNT(ID) FROM {$wpdb->posts}
-             WHERE post_type = 'attachment'
-             AND post_mime_type IN ('image/webp','image/avif')"
-        );
+        $lib             = ERDO_Converter::library_stats();
+        $total           = $lib['total'];
+        $count_optimized = $lib['optimized'];
 
         $seo_cache_key = 'erdo_count_seo';
         $count_seo     = wp_cache_get( $seo_cache_key, $cache_group );
@@ -421,7 +415,7 @@ class ERDO_Admin_Page {
 
         $opt_score = ( $total > 0 ) ? round( ( $count_optimized / $total ) * 100 ) : 0;
         $seo_score = ( $total > 0 ) ? round( ( $count_seo / $total ) * 100 ) : 0;
-        $saved     = (int) get_option( 'erdo_total_saved_bytes', 0 );
+        $saved     = $lib['saved'];
 
         $result = array(
             'total'       => $total,
@@ -544,7 +538,8 @@ class ERDO_Admin_Page {
 
                         <?php
                         $current_mime = get_post_mime_type( $id );
-                        if ( false === strpos( $current_mime, 'webp' ) && false === strpos( $current_mime, 'avif' ) ) :
+                        $is_optimized = ERDO_Converter::is_optimized( $id, $current_mime );
+                        if ( ! $is_optimized && in_array( $current_mime, ERDO_Converter::SOURCE_MIMES, true ) ) :
                         ?>
                         <button type="button" class="webp-convert-btn button erdo-sb-btn"
                                 data-id="<?php echo esc_attr( $id ); ?>">
@@ -560,13 +555,12 @@ class ERDO_Admin_Page {
                         <?php endif; ?>
 
                         <?php
-                        $backup_path = get_post_meta( $id, '_erdo_backup_path', true );
-                        if ( $backup_path ) :
-                            $backup_url = str_replace(
-                                wp_upload_dir()['basedir'],
-                                wp_upload_dir()['baseurl'],
-                                $backup_path
-                            );
+                        // Orijinal hep yerinde: "Restore" = WebP/AVIF kopyalarını sil,
+                        // "Compare" = orijinal ↔ ziyaretçiye giden en küçük kopya.
+                        $best_sibling = ERDO_Converter::best_main_sibling( $id );
+                        if ( $best_sibling ) :
+                            $original_url = wp_get_attachment_url( $id );
+                            $sibling_url  = $original_url . '.' . $best_sibling['format'];
                         ?>
                         <div class="erdo-sb-sep"></div>
                         <div class="erdo-sb-pair">
@@ -576,8 +570,8 @@ class ERDO_Admin_Page {
                                 <?php esc_html_e( 'Restore', 'erdo-image-optimizer' ); ?>
                             </button>
                             <button type="button" class="erdo-before-after-btn button erdo-sb-btn-sm"
-                                    data-current="<?php echo esc_url( wp_get_attachment_url( $id ) ); ?>"
-                                    data-original="<?php echo esc_url( $backup_url ); ?>">
+                                    data-current="<?php echo esc_url( $sibling_url ); ?>"
+                                    data-original="<?php echo esc_url( $original_url ); ?>">
                                 <span class="dashicons dashicons-visibility"></span>
                                 <?php esc_html_e( 'Compare', 'erdo-image-optimizer' ); ?>
                             </button>
@@ -744,17 +738,24 @@ class ERDO_Admin_Page {
         }
 
         $id     = intval( wp_unslash( $_POST['id'] ) );
-        $result = ERDO_Auditor::convert_to_webp( $id );
+        $result = ERDO_Converter::convert( $id );
 
-        if ( ERDO_Auditor::ALREADY_OPTIMIZED === $result ) {
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+        } elseif ( 'skipped' === $result['status'] ) {
             wp_send_json_error( array(
-                'message'           => 'Image is already optimized.',
+                'message'           => 'animated' === $result['reason']
+                    ? __( 'Animated GIF skipped: this server cannot keep the animation.', 'erdo-image-optimizer' )
+                    : __( 'Image is already in a modern format.', 'erdo-image-optimizer' ),
                 'already_optimized' => true,
             ) );
-        } elseif ( $result ) {
-            wp_send_json_success( array( 'id' => $id ) );
+        } elseif ( 'larger' === $result['status'] ) {
+            wp_send_json_error( array(
+                'message'           => __( 'The original is already smaller than a WebP/AVIF copy would be — nothing to gain.', 'erdo-image-optimizer' ),
+                'already_optimized' => true,
+            ) );
         } else {
-            wp_send_json_error( array( 'message' => 'Conversion failed.' ) );
+            wp_send_json_success( array( 'id' => $id, 'result' => $result ) );
         }
     }
 
@@ -765,16 +766,7 @@ class ERDO_Admin_Page {
         check_ajax_referer( 'erdo_nonce', 'nonce' );
         $this->verify_capability();
 
-        $query = new WP_Query( array(
-            'post_type'      => 'attachment',
-            'post_status'    => 'inherit',
-            'post_mime_type' => array( 'image/jpeg', 'image/png' ),
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-        ) );
-
-        wp_send_json_success( $query->posts );
+        wp_send_json_success( ERDO_Converter::pending_ids() );
     }
 
     /* ------------------------------------------------------------------
@@ -789,12 +781,12 @@ class ERDO_Admin_Page {
         }
 
         $id  = intval( wp_unslash( $_POST['id'] ) );
-        $res = ERDO_Auditor::convert_to_webp( $id );
+        $res = ERDO_Converter::convert( $id );
 
-        if ( ERDO_Auditor::ALREADY_OPTIMIZED === $res || $res ) {
-            wp_send_json_success();
+        if ( is_wp_error( $res ) ) {
+            wp_send_json_error( array( 'message' => $res->get_error_message() ) );
         } else {
-            wp_send_json_error();
+            wp_send_json_success( $res );
         }
     }
 
@@ -885,14 +877,9 @@ class ERDO_Admin_Page {
             wp_send_json_error( array( 'message' => 'Missing ID.' ) );
         }
 
-        $id     = intval( wp_unslash( $_POST['id'] ) );
-        $result = ERDO_Auditor::restore_original( $id );
-
-        if ( $result ) {
-            wp_send_json_success( array( 'id' => $id ) );
-        } else {
-            wp_send_json_error( array( 'message' => 'No backup found for this image.' ) );
-        }
+        $id = intval( wp_unslash( $_POST['id'] ) );
+        ERDO_Converter::revert( $id );
+        wp_send_json_success( array( 'id' => $id ) );
     }
 
     /* ------------------------------------------------------------------
@@ -959,9 +946,7 @@ class ERDO_Admin_Page {
         update_option( 'erdo_auto_sanitize',       isset( $_POST['erdo_auto_sanitize'] ) ? 1 : 0 );
         update_option( 'erdo_remove_exif',         isset( $_POST['erdo_remove_exif'] ) ? 1 : 0 );
         update_option( 'erdo_lossless',            isset( $_POST['erdo_lossless'] ) ? 1 : 0 );
-        update_option( 'erdo_keep_original',       isset( $_POST['erdo_keep_original'] ) ? 1 : 0 );
         update_option( 'erdo_serve_webp',          isset( $_POST['erdo_serve_webp'] ) ? 1 : 0 );
-        update_option( 'erdo_lazy_loading',        isset( $_POST['erdo_lazy_loading'] ) ? 1 : 0 );
         update_option( 'erdo_smart_quality',       isset( $_POST['erdo_smart_quality'] ) ? 1 : 0 );
         update_option( 'erdo_allow_svg',           isset( $_POST['erdo_allow_svg'] ) ? 1 : 0 );
         update_option( 'erdo_append_original_filename', isset( $_POST['erdo_append_original_filename'] ) ? 1 : 0 );
@@ -976,7 +961,8 @@ class ERDO_Admin_Page {
         }
 
         if ( isset( $_POST['erdo_convert_format'] ) ) {
-            update_option( 'erdo_convert_format', sanitize_text_field( wp_unslash( $_POST['erdo_convert_format'] ) ) );
+            $fmt = sanitize_text_field( wp_unslash( $_POST['erdo_convert_format'] ) );
+            update_option( 'erdo_convert_format', in_array( $fmt, array( 'webp', 'avif', 'both' ), true ) ? $fmt : 'webp' );
         }
 
         if ( isset( $_POST['erdo_quality'] ) ) {
@@ -990,6 +976,14 @@ class ERDO_Admin_Page {
         update_option( 'erdo_bunny_api_key',      sanitize_text_field( wp_unslash( $_POST['erdo_bunny_api_key'] ?? '' ) ) );
         update_option( 'erdo_bunny_storage_zone', sanitize_text_field( wp_unslash( $_POST['erdo_bunny_storage_zone'] ?? '' ) ) );
         update_option( 'erdo_bunny_hostname',     sanitize_text_field( wp_unslash( $_POST['erdo_bunny_hostname'] ?? '' ) ) );
+
+        // .htaccess kurallarını ayarla eşitle: yalnızca Apache + .htaccess yöntemi seçiliyken var olmalı.
+        if ( get_option( 'erdo_serve_webp' ) && 'htaccess' === get_option( 'erdo_webp_serve_method' ) && ERDO_WebP_Server::is_apache() ) {
+            ERDO_WebP_Server::write_htaccess_rules();
+        } elseif ( ERDO_WebP_Server::htaccess_has_rules() ) {
+            ERDO_WebP_Server::remove_htaccess_rules();
+        }
+        ERDO_Auditor::clear_all_cache();
 
         wp_send_json_success();
     }
@@ -1007,9 +1001,9 @@ class ERDO_Admin_Page {
         $fmt  = get_option( 'erdo_convert_format', 'webp' );
         $q    = get_option( 'erdo_quality', 80 );
         $ll   = get_option( 'erdo_lossless', 0 );
-        $ko   = get_option( 'erdo_keep_original', 0 );
         $aof  = get_option( 'erdo_append_original_filename', 0 );
-        $avif = function_exists( 'imageavif' );
+        $avif = ERDO_Encoder::supports( 'avif' );
+        $webp = ERDO_Encoder::supports( 'webp' );
         ?>
         <div class="modal-header">
             <h2><?php esc_html_e( 'Settings', 'erdo-image-optimizer' ); ?></h2>
@@ -1024,9 +1018,21 @@ class ERDO_Admin_Page {
                         <?php esc_html_e( 'WebP — Recommended (all modern browsers)', 'erdo-image-optimizer' ); ?>
                     </option>
                     <option value="avif" <?php selected( $fmt, 'avif' ); ?> <?php echo $avif ? '' : 'disabled'; ?>>
-                        <?php esc_html_e( 'AVIF — Best compression (requires PHP 8.1+)', 'erdo-image-optimizer' ); ?>
+                        <?php esc_html_e( 'AVIF — Smallest files, slower to encode', 'erdo-image-optimizer' ); ?>
+                    </option>
+                    <option value="both" <?php selected( $fmt, 'both' ); ?> <?php echo $avif ? '' : 'disabled'; ?>>
+                        <?php esc_html_e( 'AVIF + WebP — Browsers get the best format they support', 'erdo-image-optimizer' ); ?>
                     </option>
                 </select>
+                <p>
+                    <?php esc_html_e( 'Your original files are never changed — WebP/AVIF copies are created next to them and served to browsers that support them.', 'erdo-image-optimizer' ); ?>
+                    <?php if ( ! $avif ) : ?>
+                        <?php esc_html_e( 'AVIF is not available on this server.', 'erdo-image-optimizer' ); ?>
+                    <?php endif; ?>
+                    <?php if ( ! $webp ) : ?>
+                        <strong><?php esc_html_e( 'This server cannot create WebP files (GD or Imagick with WebP support is required).', 'erdo-image-optimizer' ); ?></strong>
+                    <?php endif; ?>
+                </p>
             </div>
 
             <div class="erdo-settings-section">
@@ -1053,14 +1059,7 @@ class ERDO_Admin_Page {
                     <input type="checkbox" name="erdo_lossless" value="1" <?php checked( $ll, 1 ); ?>>
                     <span>
                         <strong><?php esc_html_e( 'Lossless Mode', 'erdo-image-optimizer' ); ?></strong>
-                        <p><?php esc_html_e( 'Zero quality loss. Results in larger files than lossy mode.', 'erdo-image-optimizer' ); ?></p>
-                    </span>
-                </label>
-                <label>
-                    <input type="checkbox" name="erdo_keep_original" value="1" <?php checked( $ko, 1 ); ?>>
-                    <span>
-                        <strong><?php esc_html_e( 'Keep Original Backup', 'erdo-image-optimizer' ); ?></strong>
-                        <p><?php esc_html_e( 'Save original file before converting so you can restore it later.', 'erdo-image-optimizer' ); ?></p>
+                        <p><?php esc_html_e( 'WebP only: pixel-identical copies. Larger than lossy; copies that end up bigger than the original are not kept.', 'erdo-image-optimizer' ); ?></p>
                     </span>
                 </label>
                 <label>
@@ -1074,7 +1073,7 @@ class ERDO_Admin_Page {
                     <input type="checkbox" name="erdo_remove_exif" value="1" <?php checked( $re, 1 ); ?>>
                     <span>
                         <strong><?php esc_html_e( 'Strip EXIF Metadata', 'erdo-image-optimizer' ); ?></strong>
-                        <p><?php esc_html_e( 'Remove camera data, GPS location and other metadata to reduce file size.', 'erdo-image-optimizer' ); ?></p>
+                        <p><?php esc_html_e( 'Remove camera data and GPS location from new uploads. This rewrites the uploaded original once.', 'erdo-image-optimizer' ); ?></p>
                     </span>
                 </label>
                 <label>
@@ -1094,7 +1093,6 @@ class ERDO_Admin_Page {
         $max_w    = get_option( 'erdo_max_width', 0 );
         $srv_webp = get_option( 'erdo_serve_webp', 0 );
         $srv_meth = get_option( 'erdo_webp_serve_method', 'picture' );
-        $lazy     = get_option( 'erdo_lazy_loading', 1 );
         $allow_svg= get_option( 'erdo_allow_svg', 0 );
         $smart_q  = get_option( 'erdo_smart_quality', 0 );
         $is_apache = ERDO_WebP_Server::is_apache();
@@ -1109,8 +1107,8 @@ class ERDO_Admin_Page {
             <label>
                 <input type="checkbox" name="erdo_serve_webp" value="1" <?php checked( $srv_webp, 1 ); ?>>
                 <span>
-                    <strong><?php esc_html_e( 'Serve WebP to Browsers', 'erdo-image-optimizer' ); ?></strong>
-                    <p><?php esc_html_e( 'Transparently deliver WebP files when a browser supports them. Originals are served as fallback.', 'erdo-image-optimizer' ); ?></p>
+                    <strong><?php esc_html_e( 'Serve WebP/AVIF to Browsers', 'erdo-image-optimizer' ); ?></strong>
+                    <p><?php esc_html_e( 'Deliver the WebP/AVIF copies to browsers that support them; everyone else gets the original.', 'erdo-image-optimizer' ); ?></p>
                 </span>
             </label>
 
@@ -1148,14 +1146,6 @@ class ERDO_Admin_Page {
             </div>
 
             <label style="margin-top:12px;">
-                <input type="checkbox" name="erdo_lazy_loading" value="1" <?php checked( $lazy, 1 ); ?>>
-                <span>
-                    <strong><?php esc_html_e( 'Lazy Loading', 'erdo-image-optimizer' ); ?></strong>
-                    <p><?php esc_html_e( 'Add loading="lazy" to all content images. Defers off-screen images for faster initial load.', 'erdo-image-optimizer' ); ?></p>
-                </span>
-            </label>
-
-            <label style="margin-top:12px;">
                 <input type="checkbox" name="erdo_smart_quality" value="1" <?php checked( $smart_q, 1 ); ?>>
                 <span>
                     <strong><?php esc_html_e( 'Smart Quality (Auto)', 'erdo-image-optimizer' ); ?></strong>
@@ -1165,12 +1155,12 @@ class ERDO_Admin_Page {
 
             <label style="margin-top:12px; align-items:flex-start;">
                 <span style="padding-top:4px;">
-                    <strong><?php esc_html_e( 'Max Upload Width', 'erdo-image-optimizer' ); ?></strong>
+                    <strong><?php esc_html_e( 'Max Upload Size', 'erdo-image-optimizer' ); ?></strong>
                     <br>
                     <input type="number" name="erdo_max_width" value="<?php echo esc_attr( $max_w ); ?>"
                         min="0" max="8000" style="width:90px; margin-top:4px; height:32px;">
                     <span style="font-size:12px; color:#64748b; margin-left:4px;">px &nbsp;(0 = disabled)</span>
-                    <p><?php esc_html_e( 'Automatically resize images larger than this width on upload. Applied before conversion.', 'erdo-image-optimizer' ); ?></p>
+                    <p><?php esc_html_e( 'New uploads wider or taller than this get a scaled-down copy that WordPress uses everywhere (the full-size original is kept). WordPress default: 2560.', 'erdo-image-optimizer' ); ?></p>
                 </span>
             </label>
         </div>
@@ -1260,17 +1250,10 @@ class ERDO_Admin_Page {
         check_ajax_referer( 'erdo_nonce', 'nonce' );
         $this->verify_capability();
 
-        $ids = get_posts( array(
-            'post_type'      => 'attachment',
-            'post_status'    => 'inherit',
-            'post_mime_type' => array( 'image/jpeg', 'image/png', 'image/gif' ),
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-        ) );
+        $ids = ERDO_Converter::pending_ids();
 
         if ( empty( $ids ) ) {
-            wp_send_json_error( array( 'message' => 'No convertible images found.' ) );
+            wp_send_json_error( array( 'message' => __( 'All images already have WebP/AVIF copies.', 'erdo-image-optimizer' ) ) );
         }
 
         ERDO_Queue::start( $ids, 'convert' );
@@ -1527,16 +1510,11 @@ class ERDO_Admin_Page {
         $stats     = wp_cache_get( $cache_key, 'erdo_image_optimizer' );
 
         if ( false === $stats ) {
-            global $wpdb;
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $total = (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type LIKE 'image/%'" );
-            // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-            $opt   = (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type IN ('image/webp','image/avif')" );
+            $lib   = ERDO_Converter::library_stats();
             $stats = array(
-                'total'     => $total,
-                'optimized' => $opt,
-                'opt_score' => $total > 0 ? round( ( $opt / $total ) * 100 ) : 0,
-                'total_saved' => size_format( (int) get_option( 'erdo_total_saved_bytes', 0 ), 1 ),
+                'total'       => $lib['total'],
+                'opt_score'   => $lib['rate'],
+                'total_saved' => size_format( $lib['saved'], 1 ),
             );
         }
 
@@ -1560,6 +1538,85 @@ class ERDO_Admin_Page {
             <?php esc_html_e( 'Open Image Optimizer', 'erdo-image-optimizer' ); ?>
         </a>
         <?php
+    }
+
+    /* ------------------------------------------------------------------
+       2.x → 3.0 ONARIM
+       Bildirim + iki AJAX ucu: tarama (dry-run raporu) ve adım adım onarım.
+       Tam arayüz Faz 7'de; burada kullanılabilir asgari akış.
+    ------------------------------------------------------------------ */
+    public function migration_notice() {
+        $count = (int) get_option( ERDO_Migration::LEGACY_OPTION, 0 );
+        if ( $count < 1 || ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        $screen = get_current_screen();
+        if ( $screen && ! in_array( $screen->id, array( 'dashboard', 'plugins', 'upload', 'toplevel_page_erdo-image-optimizer' ), true ) ) {
+            return;
+        }
+        ?>
+        <div class="notice notice-warning" id="erdo-migrate-notice">
+            <p>
+                <strong><?php esc_html_e( 'Erdo Image Optimizer 3.0 needs to repair some images.', 'erdo-image-optimizer' ); ?></strong>
+                <?php
+                printf(
+                    /* translators: %d: number of images */
+                    esc_html( _n(
+                        '%d image was converted by an older version that replaced the original file. Pages that still link to the old file may show a broken image.',
+                        '%d images were converted by an older version that replaced the original file. Pages that still link to the old files may show broken images.',
+                        $count,
+                        'erdo-image-optimizer'
+                    ) ),
+                    (int) $count
+                );
+                ?>
+                <?php esc_html_e( 'Until the repair runs, the plugin redirects those links on the fly so visitors see the image.', 'erdo-image-optimizer' ); ?>
+            </p>
+            <p>
+                <button type="button" class="button button-primary" id="erdo-migrate-btn" data-nonce="<?php echo esc_attr( wp_create_nonce( 'erdo_nonce' ) ); ?>">
+                    <?php esc_html_e( 'Repair now', 'erdo-image-optimizer' ); ?>
+                </button>
+                <span id="erdo-migrate-status" style="margin-left:8px;"></span>
+            </p>
+        </div>
+        <script>
+        ( function () {
+            var btn = document.getElementById( 'erdo-migrate-btn' );
+            var out = document.getElementById( 'erdo-migrate-status' );
+            if ( ! btn ) { return; }
+            btn.addEventListener( 'click', function () {
+                btn.disabled = true;
+                var fixed = 0;
+                var step = function () {
+                    var body = new URLSearchParams( { action: 'erdo_migrate_step', nonce: btn.dataset.nonce } );
+                    fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: body } )
+                        .then( function ( r ) { return r.json(); } )
+                        .then( function ( res ) {
+                            if ( ! res.success ) { out.textContent = ( res.data && res.data.message ) || 'Error'; btn.disabled = false; return; }
+                            fixed += res.data.restore + res.data.repoint;
+                            out.textContent = <?php echo wp_json_encode( __( 'Repaired:', 'erdo-image-optimizer' ) ); ?> + ' ' + fixed + ' — ' + <?php echo wp_json_encode( __( 'remaining:', 'erdo-image-optimizer' ) ); ?> + ' ' + res.data.remaining;
+                            if ( res.data.remaining > 0 ) { step(); } else { out.textContent += ' ✓'; }
+                        } )
+                        .catch( function () { out.textContent = 'Error'; btn.disabled = false; } );
+                };
+                step();
+            } );
+        } )();
+        </script>
+        <?php
+    }
+
+    public function ajax_migrate_scan() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        $plans = array_map( array( 'ERDO_Migration', 'plan' ), ERDO_Migration::find_legacy() );
+        wp_send_json_success( $plans );
+    }
+
+    public function ajax_migrate_step() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        wp_send_json_success( ERDO_Migration::run_batch( 10 ) );
     }
 
     /* ------------------------------------------------------------------
@@ -1588,17 +1645,13 @@ class ERDO_Admin_Page {
     }
 
     public function rest_stats( WP_REST_Request $request ) {
-        global $wpdb;
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $total = (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type LIKE 'image/%'" );
-        // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $opt   = (int) $wpdb->get_var( "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_type='attachment' AND post_mime_type IN ('image/webp','image/avif')" );
+        $lib = ERDO_Converter::library_stats();
 
         return rest_ensure_response( array(
-            'total'       => $total,
-            'optimized'   => $opt,
-            'opt_rate'    => $total > 0 ? round( ( $opt / $total ) * 100 ) : 0,
-            'total_saved' => (int) get_option( 'erdo_total_saved_bytes', 0 ),
+            'total'       => $lib['total'],
+            'optimized'   => $lib['optimized'],
+            'opt_rate'    => $lib['rate'],
+            'total_saved' => $lib['saved'],
             'format'      => get_option( 'erdo_convert_format', 'webp' ),
         ) );
     }

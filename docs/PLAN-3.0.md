@@ -102,7 +102,28 @@ Plandaki maddeler (referans):
 - Playwright duman testleri: frontend görsel yükleniyor mu (HTTP 200 + naturalWidth), admin panel akışları.
 - Sentetik 5.000 görsellik kütüphane ile performans ölçümü.
 
-### Faz 2 — Güvenli çekirdek (dönüşüm + sunum)
+### Faz 2 — Güvenli çekirdek (dönüşüm + sunum) ✅ (2026-10-24)
+**Teslim edildi:**
+- Yeni sınıflar: `ERDO_Encoder`, `ERDO_Converter`, `ERDO_References`, `ERDO_Migration`.
+- `ERDO_WebP_Server` yeniden yazıldı: `<picture>` + `.htaccess` + nginx + kurtarma filtresi.
+- 2.x'in yıkıcı akışı kaldırıldı: yedekleme, `convert_to_webp`, lazy filtresi, resize-on-upload.
+- Kuyruk, CLI (`wp erdo migrate`), dashboard, widget, REST ve detay paneli yeni modele bağlandı.
+- Uninstall, ürettiği kardeş dosyaları da siliyor.
+
+**Sonuç:**
+- Test: 157 PASS, F2 hatası **0** (29'dan). Kalan 25 hata F3/F4'e ait.
+- Plugin Check temiz.
+- Tarayıcıda doğrulandı:
+  - Ön yüzde AVIF sunuluyor, iç içe `<picture>` oluşmuyor, LCP korunuyor.
+  - Admin akışları çalışıyor: Compare → Restore → Convert, "Repair now".
+
+**Faz sırasında eklenen kurallar:**
+- "AVIF + WebP" modunda AVIF yalnızca WebP'den küçükse tutulur.
+- `original_image` (`-scaled` öncesi dosya) dönüştürülmez.
+
+**Ertelenen (Faz 7):** Admin bildirimi eklenti başlığının içine yerleşiyor; yerleşimi sıkışık.
+
+Plandaki maddeler (referans):
 - `ERDO_Encoder`: yetenek tespiti gerçek deneme kodlamasıyla yapılır (WebP/AVIF × GD/Imagick, lossless, animasyon).
 - `ERDO_Converter`: tüm boyutlar + `-scaled` için kardeş dosya, "küçükse tut", attachment başına `_erdo_formats` meta, kuyrukla toplu işlem, idempotent yükleme hook'u (7.1 iki geçiş).
 - `ERDO_Delivery`: `<picture>` (srcset/sizes doğru), `.htaccess` (doğru adlandırma + Vary), nginx metni, aktivasyon/deaktivasyon temizliği.

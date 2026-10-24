@@ -290,8 +290,14 @@ function et_rmdir( $dir ) {
  * the attachment pointing at the .webp, while post content still holds the
  * old URLs. Used by the rescue-filter and 2.x → 3.0 migration tests.
  */
-function et_simulate_legacy_conversion( $id ) {
+function et_simulate_legacy_conversion( $id, $with_backup = false ) {
     $files = et_attachment_files( $id );
+    if ( $with_backup ) { // 2.x "Keep Original Backup" setting
+        $backup_dir = dirname( $files[0] ) . '/_erdo_backup';
+        wp_mkdir_p( $backup_dir );
+        copy( $files[0], $backup_dir . '/' . basename( $files[0] ) );
+        update_post_meta( $id, '_erdo_backup_path', $backup_dir . '/' . basename( $files[0] ) );
+    }
     foreach ( $files as $f ) {
         $editor = wp_get_image_editor( $f );
         if ( is_wp_error( $editor ) ) {
@@ -321,6 +327,15 @@ function et_simulate_legacy_conversion( $id ) {
 function et_post_content( $post_id ) {
     clean_post_cache( $post_id );
     return get_post( $post_id )->post_content;
+}
+
+/** Files actually served on the site: main file + generated sizes (not the pre-"-scaled" original). */
+function et_served_files( $id ) {
+    $meta = wp_get_attachment_metadata( $id );
+    $skip = empty( $meta['original_image'] ) ? '' : dirname( get_attached_file( $id ) ) . '/' . $meta['original_image'];
+    return array_values( array_filter( et_attachment_files( $id ), function ( $f ) use ( $skip ) {
+        return $f !== $skip;
+    } ) );
 }
 
 /** Absolute paths of every file WordPress knows for an attachment. */

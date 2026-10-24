@@ -18,6 +18,10 @@ define( 'ERDO_URL',     plugin_dir_url( __FILE__ ) );
 define( 'ERDO_VERSION', '2.2.2' );
 
 require_once ERDO_PATH . 'includes/class-auditor.php';
+require_once ERDO_PATH . 'includes/class-encoder.php';
+require_once ERDO_PATH . 'includes/class-converter.php';
+require_once ERDO_PATH . 'includes/class-references.php';
+require_once ERDO_PATH . 'includes/class-migration.php';
 require_once ERDO_PATH . 'includes/class-admin-page.php';
 require_once ERDO_PATH . 'includes/class-webp-server.php';
 require_once ERDO_PATH . 'includes/class-queue.php';
@@ -35,11 +39,31 @@ function erdo_init() {
         load_textdomain( 'erdo-image-optimizer', $mofile );
     }
 
+    ERDO_Migration::maybe_upgrade();
+    ERDO_Converter::init();
     new ERDO_Admin_Page();
     ERDO_Queue::register_interval();
     ERDO_WebP_Server::init();
 }
 add_action( 'plugins_loaded', 'erdo_init' );
+
+/* ------------------------------------------------------------------
+   ETKİNLEŞTİRME / DEVRE DIŞI BIRAKMA
+   .htaccess kuralları eklenti kapalıyken kalmamalı.
+------------------------------------------------------------------ */
+
+function erdo_activate() {
+    if ( get_option( 'erdo_serve_webp' ) && 'htaccess' === get_option( 'erdo_webp_serve_method' ) ) {
+        ERDO_WebP_Server::write_htaccess_rules();
+    }
+}
+register_activation_hook( __FILE__, 'erdo_activate' );
+
+function erdo_deactivate() {
+    ERDO_WebP_Server::remove_htaccess_rules();
+    wp_clear_scheduled_hook( ERDO_Queue::HOOK );
+}
+register_deactivation_hook( __FILE__, 'erdo_deactivate' );
 
 /* ------------------------------------------------------------------
    CRON HOOK
@@ -114,97 +138,20 @@ function erdo_auto_sanitize_filename( $filename ) {
 add_filter( 'sanitize_file_name', 'erdo_auto_sanitize_filename', 10 );
 
 /* ------------------------------------------------------------------
-   UPLOAD'DA OTOMATİK MAKSİMUM GENİŞLİK KÜÇÜLTME  (Özellik 2)
-   Priority 5: WebP dönüşümünden (priority 10) ÖNCE çalışır.
+   UPLOAD'DA MAKSİMUM BOYUT
+   Core'un "big image" eşiği kullanılır: büyük yüklemeden "-scaled" kopya
+   üretilir, orijinal korunur. Hem sunucu hem WP 7.1 tarayıcı tarafı
+   işleme bu filtreye uyar.
 ------------------------------------------------------------------ */
 
-function erdo_auto_resize_on_upload( $metadata, $attachment_id ) {
+function erdo_big_image_threshold( $threshold ) {
     $max = (int) get_option( 'erdo_max_width', 0 );
-    if ( $max <= 0 ) {
-        return $metadata;
-    }
-
-    $width = $metadata['width'] ?? 0;
-    if ( $width <= $max ) {
-        return $metadata;
-    }
-
-    // Her iki hook'u da kaldır: kendi kendini ve WebP dönüşümünü tetiklememek için
-    remove_filter( 'wp_generate_attachment_metadata', 'erdo_auto_resize_on_upload', 5 );
-    remove_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10 );
-    ERDO_Auditor::manual_resize( $attachment_id, $max, 0 );
-    add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_resize_on_upload', 5, 2 );
-    add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10, 2 );
-
-    // Taze metadata döndür
-    $fresh = wp_get_attachment_metadata( $attachment_id );
-    return is_array( $fresh ) ? $fresh : $metadata;
+    return $max > 0 ? $max : $threshold;
 }
-add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_resize_on_upload', 5, 2 );
+add_filter( 'big_image_size_threshold', 'erdo_big_image_threshold' );
 
-/* ------------------------------------------------------------------
-   OTOMATİK WEBP DÖNÜŞÜMÜ + EXIF TEMİZLEME  (upload hook)
------------------------------------------------------------------- */
-
-function erdo_auto_webp_convert( $metadata, $attachment_id ) {
-    if ( ! class_exists( 'ERDO_Auditor' ) ) {
-        return $metadata;
-    }
-
-    $did_convert = false;
-
-    // A. Format dönüşümü (önce yap — GD zaten EXIF'i atar)
-    if ( get_option( 'erdo_auto_webp' ) ) {
-        $result = ERDO_Auditor::convert_to_webp( $attachment_id, false );
-
-        if ( is_array( $result ) ) {
-            $did_convert = true;
-
-            update_attached_file( $attachment_id, $result['path'] );
-            wp_update_post( array(
-                'ID'             => $attachment_id,
-                'post_mime_type' => $result['mime'],
-            ) );
-
-            $metadata['filesize'] = $result['filesize'];
-
-            if ( isset( $metadata['file'] ) ) {
-                $dir              = dirname( $metadata['file'] );
-                $fname            = basename( $result['path'] );
-                $metadata['file'] = ( '.' === $dir ) ? $fname : $dir . '/' . $fname;
-            }
-        }
-    }
-
-    // B. EXIF temizliği — dönüşüm yoksa yap (dönüşümde GD zaten temizler)
-    if ( get_option( 'erdo_remove_exif' ) && ! $did_convert ) {
-        ERDO_Auditor::clean_metadata( $attachment_id );
-    }
-
-    return $metadata;
-}
-add_filter( 'wp_generate_attachment_metadata', 'erdo_auto_webp_convert', 10, 2 );
-
-/* ------------------------------------------------------------------
-   LAZY LOADING  (Özellik 6)
-   WordPress 5.5+ zaten loading="lazy" ekliyor ama bazı eklentiler
-   bypass ediyor. Biz the_content'te de uyguluyoruz.
------------------------------------------------------------------- */
-
-function erdo_add_lazy_loading( $html ) {
-    if ( ! get_option( 'erdo_lazy_loading', 1 ) ) {
-        return $html;
-    }
-    // loading özelliği yoksa ekle
-    return preg_replace(
-        '/<img(?![^>]*\bloading=)([^>]*>)/i',
-        '<img loading="lazy"$1',
-        $html
-    );
-}
-add_filter( 'the_content',             'erdo_add_lazy_loading', 99 );
-add_filter( 'post_thumbnail_html',     'erdo_add_lazy_loading', 99 );
-add_filter( 'wp_get_attachment_image', 'erdo_add_lazy_loading', 99 );
+/* WebP/AVIF dönüşümü ve EXIF temizliği: ERDO_Converter::on_generate_metadata()
+   Lazy loading: WordPress 5.5+ (ve 6.3+ LCP/fetchpriority mantığı) yönetir. */
 
 /* ------------------------------------------------------------------
    SVG YÜKLEME İZNİ + SANİTİZASYON  (Özellik 7)

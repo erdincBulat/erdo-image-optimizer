@@ -1,7 +1,8 @@
 <?php
 /**
  * Uninstall — eklenti silindiğinde çalışır.
- * Tüm eklenti option'ları ve post meta verisi temizlenir.
+ * Tüm eklenti option'ları, post meta verisi, .htaccess kuralları ve eklentinin
+ * ürettiği WebP/AVIF kopyaları temizlenir. Orijinal görseller olduğu gibi kalır.
  */
 if ( ! defined( 'WP_UNINSTALL_PLUGIN' ) ) {
     exit;
@@ -16,41 +17,41 @@ if ( wp_next_scheduled( 'erdo_bg_process' ) ) {
 require_once __DIR__ . '/includes/class-webp-server.php';
 ERDO_WebP_Server::remove_htaccess_rules();
 
-$erdo_options = array(
-    'erdo_auto_webp',
-    'erdo_auto_sanitize',
-    'erdo_remove_exif',
-    'erdo_convert_format',
-    'erdo_quality',
-    'erdo_lossless',
-    'erdo_keep_original',
-    'erdo_total_saved_bytes',
-    'erdo_serve_webp',
-    'erdo_webp_serve_method',
-    'erdo_lazy_loading',
-    'erdo_smart_quality',
-    'erdo_max_width',
-    'erdo_allow_svg',
-    'erdo_queue_ids',
-    'erdo_queue_action',
-    'erdo_queue_total',
-    'erdo_queue_done',
-    'erdo_queue_errors',
-    'erdo_queue_status',
-    'erdo_queue_started',
-    'erdo_library_version',
-    'erdo_bunny_enabled',
-    'erdo_bunny_api_key',
-    'erdo_bunny_storage_zone',
-    'erdo_bunny_hostname',
-);
+global $wpdb;
 
-foreach ( $erdo_options as $erdo_option ) {
+// Üretilen kardeş dosyaları sil ("foto.jpg.webp" vb.). 2.x'ten kalan eski
+// .webp dosyalarına (_erdo_legacy_files) dokunulmaz: içerikte kullanılıyor olabilirler.
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+$erdo_rows = $wpdb->get_results( "SELECT post_id, meta_value FROM {$wpdb->postmeta} WHERE meta_key = '_erdo_formats'" );
+foreach ( $erdo_rows as $erdo_row ) {
+    $erdo_record = maybe_unserialize( $erdo_row->meta_value );
+    $erdo_file   = get_attached_file( (int) $erdo_row->post_id );
+    if ( ! $erdo_file || empty( $erdo_record['formats'] ) || ! is_array( $erdo_record['formats'] ) ) {
+        continue;
+    }
+    foreach ( $erdo_record['formats'] as $erdo_fmt => $erdo_list ) {
+        foreach ( array_keys( (array) $erdo_list ) as $erdo_base ) {
+            $erdo_path = dirname( $erdo_file ) . '/' . basename( $erdo_base ) . '.' . sanitize_key( $erdo_fmt );
+            if ( file_exists( $erdo_path ) ) {
+                wp_delete_file( $erdo_path );
+            }
+        }
+    }
+}
+
+// Tüm eklenti seçenekleri (erdo_ önekli)
+// phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
+foreach ( $wpdb->get_col( "SELECT option_name FROM {$wpdb->options} WHERE option_name LIKE 'erdo\\_%'" ) as $erdo_option ) {
     delete_option( $erdo_option );
 }
 
 $erdo_meta_keys = array(
     '_erdo_audit_cache',
+    '_erdo_formats',
+    '_erdo_saved_bytes',
+    '_erdo_exif_stripped',
+    '_erdo_migrated',
+    '_erdo_legacy_files',
     '_erdo_savings_bytes',
     '_erdo_original_size',
     '_erdo_backup_path',

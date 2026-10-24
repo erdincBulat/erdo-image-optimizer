@@ -100,21 +100,18 @@ class ERDO_Queue {
         $batch = array_splice( $ids, 0, self::BATCH_SIZE );
 
         foreach ( $batch as $id ) {
-            $id     = (int) $id;
-            $result = false;
+            $id = (int) $id;
 
             if ( 'convert' === $action ) {
-                $result = ERDO_Auditor::convert_to_webp( $id, true );
-            } elseif ( 'delete' === $action ) {
-                $result = ERDO_Auditor::delete_image( $id );
-            }
-
-            // Zaten hedef formatta olan görseller hata değil, atlanan (skip)
-            // sayılır — aksi hâlde kısmen optimize kütüphanelerde toplu
-            // dönüşüm sahte "N hata" raporu üretir.
-            if ( 'convert' === $action && ERDO_Auditor::ALREADY_OPTIMIZED === $result ) {
-                $skipped++;
-            } elseif ( ! $result ) {
+                $result = ERDO_Converter::convert( $id );
+                // Zaten modern formatta / animasyonlu / kopyası daha büyük çıkan
+                // görseller hata değil, atlanan (skip) sayılır.
+                if ( is_wp_error( $result ) ) {
+                    $errors[] = $id;
+                } elseif ( 'ok' !== $result['status'] ) {
+                    $skipped++;
+                }
+            } elseif ( 'delete' === $action && ! ERDO_Auditor::delete_image( $id ) ) {
                 $errors[] = $id;
             }
 

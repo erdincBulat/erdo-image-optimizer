@@ -77,6 +77,7 @@ et_test( '.htaccess rules send Vary: Accept', function () {
 
 /* --- 3.0 safety net for 2.x-damaged libraries ---------------------- */
 et_simulate_legacy_conversion( $m['img']['block'] );
+et_detect_legacy();
 
 et_test( 'rescue: page with URLs to files deleted by 2.x still shows the image', function () use ( $m ) {
     et_assert_page_ok( $m['post']['block'] );

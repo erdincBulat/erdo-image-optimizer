@@ -3,9 +3,9 @@
  * Adapter between the suites and the plugin's API.
  *
  * Suites describe BEHAVIOUR ("is this image used?", "convert it", "what files
- * does it have now?") and only call the functions below. When 3.0 replaces
- * the internals, only this file changes — the suites keep guarding the same
- * behaviour. Currently mapped to the 2.2.2 ERDO_Auditor API.
+ * does it have now?") and only call the functions below. When the internals
+ * change, only this file changes — the suites keep guarding the same
+ * behaviour. Mapped to the 3.0 API (ERDO_Converter / ERDO_Migration) since Faz 2.
  */
 
 /** Fresh usage verdict (all caches dropped first). */
@@ -58,19 +58,56 @@ function et_audit( $id ) {
     );
 }
 
-/** Converts one attachment. Returns 'ok' | 'skipped' | 'error'. */
+/**
+ * Converts one attachment. Returns 'ok' | 'larger' (every copy would be bigger
+ * than its source, so none kept) | 'skipped' | 'error'.
+ */
 function et_convert( $id, $format = 'webp' ) {
     update_option( 'erdo_convert_format', $format );
-    $r = ERDO_Auditor::convert_to_webp( $id );
-    if ( ERDO_Auditor::ALREADY_OPTIMIZED === $r ) {
-        return 'skipped';
-    }
-    return $r ? 'ok' : 'error';
+    $r = ERDO_Converter::convert( $id );
+    return is_wp_error( $r ) ? 'error' : $r['status'];
+}
+
+/** Encodes one file directly (encoder behaviour, bypassing the keep-if-smaller policy). */
+function et_encode( $src, $dest, $format, array $opts = array() ) {
+    return ERDO_Encoder::encode( $src, $dest, $format, $opts );
+}
+
+/** Basenames whose copy was dropped because it was not smaller than the source. */
+function et_larger_skips( $id, $format = 'webp' ) {
+    return ERDO_Converter::record( $id )['larger'][ $format ] ?? array();
 }
 
 /** Undoes conversion. Returns bool. */
 function et_restore( $id ) {
-    return (bool) ERDO_Auditor::restore_original( $id );
+    return (bool) ERDO_Converter::revert( $id );
+}
+
+/** Re-detects images damaged by 2.x (turns the rescue filter on/off). Returns count. */
+function et_detect_legacy() {
+    return ERDO_Migration::refresh_legacy_flag();
+}
+
+/** IDs of images damaged by 2.x that still await repair. */
+function et_legacy_ids() {
+    return ERDO_Migration::find_legacy();
+}
+
+/** Dry-run plan for one damaged image: array( mode => restore|repoint, ... ). */
+function et_migration_plan( $id ) {
+    return ERDO_Migration::plan( $id );
+}
+
+/** Repairs every damaged image. Returns totals. */
+function et_migrate_all() {
+    $t = array( 'restore' => 0, 'repoint' => 0, 'errors' => array() );
+    do {
+        $r = ERDO_Migration::run_batch( 25 );
+        $t['restore'] += $r['restore'];
+        $t['repoint'] += $r['repoint'];
+        $t['errors']  += $r['errors'];
+    } while ( $r['remaining'] > 0 && ( $r['restore'] + $r['repoint'] + count( $r['errors'] ) ) > 0 );
+    return $t;
 }
 
 /** Renames an attachment's files. Returns array|WP_Error. */
