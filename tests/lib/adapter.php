@@ -291,6 +291,41 @@ function et_ai_image( $id ) {
     return ERDO_AI::image_payload( $id );
 }
 
+/* --- Hardening (Faz 6) ---------------------------------------------- */
+
+/** Does the plugin consider this path safe to touch (inside uploads)? */
+function et_in_uploads( $path ) {
+    return ERDO_References::in_uploads( $path );
+}
+
+/** Manual resize from the detail panel. Returns bool. */
+function et_resize( $id, $w, $h ) {
+    return ERDO_Auditor::manual_resize( $id, $w, $h );
+}
+
+/** Backup kept by the first manual resize: array( path, width, height ) | null. */
+function et_resize_backup( $id ) {
+    return ERDO_Auditor::resize_backup( $id );
+}
+
+function et_restore_size( $id ) {
+    return ERDO_Auditor::restore_original_size( $id );
+}
+
+/** Runs the upgrade routine as if the site came from DB version $from. */
+function et_upgrade_from( $from ) {
+    update_option( 'erdo_db_version', $from );
+    ERDO_Migration::maybe_upgrade();
+}
+
+/** English source → translation map the admin page hands to admin.js. */
+function et_js_strings() {
+    $m = new ReflectionMethod( 'ERDO_Admin_Page', 'js_strings' );
+    $m->setAccessible( true );
+    $page = ( new ReflectionClass( 'ERDO_Admin_Page' ) )->newInstanceWithoutConstructor();
+    return $m->invoke( $page );
+}
+
 /** The .htaccess block the plugin writes for Apache WebP/AVIF delivery. */
 function et_htaccess_rules() {
     $file = trailingslashit( wp_upload_dir()['basedir'] ) . '.htaccess';

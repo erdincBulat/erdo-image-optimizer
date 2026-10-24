@@ -137,13 +137,14 @@ class ERDO_Encoder {
 
         $info = @getimagesize( $src ); // phpcs:ignore WordPress.PHP.NoSilencedErrors
         if ( ! $info ) {
-            return new WP_Error( 'read_failed', 'Source image could not be read.' );
+            return new WP_Error( 'read_failed', __( 'Source image could not be read.', 'erdo-image-optimizer' ) );
         }
         $mime     = $info['mime'];
         $animated = 'image/gif' === $mime && self::is_animated_gif( $src );
 
         if ( $animated && empty( $caps[ $format ]['animated'] ) ) {
-            return new WP_Error( 'animated', 'Animated GIF skipped: this server cannot write animated ' . strtoupper( $format ) . '.' );
+            return new WP_Error( 'animated', /* translators: %s: image format (WEBP or AVIF) */
+                sprintf( __( 'Animated GIF skipped: this server cannot write animated %s.', 'erdo-image-optimizer' ), strtoupper( $format ) ) );
         }
 
         $opts = wp_parse_args( $opts, array( 'quality' => 80, 'lossless' => false, 'smart' => false ) );
@@ -161,18 +162,20 @@ class ERDO_Encoder {
             if ( file_exists( $tmp ) ) {
                 wp_delete_file( $tmp );
             }
-            return is_wp_error( $result ) ? $result : new WP_Error( 'encode_failed', 'Encoder produced no output.' );
+            return is_wp_error( $result ) ? $result : new WP_Error( 'encode_failed', __( 'Encoder produced no output.', 'erdo-image-optimizer' ) );
         }
 
         $head = file_get_contents( $tmp, false, null, 0, 32 ); // phpcs:ignore WordPress.WP.AlternativeFunctions
         if ( self::sniff( $head ) !== $format ) {
             wp_delete_file( $tmp );
-            return new WP_Error( 'encode_failed', 'Encoder output is not valid ' . strtoupper( $format ) . '.' );
+            return new WP_Error( 'encode_failed', /* translators: %s: image format */
+                sprintf( __( 'Encoder output is not valid %s.', 'erdo-image-optimizer' ), strtoupper( $format ) ) );
         }
 
         if ( ! @rename( $tmp, $dest ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
             wp_delete_file( $tmp );
-            return new WP_Error( 'encode_failed', 'Could not write ' . basename( $dest ) );
+            return new WP_Error( 'encode_failed', /* translators: %s: file name */
+                sprintf( __( 'Could not write %s', 'erdo-image-optimizer' ), basename( $dest ) ) );
         }
 
         clearstatcache( true, $dest );
@@ -208,11 +211,12 @@ class ERDO_Encoder {
                 }
                 break;
             default:
-                return new WP_Error( 'unsupported', 'Unsupported source type ' . $mime );
+                return new WP_Error( 'unsupported', /* translators: %s: MIME type */
+                sprintf( __( 'Unsupported source type %s', 'erdo-image-optimizer' ), $mime ) );
         }
 
         if ( ! $image ) {
-            return new WP_Error( 'read_failed', 'Source image could not be decoded.' );
+            return new WP_Error( 'read_failed', __( 'Source image could not be decoded.', 'erdo-image-optimizer' ) );
         }
 
         $quality = (int) $opts['quality'];
@@ -227,7 +231,7 @@ class ERDO_Encoder {
             : imagewebp( $image, $tmp, $quality );
 
         imagedestroy( $image );
-        return $ok ? true : new WP_Error( 'encode_failed', 'GD could not encode the image.' );
+        return $ok ? true : new WP_Error( 'encode_failed', __( 'GD could not encode the image.', 'erdo-image-optimizer' ) );
     }
 
     private static function encode_imagick( $src, $tmp, $format, array $opts, $animated ) {
@@ -261,7 +265,7 @@ class ERDO_Encoder {
 
             $ok = $animated ? $im->writeImages( $format . ':' . $tmp, true ) : $im->writeImage( $format . ':' . $tmp );
             $im->clear();
-            return $ok ? true : new WP_Error( 'encode_failed', 'Imagick could not encode the image.' );
+            return $ok ? true : new WP_Error( 'encode_failed', __( 'Imagick could not encode the image.', 'erdo-image-optimizer' ) );
         } catch ( Exception $e ) {
             return new WP_Error( 'encode_failed', 'Imagick: ' . $e->getMessage() );
         }

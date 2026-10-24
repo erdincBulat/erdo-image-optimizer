@@ -116,6 +116,10 @@ class ERDO_Quarantine {
         }
         $failed = array();
         foreach ( (array) $data['files'] as $orig => $q ) {
+            if ( ! self::in_quarantine( $q ) || ! ERDO_References::in_uploads( $orig ) ) {
+                $failed[] = basename( $orig );
+                continue;
+            }
             if ( file_exists( $q ) ) {
                 wp_mkdir_p( dirname( $orig ) );
                 if ( ! @rename( $q, $orig ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
@@ -146,7 +150,7 @@ class ERDO_Quarantine {
             return new WP_Error( 'not_quarantined', __( 'This image is not in quarantine.', 'erdo-image-optimizer' ) );
         }
         foreach ( (array) $data['files'] as $q ) {
-            if ( file_exists( $q ) ) {
+            if ( file_exists( $q ) && self::in_quarantine( $q ) ) {
                 wp_delete_file( $q );
             }
         }
@@ -198,6 +202,13 @@ class ERDO_Quarantine {
     }
 
     /** Görsele ait diskteki tüm dosyalar. */
+    /** Yol karantina klasörünün içinde mi (geri yükleme ve kalıcı silme yalnızca buradan yapılır). */
+    private static function in_quarantine( $path ) {
+        $q   = realpath( self::dir() );
+        $dir = realpath( dirname( (string) $path ) );
+        return $q && $dir && 0 === strpos( trailingslashit( wp_normalize_path( $dir ) ), trailingslashit( wp_normalize_path( $q ) ) );
+    }
+
     public static function files_of( $attachment_id ) {
         $file = get_attached_file( $attachment_id );
         if ( ! $file ) {
@@ -214,14 +225,21 @@ class ERDO_Quarantine {
                 $files[] = $dir . '/' . $s['file'];
             }
         }
+        // Medya düzenleyicisinin sakladığı orijinaller (döndürme/kırpma öncesi)
+        foreach ( (array) get_post_meta( $attachment_id, '_wp_attachment_backup_sizes', true ) as $s ) {
+            if ( ! empty( $s['file'] ) ) {
+                $files[] = $dir . '/' . wp_basename( $s['file'] );
+            }
+        }
         foreach ( $files as $f ) {
             foreach ( ERDO_Encoder::FORMATS as $fmt ) {
                 $files[] = $f . '.' . $fmt;
             }
         }
         $files = array_merge( $files, (array) get_post_meta( $attachment_id, '_erdo_legacy_files', true ) );
+        // Yalnızca uploads içindeki dosyalara dokunulur (meta elle değiştirilmiş olsa bile).
         return array_values( array_filter( array_unique( $files ), function ( $f ) {
-            return $f && file_exists( $f );
+            return $f && file_exists( $f ) && ERDO_References::in_uploads( $f );
         } ) );
     }
 

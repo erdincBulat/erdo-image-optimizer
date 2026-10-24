@@ -197,6 +197,22 @@ class ERDO_References {
         return $cache[ $upath ];
     }
 
+    /**
+     * Yol uploads klasörünün içinde mi? Dosya henüz olmayabilir, bu yüzden
+     * klasörün gerçek yolu (realpath: "..", sembolik bağ, sürücü harfi çözülmüş)
+     * karşılaştırılır. Diskteki her taşıma/silme/yazma işleminden önce çağrılır.
+     */
+    public static function in_uploads( $path ) {
+        $base = realpath( wp_upload_dir()['basedir'] );
+        $dir  = $path ? realpath( dirname( (string) $path ) ) : false;
+        if ( ! $base || ! $dir || false !== strpos( wp_basename( (string) $path ), '..' ) ) {
+            return false;
+        }
+        $base = trailingslashit( wp_normalize_path( $base ) );
+        $dir  = trailingslashit( wp_normalize_path( $dir ) );
+        return 0 === strpos( $dir, $base );
+    }
+
     /** "2026/10/foto.jpg" → mutlak yol */
     public static function rel_to_path( $rel ) {
         return trailingslashit( wp_upload_dir()['basedir'] ) . rawurldecode( $rel );

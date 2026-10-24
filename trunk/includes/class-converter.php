@@ -143,12 +143,16 @@ class ERDO_Converter {
 
         $formats = null === $formats ? self::target_formats() : $formats;
         if ( empty( $formats ) ) {
-            return new WP_Error( 'no_encoder', 'This server cannot encode WebP or AVIF.' );
+            return new WP_Error( 'no_encoder', __( 'This server cannot encode WebP or AVIF.', 'erdo-image-optimizer' ) );
         }
 
         $files = self::renditions( $attachment_id, $meta );
         if ( empty( $files ) ) {
-            return new WP_Error( 'not_found', 'Image file not found.' );
+            return new WP_Error( 'not_found', __( 'Image file not found.', 'erdo-image-optimizer' ) );
+        }
+        // Kardeş dosyalar yalnızca uploads içine yazılır (dışarıya taşınmış/offload edilmiş dosyalar atlanır).
+        if ( ! ERDO_References::in_uploads( $files[0] ) ) {
+            return array_merge( $result, array( 'status' => 'skipped', 'reason' => 'outside_uploads' ) );
         }
 
         $opts = array(

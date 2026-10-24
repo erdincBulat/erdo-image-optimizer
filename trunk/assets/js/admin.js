@@ -1,4 +1,10 @@
 jQuery(document).ready(function($) {
+    var i18n = erdo_vars.i18n || {};
+
+    /** English source string → translation from PHP (__()); falls back to the source. */
+    function t(str) {
+        return ( i18n.s && i18n.s[str] ) || str;
+    }
     var currentPage      = 1;
     var totalPages       = 1;
     var totalFound       = 0;
@@ -90,7 +96,7 @@ jQuery(document).ready(function($) {
             $('#stat-total-count').text( d.total );
             $('#stat-opt-score').text( d.opt_score + '%' );
             $('#stat-seo-score').text( d.seo_score + '%' );
-            $('#stat-total-size').text( d.total > 0 ? d.total + ' images' : 'No images' );
+            $('#stat-total-size').text( d.total > 0 ? fmt(t('%d images'), d.total) : t('No images') );
             $('#stat-total-saved').text( d.total_saved );
             updateChart( 'chart-opt-ring', d.opt_score, '#2563eb' );
             updateChart( 'chart-seo-ring', d.seo_score, '#059669' );
@@ -141,7 +147,7 @@ jQuery(document).ready(function($) {
             if ( total > 0 ) {
                 $text.text( loaded + ' / ' + total + ' images scanned' );
             } else {
-                $text.text( 'Loading library...' );
+                $text.text( t('Loading library...') );
             }
         }
     }
@@ -221,10 +227,10 @@ jQuery(document).ready(function($) {
     }
 
     var emptyMessages = {
-        'tab-red'   : 'No critical images — great start!',
-        'tab-orange': 'No images with moderate issues.',
-        'tab-green' : 'No fully-optimized images yet.',
-        'tab-gray'  : 'No unused images found in your library.'
+        'tab-red'   : t('No critical images — great start!'),
+        'tab-orange': t('No images with moderate issues.'),
+        'tab-green' : t('No fully-optimized images yet.'),
+        'tab-gray'  : t('No unused images found in your library.')
     };
 
     function showEmptyStates() {
@@ -300,7 +306,7 @@ jQuery(document).ready(function($) {
             return;
         }
         var id = $(this).data('id');
-        openModal('<p style="text-align:center;padding:60px 20px;">Analyzing image...</p>');
+        openModal('<p style="text-align:center;padding:60px 20px;">' + esc(t('Analyzing image...')) + '</p>');
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_get_detail', id: id, nonce: erdo_vars.nonce },
@@ -315,7 +321,7 @@ jQuery(document).ready(function($) {
     $(document).on('click', '#erdo-save-btn', function() {
         var btn  = $(this);
         var data = $('#erdo-audit-form').serialize() + '&action=erdo_save_data&nonce=' + erdo_vars.nonce;
-        btn.text('Saving...').prop('disabled', true);
+        btn.text(t('Saving...')).prop('disabled', true);
 
         $.post(erdo_vars.ajax_url, data, function(res) {
             if ( res.success ) {
@@ -332,8 +338,8 @@ jQuery(document).ready(function($) {
                 saveGridCache(libraryVersion);
                 loadStats();
             } else {
-                alert('Error saving data. Please try again.');
-                btn.text('Save Changes').prop('disabled', false);
+                alert(t('Error saving data. Please try again.'));
+                btn.text(t('Save Changes')).prop('disabled', false);
             }
         });
     });
@@ -347,7 +353,7 @@ jQuery(document).ready(function($) {
         var id      = $(this).data('id');
         var btn     = $(this);
         var origTxt = btn.text();
-        btn.html('<span class="erdo-spinner"></span> Converting...').prop('disabled', true);
+        btn.html('<span class="erdo-spinner"></span> ' + esc(t('Converting...'))).prop('disabled', true);
 
         $.post(
             erdo_vars.ajax_url,
@@ -364,12 +370,12 @@ jQuery(document).ready(function($) {
                         }
                     );
                 } else {
-                    var msg = ( res && res.data && res.data.message ) ? res.data.message : 'Conversion failed.';
+                    var msg = ( res && res.data && res.data.message ) ? res.data.message : t('Conversion failed.');
                     btn.text( origTxt ).prop('disabled', false).attr('title', msg);
                 }
             }
         ).fail(function() {
-            btn.text('Error').prop('disabled', false);
+            btn.text(t('Error')).prop('disabled', false);
         });
     });
 
@@ -377,10 +383,10 @@ jQuery(document).ready(function($) {
        RESTORE ORIGINAL
     ------------------------------------------------------- */
     $(document).on('click', '.erdo-restore-btn', function() {
-        if ( ! confirm('Restore the original image? The optimized version will be replaced.') ) return;
+        if ( ! confirm(t('Remove the WebP/AVIF copies? The original stays as it is.')) ) return;
         var id  = $(this).data('id');
         var btn = $(this);
-        btn.text('Restoring...').prop('disabled', true);
+        btn.text(t('Restoring...')).prop('disabled', true);
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_restore_original', id: id, nonce: erdo_vars.nonce },
@@ -392,26 +398,26 @@ jQuery(document).ready(function($) {
                         function(html) { $('#erdo-modal-content').html(html); loadStats(); }
                     );
                 } else {
-                    var msg = ( res && res.data && res.data.message ) ? res.data.message : 'Restore failed.';
+                    var msg = ( res && res.data && res.data.message ) ? res.data.message : t('Restore failed.');
                     alert(msg);
-                    btn.text('Restore Original').prop('disabled', false);
+                    btn.text(t('Restore')).prop('disabled', false);
                 }
             }
-        ).fail(function() { btn.text('Error').prop('disabled', false); });
+        ).fail(function() { btn.text(t('Error')).prop('disabled', false); });
     });
 
     /* -------------------------------------------------------
        DELETE IMAGE
     ------------------------------------------------------- */
     $(document).on('click', '.erdo-delete-btn', function() {
-        if ( ! confirm('Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab.') ) return;
+        if ( ! confirm(t('Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab.')) ) return;
         var id = $(this).data('id');
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_delete_image', id: id, nonce: erdo_vars.nonce },
             function( res ) {
                 if ( res && res.success && res.data.in_use ) {
-                    alert('Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken.');
+                    alert(t('Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken.'));
                 }
                 clearGridCache(); location.reload();
             }
@@ -423,18 +429,18 @@ jQuery(document).ready(function($) {
     ------------------------------------------------------- */
     function loadQuarantine() {
         var $grid = $('#erdo-quarantine-grid');
-        $grid.html('<p style="padding:20px;">Loading...</p>');
+        $grid.html('<p style="padding:20px;">' + esc(t('Loading...')) + '</p>');
         $.post(erdo_vars.ajax_url, { action: 'erdo_quarantine_list', nonce: erdo_vars.nonce }, function( res ) {
             if ( ! res || ! res.success ) { $grid.html(''); return; }
             $('#count-quarantine').text( res.data.count );
-            $grid.html( res.data.html || '<p style="padding:20px;">Quarantine is empty.</p>' );
+            $grid.html( res.data.html || '<p style="padding:20px;">' + esc(t('Quarantine is empty.')) + '</p>' );
         });
     }
 
     $(document).on('click', '.erdo-q-restore, .erdo-q-purge', function( e ) {
         e.stopPropagation();
         var purge = $(this).hasClass('erdo-q-purge');
-        if ( purge && ! confirm('Delete this image and all its files permanently? This cannot be undone.') ) return;
+        if ( purge && ! confirm(t('Delete this image and all its files permanently? This cannot be undone.')) ) return;
         var $btn = $(this).prop('disabled', true);
         $.post(erdo_vars.ajax_url, {
             action: purge ? 'erdo_quarantine_purge' : 'erdo_quarantine_restore',
@@ -442,7 +448,7 @@ jQuery(document).ready(function($) {
             nonce: erdo_vars.nonce
         }, function( res ) {
             if ( ! res || ! res.success ) {
-                alert( ( res && res.data && res.data.message ) || 'Failed.' );
+                alert( ( res && res.data && res.data.message ) || t('Failed.') );
                 $btn.prop('disabled', false);
                 return;
             }
@@ -468,7 +474,7 @@ jQuery(document).ready(function($) {
                     loadImages(true);
                     return;
                 }
-                $('#erdo-index-text').text('Building the usage index: ' + d.done + ' / ' + d.total + ' posts scanned. Unused-image cleanup becomes available when it finishes.');
+                $('#erdo-index-text').text(fmt(t('Building the usage index: %1$d / %2$d posts scanned. Unused-image cleanup becomes available when it finishes.'), d.done, d.total));
                 step();
             }).fail(function() { setTimeout(step, 5000); });
         }
@@ -504,6 +510,18 @@ jQuery(document).ready(function($) {
     /* -------------------------------------------------------
        MANUAL RESIZE
     ------------------------------------------------------- */
+    $(document).on('click', '.erdo-restore-size-btn', function() {
+        var id = $(this).data('id');
+        $(this).prop('disabled', true);
+        $.post(erdo_vars.ajax_url, { action: 'erdo_restore_size', id: id, nonce: erdo_vars.nonce }, function(res) {
+            if ( ! res || ! res.success ) { alert(( res && res.data && res.data.message ) || t('Failed.')); }
+            clearGridCache();
+            $.post(erdo_vars.ajax_url, { action: 'erdo_get_detail', id: id, nonce: erdo_vars.nonce }, function(html) {
+                $('#erdo-modal-content').html(html);
+            });
+        });
+    });
+
     $(document).on('click', '.erdo-resize-btn', function(e) {
         e.preventDefault();
         var btn = $(this);
@@ -511,9 +529,9 @@ jQuery(document).ready(function($) {
         var w   = $('#erdo-w-' + id).val();
         var h   = $('#erdo-h-' + id).val();
 
-        if ( ! w || ! h ) { alert('Please enter width and height.'); return; }
+        if ( ! w || ! h ) { alert(t('Please enter width and height.')); return; }
 
-        btn.text('Resizing...').prop('disabled', true);
+        btn.text(t('Resizing...')).prop('disabled', true);
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_manual_resize', id: id, w: w, h: h, nonce: erdo_vars.nonce },
@@ -525,8 +543,8 @@ jQuery(document).ready(function($) {
                         function(html) { $('#erdo-modal-content').html(html); }
                     );
                 } else {
-                    alert('Resize failed. Please try again.');
-                    btn.text('Resize').prop('disabled', false);
+                    alert(t('Resize failed: enter a size smaller than the current one.'));
+                    btn.text(t('Resize')).prop('disabled', false);
                 }
             }
         );
@@ -536,9 +554,9 @@ jQuery(document).ready(function($) {
        REFRESH ALL AUDITS
     ------------------------------------------------------- */
     $('#erdo-refresh-all-btn').on('click', function() {
-        if ( ! confirm('Clear all audit caches and re-scan? This may take a moment.') ) return;
+        if ( ! confirm(t('Clear all audit caches and re-scan? This may take a moment.')) ) return;
         var btn = $(this);
-        btn.prop('disabled', true).text('Refreshing...');
+        btn.prop('disabled', true).text(t('Refreshing...'));
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_refresh_all', nonce: erdo_vars.nonce },
@@ -551,7 +569,7 @@ jQuery(document).ready(function($) {
     ------------------------------------------------------- */
     $('#erdo-upload-btn').on('click', function(e) {
         e.preventDefault();
-        var frame = wp.media({ title: 'Add New Image', button: { text: 'Add' }, multiple: true });
+        var frame = wp.media({ title: t('Add New Image'), button: { text: t('Add') }, multiple: true });
         frame.on('close', function() { location.reload(); });
         frame.open();
     });
@@ -582,7 +600,7 @@ jQuery(document).ready(function($) {
        SETTINGS MODAL
     ------------------------------------------------------- */
     $('#erdo-settings-btn').on('click', function() {
-        openModal('<p style="text-align:center;padding:60px 20px;">Loading settings...</p>');
+        openModal('<p style="text-align:center;padding:60px 20px;">' + esc(t('Loading settings...')) + '</p>');
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_get_settings', nonce: erdo_vars.nonce },
@@ -593,13 +611,13 @@ jQuery(document).ready(function($) {
     $(document).on('click', '#erdo-save-settings-btn', function() {
         var btn  = $(this);
         var data = $('#erdo-settings-form').serialize() + '&action=erdo_save_settings&nonce=' + erdo_vars.nonce;
-        btn.text('Saving...').prop('disabled', true);
+        btn.text(t('Saving...')).prop('disabled', true);
         $.post(erdo_vars.ajax_url, data, function(res) {
             if ( res.success ) {
-                btn.text('Saved!');
+                btn.text(t('Saved!'));
                 setTimeout(function() { closeModal(); location.reload(); }, 800);
             } else {
-                btn.text('Save Settings').prop('disabled', false);
+                btn.text(t('Save Settings')).prop('disabled', false);
             }
         });
     });
@@ -638,11 +656,11 @@ jQuery(document).ready(function($) {
             var $start  = $('#erdo-start-queue-btn');
             var $cancel = $('#erdo-cancel-queue-btn');
             if ( d.running ) {
-                $box.show().html('<strong>Background convert running:</strong> ' + d.done + ' / ' + d.total + ' (' + d.percent + '%)' + (d.skipped > 0 ? ' &mdash; ' + d.skipped + ' already optimized' : '') + (d.errors > 0 ? ' &mdash; <span style="color:#dc2626">' + d.errors + ' errors</span>' : ''));
+                $box.show().html('<strong>' + esc(t('Background convert running:')) + '</strong> ' + d.done + ' / ' + d.total + ' (' + d.percent + '%)' + (d.skipped > 0 ? ' &mdash; ' + esc(fmt(t('%d already optimized'), d.skipped)) : '') + (d.errors > 0 ? ' &mdash; <span style="color:#dc2626">' + esc(fmt(t('%d errors'), d.errors)) + '</span>' : ''));
                 $start.hide(); $cancel.show();
                 queuePollTimer = setTimeout(pollQueueStatus, 5000);
             } else if ( d.status === 'done' ) {
-                $box.show().html('<strong style="color:#059669;">Done!</strong> ' + d.done + ' images processed' + (d.skipped > 0 ? ', ' + d.skipped + ' already optimized' : '') + (d.errors > 0 ? ', ' + d.errors + ' failed' : '') + '.');
+                $box.show().html('<strong style="color:#059669;">' + esc(t('Done!')) + '</strong> ' + esc(fmt(t('%d images processed'), d.done)) + (d.skipped > 0 ? ', ' + esc(fmt(t('%d already optimized'), d.skipped)) : '') + (d.errors > 0 ? ', ' + esc(fmt(t('%d failed'), d.errors)) : '') + '.');
                 $start.show(); $cancel.hide(); clearTimeout(queuePollTimer); loadStats();
             } else {
                 $box.hide(); $start.show(); $cancel.hide(); clearTimeout(queuePollTimer);
@@ -651,13 +669,13 @@ jQuery(document).ready(function($) {
     }
 
     $(document).on('click', '#erdo-start-queue-btn', function() {
-        if ( ! confirm('Start background bulk conversion via WP-Cron? Safe to close this tab.') ) return;
+        if ( ! confirm(t('Start background bulk conversion via WP-Cron? Safe to close this tab.')) ) return;
         var btn = $(this);
-        btn.prop('disabled', true).text('Starting...');
+        btn.prop('disabled', true).text(t('Starting...'));
         $.post(erdo_vars.ajax_url, { action: 'erdo_start_queue', nonce: erdo_vars.nonce }, function(res) {
-            btn.prop('disabled', false).text('Start Background Convert');
+            btn.prop('disabled', false).text(t('Start Background Convert'));
             if ( res.success ) { pollQueueStatus(); }
-            else { alert( (res.data && res.data.message) ? res.data.message : 'Failed.' ); }
+            else { alert( (res.data && res.data.message) ? res.data.message : t('Failed.') ); }
         });
     });
 
@@ -675,18 +693,18 @@ jQuery(document).ready(function($) {
     ------------------------------------------------------- */
     $(document).on('click', '#erdo-htaccess-write-btn', function() {
         var btn = $(this);
-        btn.prop('disabled', true).text('Writing...');
+        btn.prop('disabled', true).text(t('Writing...'));
         $.post(erdo_vars.ajax_url, { action: 'erdo_write_htaccess', nonce: erdo_vars.nonce }, function(res) {
-            btn.prop('disabled', false).text('Write .htaccess Rules');
-            if ( res.success ) { btn.hide(); $('#erdo-htaccess-remove-btn').show(); $('#erdo-htaccess-status').text('Active').css('color','#059669'); }
+            btn.prop('disabled', false).text(t('Write .htaccess Rules'));
+            if ( res.success ) { btn.hide(); $('#erdo-htaccess-remove-btn').show(); $('#erdo-htaccess-status').text(t('Active')).css('color','#059669'); }
         });
     });
 
     $(document).on('click', '#erdo-htaccess-remove-btn', function() {
         var btn = $(this);
-        btn.prop('disabled', true).text('Removing...');
+        btn.prop('disabled', true).text(t('Removing...'));
         $.post(erdo_vars.ajax_url, { action: 'erdo_remove_htaccess', nonce: erdo_vars.nonce }, function(res) {
-            btn.prop('disabled', false).text('Remove .htaccess Rules');
+            btn.prop('disabled', false).text(t('Remove .htaccess Rules'));
             if ( res.success ) { btn.hide(); $('#erdo-htaccess-write-btn').show(); $('#erdo-htaccess-status').text(''); }
         });
     });
@@ -695,29 +713,29 @@ jQuery(document).ready(function($) {
        SCAN MISSING THUMBNAILS
     ------------------------------------------------------- */
     $('#erdo-scan-thumbnails-btn').on('click', function() {
-        openModal('<p style="text-align:center;padding:60px 20px;">Scanning posts...</p>');
+        openModal('<p style="text-align:center;padding:60px 20px;">' + esc(t('Scanning posts...')) + '</p>');
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_scan_thumbnails', nonce: erdo_vars.nonce },
             function(res) {
                 if ( ! res.success ) {
-                    $('#erdo-modal-content').html('<p style="padding:20px;color:red;">Error scanning posts.</p>');
+                    $('#erdo-modal-content').html('<p style="padding:20px;color:red;">' + esc(t('Error scanning posts.')) + '</p>');
                     return;
                 }
-                var html = '<div class="modal-header"><h2>Missing Featured Images</h2></div>';
+                var html = '<div class="modal-header"><h2>' + esc(t('Missing Featured Images')) + '</h2></div>';
                 if ( res.data.length === 0 ) {
                     html += '<div style="padding:40px;text-align:center;color:#00a32a;">';
                     html += '<span class="dashicons dashicons-yes-alt" style="font-size:56px;width:56px;height:56px;display:block;margin:0 auto 16px;"></span>';
-                    html += '<h3>All posts have featured images!</h3></div>';
+                    html += '<h3>' + esc(t('All posts have featured images!')) + '</h3></div>';
                 } else {
-                    html += '<p style="padding:0 24px;color:#d63638;">Found <strong>' + res.data.length + '</strong> posts without a featured image:</p>';
+                    html += '<p style="padding:0 24px;color:#d63638;">' + esc(fmt(t('Found %d posts without a featured image:'), res.data.length)) + '</p>';
                     html += '<ul style="padding:0 24px 24px;max-height:420px;overflow-y:auto;margin:0;">';
                     $.each(res.data, function(i, item) {
                         html += '<li style="background:#f6f7f7;border:1px solid #dcdcde;padding:10px 14px;margin-bottom:8px;';
                         html += 'display:flex;justify-content:space-between;align-items:center;border-radius:4px;">';
                         html += '<strong>' + $('<div>').text(item.title).html() + '</strong>';
                         html += '<a href="' + $('<div>').text(item.link).html() + '" target="_blank" class="button button-small">';
-                        html += 'Edit Post <span class="dashicons dashicons-external" style="font-size:12px;line-height:24px;"></span></a>';
+                        html += esc(t('Edit Post')) + ' <span class="dashicons dashicons-external" style="font-size:12px;line-height:24px;"></span></a>';
                         html += '</li>';
                     });
                     html += '</ul>';
@@ -731,9 +749,9 @@ jQuery(document).ready(function($) {
        BULK CONVERT
     ------------------------------------------------------- */
     $('#erdo-bulk-webp-btn').on('click', function() {
-        if ( ! confirm('Convert all eligible images? This may take a while depending on your library size.') ) return;
+        if ( ! confirm(t('Create WebP/AVIF copies for all eligible images? This may take a while depending on your library size.')) ) return;
         var btn = $(this);
-        btn.prop('disabled', true).text('Scanning...');
+        btn.prop('disabled', true).text(t('Scanning...'));
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_get_bulk_list', nonce: erdo_vars.nonce },
@@ -741,8 +759,8 @@ jQuery(document).ready(function($) {
                 if ( res.success && res.data.length > 0 ) {
                     runBulkProcess(res.data, 'erdo_bulk_step', btn);
                 } else {
-                    alert('No images found to convert.');
-                    btn.prop('disabled', false).text('Bulk Convert');
+                    alert(t('No images found to convert.'));
+                    btn.prop('disabled', false).text(t('Bulk Convert'));
                 }
             }
         );
@@ -768,20 +786,20 @@ jQuery(document).ready(function($) {
     $('#erdo-safety-confirm-btn').on('click', function() {
         $('#erdo-safety-modal-overlay').addClass('hidden');
         var btn = $('#erdo-bulk-delete-btn');
-        btn.prop('disabled', true).text('Scanning...');
+        btn.prop('disabled', true).text(t('Scanning...'));
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_get_unused_list', nonce: erdo_vars.nonce },
             function(res) {
                 if ( ! res.success ) {
-                    alert( ( res.data && res.data.message ) || 'Could not list unused images.' );
-                    btn.prop('disabled', false).text('Quarantine All Unused');
+                    alert( ( res.data && res.data.message ) || t('Could not list unused images.') );
+                    btn.prop('disabled', false).text(t('Quarantine All Unused'));
                 } else if ( res.data.length > 0 ) {
                     // Sunucu her görseli yeniden denetler (indeks + dosya adı); kullanımda olabilecekler atlanır.
                     runBulkProcess(res.data, 'erdo_quarantine_unused', btn);
                 } else {
-                    alert('No unused images found.');
-                    btn.prop('disabled', false).text('Quarantine All Unused');
+                    alert(t('No unused images found.'));
+                    btn.prop('disabled', false).text(t('Quarantine All Unused'));
                 }
             }
         );
@@ -799,7 +817,7 @@ jQuery(document).ready(function($) {
 
         function processNext() {
             if ( ids.length === 0 ) {
-                btn.text('Done!');
+                btn.text(t('Done!'));
                 clearGridCache();
                 setTimeout(function() {
                     $wrapper.addClass('hidden');
@@ -872,17 +890,17 @@ jQuery(document).ready(function($) {
        BULK ALT TEXT — Dosya adından alt text üret
     ------------------------------------------------------- */
     $('#erdo-bulk-alt-btn').on('click', function() {
-        if ( ! confirm('Auto-generate alt text from filename for all images missing alt text?') ) return;
+        if ( ! confirm(t('Generate alt text from the filename for all images missing alt text? Camera-style names (IMG_1234) are skipped.')) ) return;
         var btn = $(this);
-        btn.html('<span class="erdo-spinner"></span> Generating...').prop('disabled', true);
+        btn.html('<span class="erdo-spinner"></span> ' + esc(t('Generating...'))).prop('disabled', true);
 
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_bulk_alt_text', nonce: erdo_vars.nonce },
             function(res) {
-                btn.prop('disabled', false).html('<span class="dashicons dashicons-format-image"></span> Auto Alt Text');
+                btn.prop('disabled', false).html('<span class="dashicons dashicons-format-image"></span> ' + esc(t('Auto Alt Text')));
                 if ( res.success ) {
-                    alert(res.data.updated + ' images updated.');
+                    alert(fmt(t('%d images updated.'), res.data.updated));
                     clearGridCache();
                     loadImages(true);
                 }
@@ -895,13 +913,13 @@ jQuery(document).ready(function($) {
     ------------------------------------------------------- */
     $('#erdo-export-csv-btn').on('click', function() {
         var btn = $(this);
-        btn.html('<span class="erdo-spinner"></span> Exporting...').prop('disabled', true);
+        btn.html('<span class="erdo-spinner"></span> ' + esc(t('Exporting...'))).prop('disabled', true);
 
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_export_csv', nonce: erdo_vars.nonce },
             function(res) {
-                btn.prop('disabled', false).html('<span class="dashicons dashicons-download"></span> Export CSV');
+                btn.prop('disabled', false).html('<span class="dashicons dashicons-download"></span> ' + esc(t('Export SEO CSV')));
                 if ( res.success ) {
                     var blob = new Blob([res.data.csv], { type: 'text/csv;charset=utf-8;' });
                     var url  = URL.createObjectURL(blob);
@@ -921,7 +939,7 @@ jQuery(document).ready(function($) {
     $(document).on('click', '.erdo-rename-btn', function() {
         var id  = $(this).data('id');
         var btn = $(this);
-        btn.html('<span class="erdo-spinner"></span> Renaming...').prop('disabled', true);
+        btn.html('<span class="erdo-spinner"></span> ' + esc(t('Renaming...'))).prop('disabled', true);
 
         $.post(
             erdo_vars.ajax_url,
@@ -938,30 +956,8 @@ jQuery(document).ready(function($) {
                     clearGridCache();
                     loadStats();
                 } else {
-                    btn.html('&#9998; Fix Filename').prop('disabled', false);
-                    alert(res.data.message || 'Rename failed.');
-                }
-            }
-        );
-    });
-
-    /* -------------------------------------------------------
-       CDN UPLOAD (modal butonu)
-    ------------------------------------------------------- */
-    $(document).on('click', '.erdo-cdn-upload-btn', function() {
-        var id  = $(this).data('id');
-        var btn = $(this);
-        btn.html('<span class="erdo-spinner"></span> Uploading...').prop('disabled', true);
-
-        $.post(
-            erdo_vars.ajax_url,
-            { action: 'erdo_cdn_upload', id: id, nonce: erdo_vars.nonce },
-            function(res) {
-                if ( res.success ) {
-                    btn.html('&#9729; Upload to CDN <span style="display:block;font-size:10px;color:#059669;">&#10003; On CDN</span>').prop('disabled', false);
-                } else {
-                    btn.html('&#9729; Upload to CDN').prop('disabled', false);
-                    alert(res.data.message || 'CDN upload failed.');
+                    btn.html(esc(t('Fix Filename'))).prop('disabled', false);
+                    alert(res.data.message || t('Rename failed.'));
                 }
             }
         );
@@ -999,14 +995,14 @@ jQuery(document).ready(function($) {
         var html = '<div class="erdo-ba-overlay" id="erdo-ba-overlay">';
         html += '<div class="erdo-ba-modal">';
         html += '<div class="erdo-ba-header">';
-        html += '<h3>Before &amp; After</h3>';
+        html += '<h3>' + esc(t('Before & After')) + '</h3>';
         html += '<button class="erdo-ba-close" id="erdo-ba-close">&times;</button>';
         html += '</div>';
         html += '<div class="erdo-ba-container" id="erdo-ba-container">';
-        html += '<div class="erdo-ba-img erdo-ba-after"><img src="' + current  + '" alt="Optimized"></div>';
-        html += '<div class="erdo-ba-img erdo-ba-before"><img src="' + original + '" alt="Original"></div>';
-        html += '<span class="erdo-ba-label erdo-ba-label-before">ORIGINAL</span>';
-        html += '<span class="erdo-ba-label erdo-ba-label-after">OPTIMIZED</span>';
+        html += '<div class="erdo-ba-img erdo-ba-after"><img src="' + esc(current) + '" alt="' + esc(t('OPTIMIZED')) + '"></div>';
+        html += '<div class="erdo-ba-img erdo-ba-before"><img src="' + esc(original) + '" alt="' + esc(t('ORIGINAL')) + '"></div>';
+        html += '<span class="erdo-ba-label erdo-ba-label-before">' + esc(t('ORIGINAL')) + '</span>';
+        html += '<span class="erdo-ba-label erdo-ba-label-after">' + esc(t('OPTIMIZED')) + '</span>';
         html += '<div class="erdo-ba-slider" id="erdo-ba-slider"><div class="erdo-ba-handle"></div></div>';
         html += '</div>';
         html += '</div></div>';
@@ -1075,13 +1071,13 @@ jQuery(document).ready(function($) {
         var canConvert = (mime !== 'webp' && mime !== 'avif');
 
         var html = '<div class="erdo-ctx-menu" id="erdo-ctx-menu">';
-        html += '<button class="erdo-ctx-item" data-action="detail" data-id="' + id + '"><span class="dashicons dashicons-visibility"></span> View Details</button>';
+        html += '<button class="erdo-ctx-item" data-action="detail" data-id="' + id + '"><span class="dashicons dashicons-visibility"></span> ' + esc(t('View Details')) + '</button>';
         if ( canConvert ) {
-            html += '<button class="erdo-ctx-item" data-action="convert" data-id="' + id + '"><span class="dashicons dashicons-update"></span> Convert</button>';
+            html += '<button class="erdo-ctx-item" data-action="convert" data-id="' + id + '"><span class="dashicons dashicons-update"></span> ' + esc(t('Convert')) + '</button>';
         }
-        html += '<button class="erdo-ctx-item" data-action="rename" data-id="' + id + '"><span class="dashicons dashicons-tag"></span> Fix Filename</button>';
+        html += '<button class="erdo-ctx-item" data-action="rename" data-id="' + id + '"><span class="dashicons dashicons-tag"></span> ' + esc(t('Fix Filename')) + '</button>';
         html += '<div class="erdo-ctx-sep"></div>';
-        html += '<button class="erdo-ctx-item erdo-ctx-danger" data-action="delete" data-id="' + id + '"><span class="dashicons dashicons-archive"></span> Move to Quarantine</button>';
+        html += '<button class="erdo-ctx-item erdo-ctx-danger" data-action="delete" data-id="' + id + '"><span class="dashicons dashicons-archive"></span> ' + esc(t('Move to Quarantine')) + '</button>';
         html += '</div>';
 
         $ctxMenu = $(html);
@@ -1099,7 +1095,7 @@ jQuery(document).ready(function($) {
         removeContextMenu();
 
         if ( 'detail' === action ) {
-            openModal('<p style="text-align:center;padding:60px 20px;">Analyzing image...</p>');
+            openModal('<p style="text-align:center;padding:60px 20px;">' + esc(t('Analyzing image...')) + '</p>');
             $.post(erdo_vars.ajax_url, { action: 'erdo_get_detail', id: id, nonce: erdo_vars.nonce },
                 function(res) { $('#erdo-modal-content').html(res); });
 
@@ -1107,7 +1103,7 @@ jQuery(document).ready(function($) {
             $.post(erdo_vars.ajax_url, { action: 'erdo_convert_webp', id: id, nonce: erdo_vars.nonce },
                 function(res) {
                     if ( res && res.success ) { clearGridCache(); loadImages(true); }
-                    else { alert('Conversion failed.'); }
+                    else { alert(t('Conversion failed.')); }
                 });
 
         } else if ( 'rename' === action ) {
@@ -1116,12 +1112,12 @@ jQuery(document).ready(function($) {
                     if ( res.success ) {
                         clearGridCache(); loadImages(true);
                     } else {
-                        alert(res.data.message || 'Already clean or could not rename.');
+                        alert(res.data.message || t('Already clean or could not rename.'));
                     }
                 });
 
         } else if ( 'delete' === action ) {
-            if ( ! confirm('Move this image to Quarantine? You can restore it later.') ) return;
+            if ( ! confirm(t('Move this image to Quarantine? You can restore it later.')) ) return;
             $.post(erdo_vars.ajax_url, { action: 'erdo_delete_image', id: id, nonce: erdo_vars.nonce },
                 function() { clearGridCache(); location.reload(); });
         }
@@ -1130,7 +1126,6 @@ jQuery(document).ready(function($) {
     /* -------------------------------------------------------
        ÇOKLU SEÇİM — kart köşesindeki kutu ya da Ctrl/Cmd+tık
     ------------------------------------------------------- */
-    var i18n = erdo_vars.i18n || {};
 
     function fmt(str) {
         var args = Array.prototype.slice.call(arguments, 1), i = 0;
@@ -1410,7 +1405,7 @@ jQuery(document).ready(function($) {
                 if ( r.issue ) html += '<div class="erdo-ai-issue">' + esc(r.issue) + '</div>';
                 html += r.decorative
                     ? '<em class="erdo-ai-decorative">' + esc(i18n.aiDecorative) + '</em>'
-                    : '<input type="text" class="erdo-input erdo-ai-item-alt" value="' + esc(r.alt) + '" aria-label="Alt — ' + esc(r.filename) + '">';
+                    : '<input type="text" class="erdo-input erdo-ai-item-alt" value="' + esc(r.alt) + '" aria-label="' + esc(t('Alt text')) + ' — ' + esc(r.filename) + '">';
                 html += '</div><div class="erdo-ai-item-actions">';
                 html += '<button type="button" class="button button-primary erdo-ai-item-accept">' + esc(i18n.aiAccept) + '</button>';
                 html += '<button type="button" class="button erdo-ai-item-reject">' + esc(i18n.aiReject) + '</button>';
@@ -1464,7 +1459,7 @@ jQuery(document).ready(function($) {
         var html = '<div class="modal-header"><h2>' + esc(i18n.aiStart) + '</h2></div><div class="erdo-rename-body">';
         if ( ! st.ready ) {
             html += '<p class="erdo-rn-safety">' + esc(st.message || '') + '</p>';
-            if ( st.reason === 'provider' ) html += '<a class="button button-primary" href="' + esc(st.setup_url) + '">Settings &gt; Connectors</a>';
+            if ( st.reason === 'provider' ) html += '<a class="button button-primary" href="' + esc(st.setup_url) + '">' + esc(t('Open Connectors')) + '</a>';
             openModal(html + '</div>');
             return;
         }

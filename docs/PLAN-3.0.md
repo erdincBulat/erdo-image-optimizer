@@ -257,7 +257,33 @@ Plandaki maddeler (referans):
 - **Kurulum kartı:** Connectors yoksa ya da sağlayıcı eklentisi kurulu değilse adım adım yönlendirme.
 - **Konum notu:** resmi "AI" eklentisi (60K) yalnızca blok editörde çalışıyor, odak anahtar kelime kullanmıyor ve toplu inceleme kuyruğu yok. Bizim farkımız SEO denetimiyle bütünleşik, toplu, incelemeli akış.
 
-### Faz 6 — Güvenlik, kalite, uyumluluk
+### Faz 6 — Güvenlik, kalite, uyumluluk ✅ (2026-10-24)
+**Teslim edildi:**
+- Kaldırılanlar: SVG yükleme ve sanitizer, BunnyCDN entegrasyonu, sahte multisite network sayfası.
+  - Yükseltmede (DB v6) eski ayarlar, API anahtarı ve `_erdo_cdn_url` siliniyor.
+  - 2.x'ten gelenlere bir kerelik, kapatılabilir "3.0'da neler değişti" bildirimi gösteriliyor; Safe SVG ve pull zone alternatifleri yazıyor.
+- `Requires at least: 6.5`; eklenti açıklaması yeni konuma göre yazıldı.
+- Yol güvenliği: `ERDO_References::in_uploads()` (realpath tabanlı).
+  - Karantina, geri yükleme, kalıcı silme, 2.x onarımı, dönüştürme, yeniden adlandırma, boyutlandırma ve uninstall yalnızca uploads içinde çalışıyor.
+  - Elle değiştirilmiş meta ile uploads dışına dosya yazılamıyor (testi var).
+- Karantina artık medya düzenleyicisinin yedeklerini (`_wp_attachment_backup_sizes`) de taşıyor. Önceden bu yedekler herkese açık klasörde kalıyordu.
+- Elle boyutlandırma orijinali kaybetmiyor:
+  - İlk boyutlandırmada `-erdo-original` yedeği alınıyor; yeniden adlandırma ve karantina da bu yedeği birlikte taşıyor.
+  - "Orijinal boyuta dön" butonu eklendi.
+  - Büyütme ve aynı boyuta boyutlandırma reddediliyor.
+- `uninstall.php`:
+  - Karantinadan geri taşıma başarısız olursa kopyala + sil deneniyor; yol kontrolü yapılıyor.
+  - Ayarlardan açık tercih: WebP/AVIF kopyaları silinsin mi kalsın mı, karantinadakiler geri konsun mu kalıcı silinsin mi.
+- i18n:
+  - admin.js'teki ~80 metin `t()` ile PHP `__()` eşlemesinden geliyor; testi var.
+  - Kalan sabit PHP metinleri (`wp_send_json_error`, `WP_Error`, menü) çevrilebilir.
+  - `languages/erdo-image-optimizer.pot` üretildi; Türkçe `.po/.mo` 363/363 çevrildi.
+- XSS: önce/sonra görünümündeki URL'ler kaçışlanıyor.
+- Test: `65-hardening` (13 test).
+
+**Faz 8'e kalan:** readme hâlâ BunnyCDN, SVG ve lazy load diyor; tam yeniden yazım orada yapılacak.
+
+Plandaki maddeler (referans):
 - Tüm AJAX/REST uçlarında nonce + yetki. Yeniden adlandırmada yol geçişi (path traversal) ve dosya adı doğrulaması.
 - Dosya işlemleri yalnızca uploads dizini içinde yapılır (`realpath` kontrolü).
 - Plugin Check + PHPCS temiz (bilinen `mismatched_plugin_name` uyarısı hariç).

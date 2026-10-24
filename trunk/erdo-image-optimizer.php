@@ -1,9 +1,9 @@
 <?php
 /**
  * Plugin Name:       Erdo Image Optimizer
- * Description:       WebP/AVIF conversion, SEO audit, lazy loading, SVG support, background queue, WP-CLI and more.
+ * Description:       Image SEO audit, safe renaming, AI alt text (your own key), unused-image cleanup and non-destructive WebP/AVIF.
  * Version:           2.2.2
- * Requires at least: 5.8
+ * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Erdinc Bulat
  * License:           GPL-2.0-or-later
@@ -168,89 +168,3 @@ add_filter( 'big_image_size_threshold', 'erdo_big_image_threshold' );
 
 /* WebP/AVIF dönüşümü ve EXIF temizliği: ERDO_Converter::on_generate_metadata()
    Lazy loading: WordPress 5.5+ (ve 6.3+ LCP/fetchpriority mantığı) yönetir. */
-
-/* ------------------------------------------------------------------
-   SVG YÜKLEME İZNİ + SANİTİZASYON  (Özellik 7)
------------------------------------------------------------------- */
-
-// SVG mime türüne izin ver
-function erdo_allow_svg_upload( $mimes ) {
-    if ( get_option( 'erdo_allow_svg' ) && current_user_can( 'manage_options' ) ) {
-        $mimes['svg']  = 'image/svg+xml';
-        $mimes['svgz'] = 'image/svg+xml';
-    }
-    return $mimes;
-}
-add_filter( 'upload_mimes', 'erdo_allow_svg_upload' );
-
-// SVG'yi yüklemeden önce sanitize et
-function erdo_sanitize_svg_on_upload( $file ) {
-    if ( ! get_option( 'erdo_allow_svg' ) ) {
-        return $file;
-    }
-    $ext = strtolower( pathinfo( $file['name'], PATHINFO_EXTENSION ) );
-    if ( ! in_array( $ext, array( 'svg', 'svgz' ), true ) ) {
-        return $file;
-    }
-    $content = file_get_contents( $file['tmp_name'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-    if ( ! $content ) {
-        $file['error'] = __( 'SVG file is empty or unreadable.', 'erdo-image-optimizer' );
-        return $file;
-    }
-    $clean = ERDO_Auditor::sanitize_svg( $content );
-    file_put_contents( $file['tmp_name'], $clean ); // phpcs:ignore WordPress.WP.AlternativeFunctions
-    return $file;
-}
-add_filter( 'wp_handle_upload_prefilter', 'erdo_sanitize_svg_on_upload' );
-
-// SVG'yi medya kütüphanesinde göster
-function erdo_svg_thumbnail( $response, $attachment ) {
-    if ( 'image/svg+xml' === $response['mime'] ) {
-        $response['sizes'] = array(
-            'full' => array( 'url' => $response['url'] ),
-        );
-    }
-    return $response;
-}
-add_filter( 'wp_prepare_attachment_for_js', 'erdo_svg_thumbnail', 10, 2 );
-
-/* ------------------------------------------------------------------
-   MULTİSİTE TEMEL DESTEĞİ  (Özellik 8)
-   Her site kendi ayarlarını kullanır; network admin sayfası için
-   erdo_network_settings option'ı eklenir.
------------------------------------------------------------------- */
-
-if ( is_multisite() ) {
-    add_action( 'network_admin_menu', function () {
-        add_menu_page(
-            'Erdo Network Settings',
-            'Image Optimizer',
-            'manage_network_options',
-            'erdo-network',
-            'erdo_network_settings_page',
-            'dashicons-performance',
-            11
-        );
-    } );
-}
-
-function erdo_network_settings_page() {
-    if ( ! current_user_can( 'manage_network_options' ) ) {
-        return;
-    }
-    if ( isset( $_POST['erdo_network_save'] ) && check_admin_referer( 'erdo_network_nonce' ) ) {
-        $raw_q = isset( $_POST['erdo_network_quality'] ) ? sanitize_text_field( wp_unslash( $_POST['erdo_network_quality'] ) ) : '80';
-        $q     = max( 10, min( 100, (int) $raw_q ) );
-        update_site_option( 'erdo_network_quality',  $q );
-        update_site_option( 'erdo_network_format', sanitize_text_field( wp_unslash( $_POST['erdo_network_format'] ?? 'webp' ) ) );
-        echo '<div class="updated"><p>Network settings saved.</p></div>';
-    }
-    $q   = get_site_option( 'erdo_network_quality', 80 );
-    $fmt = get_site_option( 'erdo_network_format', 'webp' );
-    echo '<div class="wrap"><h1>Erdo Image Optimizer — Network Settings</h1><form method="post">';
-    wp_nonce_field( 'erdo_network_nonce' );
-    echo '<table class="form-table">';
-    echo '<tr><th>Default Quality</th><td><input type="number" name="erdo_network_quality" value="' . esc_attr( $q ) . '" min="10" max="100"> %</td></tr>';
-    echo '<tr><th>Default Format</th><td><select name="erdo_network_format"><option value="webp"' . selected( $fmt, 'webp', false ) . '>WebP</option><option value="avif"' . selected( $fmt, 'avif', false ) . '>AVIF</option></select></td></tr>';
-    echo '</table><p><input type="submit" name="erdo_network_save" class="button-primary" value="Save Network Settings"></p></form></div>';
-}

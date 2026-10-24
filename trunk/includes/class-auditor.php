@@ -498,11 +498,28 @@ class ERDO_Auditor {
        MANUEL YENİDEN BOYUTLANDIRMA — thumbnail'ler de yenilenir
     ------------------------------------------------------------------ */
 
+    const RESIZE_BACKUP_KEY = 'erdo-orig';
+
+    /**
+     * Ana dosyayı küçültür (büyütmez). İlk seferde orijinal "{ad}-erdo-original.{uzantı}"
+     * olarak yedeklenir ve _wp_attachment_backup_sizes'a yazılır: çekirdek görseli
+     * silerken, yeniden adlandırma ve karantina da onu birlikte taşır.
+     * restore_original_size() ile geri alınır.
+     */
     public static function manual_resize( $post_id, $target_width, $target_height ) {
         $file_path = get_attached_file( $post_id );
 
-        if ( ! $file_path || ! file_exists( $file_path ) ) {
+        if ( ! $file_path || ! file_exists( $file_path ) || ! ERDO_References::in_uploads( $file_path ) ) {
             return false;
+        }
+
+        $meta = wp_get_attachment_metadata( $post_id );
+        $w0   = (int) ( $meta['width'] ?? 0 );
+        $h0   = (int) ( $meta['height'] ?? 0 );
+        $tw   = (int) $target_width;
+        $th   = (int) $target_height;
+        if ( $tw < 16 || $th < 16 || ( $w0 && $tw > $w0 ) || ( $h0 && $th > $h0 ) || ( $tw === $w0 && $th === $h0 ) ) {
+            return false; // büyütme yok, anlamsız/çok küçük boyut yok
         }
 
         $editor = wp_get_image_editor( $file_path );
@@ -510,19 +527,71 @@ class ERDO_Auditor {
             return false;
         }
 
-        $resized = $editor->resize( $target_width, $target_height, false );
+        $resized = $editor->resize( $tw, $th, false );
         if ( is_wp_error( $resized ) ) {
             return false;
         }
 
-        $quality = (int) get_option( 'erdo_quality', 80 );
-        $editor->set_quality( $quality );
+        // Orijinali bir kez yedekle
+        $backups = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
+        $backups = is_array( $backups ) ? $backups : array();
+        if ( empty( $backups[ self::RESIZE_BACKUP_KEY ] ) ) {
+            $info = pathinfo( $file_path );
+            $name = wp_unique_filename( $info['dirname'], $info['filename'] . '-erdo-original.' . $info['extension'] );
+            if ( ! copy( $file_path, $info['dirname'] . '/' . $name ) ) {
+                return false;
+            }
+            $backups[ self::RESIZE_BACKUP_KEY ] = array(
+                'width'     => $w0,
+                'height'    => $h0,
+                'file'      => $name,
+                'mime-type' => get_post_mime_type( $post_id ),
+            );
+            update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backups );
+        }
 
+        $editor->set_quality( (int) get_option( 'erdo_quality', 80 ) );
         $saved = $editor->save( $file_path );
         if ( is_wp_error( $saved ) ) {
             return false;
         }
 
+        self::regenerate( $post_id, $file_path );
+        return true;
+    }
+
+    /** Elle boyutlandırma öncesi orijinal yedeği (yoksa null). */
+    public static function resize_backup( $post_id ) {
+        $backups = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
+        $b       = is_array( $backups ) ? ( $backups[ self::RESIZE_BACKUP_KEY ] ?? null ) : null;
+        $file    = get_attached_file( $post_id );
+        if ( ! $b || ! $file ) {
+            return null;
+        }
+        $b['path'] = dirname( $file ) . '/' . wp_basename( $b['file'] );
+        return file_exists( $b['path'] ) ? $b : null;
+    }
+
+    /** Orijinal boyuta geri döner ve yedeği kaldırır. */
+    public static function restore_original_size( $post_id ) {
+        $b    = self::resize_backup( $post_id );
+        $file = get_attached_file( $post_id );
+        if ( ! $b || ! ERDO_References::in_uploads( $b['path'] ) || ! ERDO_References::in_uploads( $file ) ) {
+            return new WP_Error( 'no_backup', __( 'There is no original to restore.', 'erdo-image-optimizer' ) );
+        }
+        if ( ! copy( $b['path'], $file ) ) {
+            return new WP_Error( 'copy_failed', __( 'Could not restore the original file.', 'erdo-image-optimizer' ) );
+        }
+        wp_delete_file( $b['path'] );
+        $backups = get_post_meta( $post_id, '_wp_attachment_backup_sizes', true );
+        unset( $backups[ self::RESIZE_BACKUP_KEY ] );
+        $backups ? update_post_meta( $post_id, '_wp_attachment_backup_sizes', $backups ) : delete_post_meta( $post_id, '_wp_attachment_backup_sizes' );
+        self::regenerate( $post_id, $file );
+        return true;
+    }
+
+    /** Ana dosya değişti: alt boyutları ve (varsa) WebP/AVIF kardeşlerini yeniden üret. */
+    private static function regenerate( $post_id, $file_path ) {
         clearstatcache();
 
         require_once ABSPATH . 'wp-admin/includes/image.php';
@@ -540,8 +609,6 @@ class ERDO_Auditor {
             ERDO_Converter::convert( $post_id );
         }
         self::clear_cache( $post_id );
-
-        return true;
     }
 
     /* ------------------------------------------------------------------
@@ -679,69 +746,5 @@ class ERDO_Auditor {
         update_post_meta( $post_id, '_wp_attachment_image_alt', sanitize_text_field( $alt ) );
         self::clear_cache( $post_id );
         return $alt;
-    }
-
-    /* ------------------------------------------------------------------
-       SVG SANİTİZASYON  (Özellik 7)
-       Potansiyel olarak zararlı içerikleri (script, olay handler,
-       javascript: URI, foreignObject) SVG'den temizler.
-    ------------------------------------------------------------------ */
-
-    public static function sanitize_svg( string $svg_content ): string {
-        $doc = new DOMDocument();
-        $doc->formatOutput = false;
-
-        // libxml hata uyarılarını bastır; LIBXML_NONET ayrıştırma sırasında
-        // hiçbir ağ isteğine (dış DTD/entity vb.) izin vermez.
-        $prev = libxml_use_internal_errors( true );
-        $doc->loadXML( $svg_content, LIBXML_NONET );
-        libxml_clear_errors();
-        libxml_use_internal_errors( $prev );
-
-        $xpath = new DOMXPath( $doc );
-
-        // <script> etiketlerini kaldır. local-name() şart: SVG kök elemanı
-        // genelde xmlns="http://www.w3.org/2000/svg" ile varsayılan bir ad
-        // alanı tanımlar, bu da tüm alt elemanları (script dahil) o ad
-        // alanına sokar — prefix'siz "//script" bu durumda HİÇBİR ZAMAN
-        // eşleşmez ve script hiç silinmeden kalırdı.
-        foreach ( $xpath->query( '//*[local-name()="script"]' ) as $node ) {
-            $node->parentNode->removeChild( $node );
-        }
-
-        // <foreignObject> etiketlerini kaldır (HTML içerebilir)
-        foreach ( $xpath->query( '//*[local-name()="foreignObject"]' ) as $node ) {
-            $node->parentNode->removeChild( $node );
-        }
-
-        // on* olay handler niteliklerini kaldır
-        foreach ( $xpath->query( '//@*[starts-with(local-name(), "on")]' ) as $attr ) {
-            $attr->ownerElement->removeAttributeNode( $attr );
-        }
-
-        // javascript: içeren href / xlink:href niteliklerini kaldır; ayrıca
-        // <image>/<use> üzerindeki MUTLAK harici (http/https) referansları da
-        // kaldırır — aksi hâlde SVG görüntülendiğinde sessizce dış bir URL'e
-        // istek atılabilir (izleme / bilgi sızıntısı riski). Aynı belge içi
-        // (#id) ve data: URI referansları etkilenmez.
-        foreach ( $xpath->query( '//@href | //@*[local-name()="href"]' ) as $attr ) {
-            $value = trim( $attr->value );
-
-            if ( stripos( $value, 'javascript:' ) !== false ) {
-                $attr->ownerElement->removeAttributeNode( $attr );
-                continue;
-            }
-
-            $tag = strtolower( $attr->ownerElement->localName );
-            if ( in_array( $tag, array( 'image', 'use' ), true )
-                && '' !== $value
-                && '#' !== $value[0]
-                && 0 !== stripos( $value, 'data:' )
-            ) {
-                $attr->ownerElement->removeAttributeNode( $attr );
-            }
-        }
-
-        return $doc->saveXML() ?: $svg_content;
     }
 }

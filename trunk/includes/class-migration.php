@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  */
 class ERDO_Migration {
 
-    const DB_VERSION     = 5;
+    const DB_VERSION     = 6;
     const LEGACY_OPTION  = 'erdo_legacy_present';
     const LEGACY_MARKERS = array( '_erdo_savings_bytes', '_erdo_original_size', '_erdo_backup_path' );
 
@@ -55,6 +55,23 @@ class ERDO_Migration {
         if ( $from < 5 ) {
             // 0–100 SEO puanı: önbellekteki eski 0–6 sonuçları geçersiz.
             ERDO_Auditor::clear_all_cache();
+        }
+
+        if ( $from < 6 ) {
+            // 3.0'da kaldırılan özellikler: SVG yükleme, BunnyCDN, sahte network ayarları.
+            $had_svg   = (bool) get_option( 'erdo_allow_svg' );
+            $had_bunny = (bool) get_option( 'erdo_bunny_enabled' );
+            foreach ( array( 'erdo_allow_svg', 'erdo_bunny_enabled', 'erdo_bunny_api_key', 'erdo_bunny_storage_zone', 'erdo_bunny_hostname' ) as $opt ) {
+                delete_option( $opt );
+            }
+            delete_site_option( 'erdo_network_quality' );
+            delete_site_option( 'erdo_network_format' );
+            delete_metadata( 'post', 0, '_erdo_cdn_url', '', true );
+
+            // 2.x'ten gelen siteye bir kerelik "neler değişti" bildirimi (yeni kurulumda yok).
+            if ( false !== get_option( 'erdo_quality' ) || $had_svg || $had_bunny ) {
+                update_option( 'erdo_upgrade_notice', array( 'svg' => $had_svg, 'bunny' => $had_bunny ), false );
+            }
         }
 
         update_option( 'erdo_db_version', self::DB_VERSION );
@@ -97,7 +114,7 @@ class ERDO_Migration {
     /** Tek görsel için ne yapılacağı (dry-run raporu). */
     public static function plan( $attachment_id ) {
         $backup = get_post_meta( $attachment_id, '_erdo_backup_path', true );
-        $has    = $backup && file_exists( $backup );
+        $has    = $backup && file_exists( $backup ) && ERDO_References::in_uploads( $backup );
         return array(
             'id'       => $attachment_id,
             'file'     => basename( (string) get_attached_file( $attachment_id ) ),
@@ -167,13 +184,16 @@ class ERDO_Migration {
     private static function restore_from_backup( $attachment_id ) {
         $backup  = get_post_meta( $attachment_id, '_erdo_backup_path', true );
         $current = get_attached_file( $attachment_id );
+        if ( ! $backup || ! file_exists( $backup ) || ! ERDO_References::in_uploads( $backup ) || ! ERDO_References::in_uploads( $current ) ) {
+            return new WP_Error( 'backup_outside', __( 'The backup file is missing or outside the uploads folder.', 'erdo-image-optimizer' ) );
+        }
         $target  = trailingslashit( dirname( $current ) ) . basename( $backup );
 
         if ( file_exists( $target ) && filesize( $target ) !== filesize( $backup ) ) {
             $target = trailingslashit( dirname( $current ) ) . wp_unique_filename( dirname( $current ), basename( $backup ) );
         }
         if ( ! file_exists( $target ) && ! copy( $backup, $target ) ) {
-            return new WP_Error( 'copy_failed', 'Could not copy the backup back into place.' );
+            return new WP_Error( 'copy_failed', __( 'Could not copy the backup back into place.', 'erdo-image-optimizer' ) );
         }
 
         $type = wp_check_filetype( $target );
@@ -206,7 +226,7 @@ class ERDO_Migration {
     private static function repoint_references( $attachment_id ) {
         $file = get_attached_file( $attachment_id );
         if ( ! $file || ! file_exists( $file ) ) {
-            return new WP_Error( 'not_found', 'Converted file is missing.' );
+            return new WP_Error( 'not_found', __( 'Converted file is missing.', 'erdo-image-optimizer' ) );
         }
 
         $stem    = pathinfo( $file, PATHINFO_FILENAME );

@@ -18,6 +18,7 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_get_settings',     array( $this, 'ajax_get_settings' ) );
         add_action( 'wp_ajax_erdo_save_settings',    array( $this, 'ajax_save_settings' ) );
         add_action( 'wp_ajax_erdo_manual_resize',    array( $this, 'ajax_manual_resize' ) );
+        add_action( 'wp_ajax_erdo_restore_size',     array( $this, 'ajax_restore_size' ) );
         add_action( 'wp_ajax_erdo_load_images',      array( $this, 'ajax_load_images' ) );
         add_action( 'wp_ajax_erdo_get_stats',        array( $this, 'ajax_get_stats' ) );
         add_action( 'wp_ajax_erdo_scan_thumbnails',  array( $this, 'ajax_scan_thumbnails' ) );
@@ -31,7 +32,6 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_bulk_rename',       array( $this, 'ajax_bulk_rename' ) );
         add_action( 'wp_ajax_erdo_export_csv',        array( $this, 'ajax_export_csv' ) );
         add_action( 'wp_ajax_erdo_bulk_alt_text',     array( $this, 'ajax_bulk_alt_text' ) );
-        add_action( 'wp_ajax_erdo_cdn_upload',        array( $this, 'ajax_cdn_upload' ) );
         add_action( 'wp_ajax_erdo_migrate_scan',      array( $this, 'ajax_migrate_scan' ) );
         add_action( 'wp_ajax_erdo_migrate_step',      array( $this, 'ajax_migrate_step' ) );
         add_action( 'wp_ajax_erdo_quarantine_unused', array( $this, 'ajax_quarantine_unused' ) );
@@ -49,6 +49,8 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_ai_list',           array( $this, 'ajax_ai_list' ) );
         add_action( 'wp_ajax_erdo_ai_candidates',     array( $this, 'ajax_ai_candidates' ) );
         add_action( 'admin_notices',                  array( $this, 'migration_notice' ) );
+        add_action( 'admin_notices',                  array( $this, 'upgrade_notice' ) );
+        add_action( 'wp_ajax_erdo_dismiss_upgrade',   array( $this, 'ajax_dismiss_upgrade' ) );
 
         add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
         add_action( 'rest_api_init',      array( $this, 'register_rest_routes' ) );
@@ -63,7 +65,7 @@ class ERDO_Admin_Page {
     ------------------------------------------------------------------ */
     private function verify_capability() {
         if ( ! current_user_can( 'manage_options' ) ) {
-            wp_send_json_error( array( 'message' => 'Insufficient permissions.' ), 403 );
+            wp_send_json_error( array( 'message' => __( 'Insufficient permissions.', 'erdo-image-optimizer' ) ), 403 );
         }
     }
 
@@ -71,15 +73,15 @@ class ERDO_Admin_Page {
        ADMIN MENÜ & ASSETS
     ------------------------------------------------------------------ */
     public function add_settings_link( $links ) {
-        $settings_link = '<a href="admin.php?page=erdo-image-optimizer">Settings</a>';
+        $settings_link = '<a href="' . esc_url( admin_url( 'admin.php?page=erdo-image-optimizer' ) ) . '">' . esc_html__( 'Settings', 'erdo-image-optimizer' ) . '</a>';
         array_unshift( $links, $settings_link );
         return $links;
     }
 
     public function create_menu() {
         add_menu_page(
-            'Erdo Image Optimizer',
-            'Image Optimizer',
+            __( 'Erdo Image Optimizer', 'erdo-image-optimizer' ),
+            __( 'Image Optimizer', 'erdo-image-optimizer' ),
             'manage_options',
             'erdo-image-optimizer',
             array( $this, 'render_page' ),
@@ -100,6 +102,7 @@ class ERDO_Admin_Page {
             'ajax_url' => admin_url( 'admin-ajax.php' ),
             'nonce'    => wp_create_nonce( 'erdo_nonce' ),
             'i18n'     => array(
+                's'               => $this->js_strings(),
                 /* translators: %d: number of selected images */
                 'selected'        => __( '%d selected', 'erdo-image-optimizer' ),
                 'renameTitle'     => __( 'Rename images', 'erdo-image-optimizer' ),
@@ -149,6 +152,105 @@ class ERDO_Admin_Page {
             ),
             'ai'       => ERDO_AI::status(),
         ) );
+    }
+
+    /**
+     * admin.js metinleri: İngilizce kaynak metin → çeviri. JS bunları t('…') ile
+     * okur; metinler burada __() içinde olduğu için .pot dosyasına da girer.
+     */
+    private function js_strings() {
+        return array(
+            /* translators: %d: number of images */
+            '%d already optimized' => __( '%d already optimized', 'erdo-image-optimizer' ),
+            /* translators: %d: number of errors */
+            '%d errors' => __( '%d errors', 'erdo-image-optimizer' ),
+            /* translators: %d: number of images */
+            '%d failed' => __( '%d failed', 'erdo-image-optimizer' ),
+            /* translators: %d: number of images */
+            '%d images' => __( '%d images', 'erdo-image-optimizer' ),
+            /* translators: %d: number of images */
+            '%d images processed' => __( '%d images processed', 'erdo-image-optimizer' ),
+            /* translators: %d: number of images */
+            '%d images updated.' => __( '%d images updated.', 'erdo-image-optimizer' ),
+            'Active' => __( 'Active', 'erdo-image-optimizer' ),
+            'Add' => __( 'Add', 'erdo-image-optimizer' ),
+            'Add New Image' => __( 'Add New Image', 'erdo-image-optimizer' ),
+            'All posts have featured images!' => __( 'All posts have featured images!', 'erdo-image-optimizer' ),
+            'Already clean or could not rename.' => __( 'Already clean or could not rename.', 'erdo-image-optimizer' ),
+            'Alt text' => __( 'Alt text', 'erdo-image-optimizer' ),
+            'Analyzing image...' => __( 'Analyzing image...', 'erdo-image-optimizer' ),
+            'Auto Alt Text' => __( 'Auto Alt Text', 'erdo-image-optimizer' ),
+            'Background convert running:' => __( 'Background convert running:', 'erdo-image-optimizer' ),
+            'Before & After' => __( 'Before & After', 'erdo-image-optimizer' ),
+            /* translators: 1: posts scanned, 2: posts in total */
+            'Building the usage index: %1$d / %2$d posts scanned. Unused-image cleanup becomes available when it finishes.' => __( 'Building the usage index: %1$d / %2$d posts scanned. Unused-image cleanup becomes available when it finishes.', 'erdo-image-optimizer' ),
+            'Bulk Convert' => __( 'Bulk Convert', 'erdo-image-optimizer' ),
+            'Clear all audit caches and re-scan? This may take a moment.' => __( 'Clear all audit caches and re-scan? This may take a moment.', 'erdo-image-optimizer' ),
+            'Conversion failed.' => __( 'Conversion failed.', 'erdo-image-optimizer' ),
+            'Convert' => __( 'Convert', 'erdo-image-optimizer' ),
+            'Converting...' => __( 'Converting...', 'erdo-image-optimizer' ),
+            'Could not list unused images.' => __( 'Could not list unused images.', 'erdo-image-optimizer' ),
+            'Create WebP/AVIF copies for all eligible images? This may take a while depending on your library size.' => __( 'Create WebP/AVIF copies for all eligible images? This may take a while depending on your library size.', 'erdo-image-optimizer' ),
+            'Delete this image and all its files permanently? This cannot be undone.' => __( 'Delete this image and all its files permanently? This cannot be undone.', 'erdo-image-optimizer' ),
+            'Done!' => __( 'Done!', 'erdo-image-optimizer' ),
+            'Edit Post' => __( 'Edit Post', 'erdo-image-optimizer' ),
+            'Error' => __( 'Error', 'erdo-image-optimizer' ),
+            'Error saving data. Please try again.' => __( 'Error saving data. Please try again.', 'erdo-image-optimizer' ),
+            'Error scanning posts.' => __( 'Error scanning posts.', 'erdo-image-optimizer' ),
+            'Export SEO CSV' => __( 'Export SEO CSV', 'erdo-image-optimizer' ),
+            'Exporting...' => __( 'Exporting...', 'erdo-image-optimizer' ),
+            'Failed.' => __( 'Failed.', 'erdo-image-optimizer' ),
+            'Fix Filename' => __( 'Fix Filename', 'erdo-image-optimizer' ),
+            /* translators: %d: number of posts */
+            'Found %d posts without a featured image:' => __( 'Found %d posts without a featured image:', 'erdo-image-optimizer' ),
+            'Generate alt text from the filename for all images missing alt text? Camera-style names (IMG_1234) are skipped.' => __( 'Generate alt text from the filename for all images missing alt text? Camera-style names (IMG_1234) are skipped.', 'erdo-image-optimizer' ),
+            'Generating...' => __( 'Generating...', 'erdo-image-optimizer' ),
+            'Loading library...' => __( 'Loading library...', 'erdo-image-optimizer' ),
+            'Loading settings...' => __( 'Loading settings...', 'erdo-image-optimizer' ),
+            'Loading...' => __( 'Loading...', 'erdo-image-optimizer' ),
+            'Missing Featured Images' => __( 'Missing Featured Images', 'erdo-image-optimizer' ),
+            'Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab.' => __( 'Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab.', 'erdo-image-optimizer' ),
+            'Move this image to Quarantine? You can restore it later.' => __( 'Move this image to Quarantine? You can restore it later.', 'erdo-image-optimizer' ),
+            'Move to Quarantine' => __( 'Move to Quarantine', 'erdo-image-optimizer' ),
+            'Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken.' => __( 'Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken.', 'erdo-image-optimizer' ),
+            'No critical images — great start!' => __( 'No critical images — great start!', 'erdo-image-optimizer' ),
+            'No fully-optimized images yet.' => __( 'No fully-optimized images yet.', 'erdo-image-optimizer' ),
+            'No images' => __( 'No images', 'erdo-image-optimizer' ),
+            'No images found to convert.' => __( 'No images found to convert.', 'erdo-image-optimizer' ),
+            'No images with moderate issues.' => __( 'No images with moderate issues.', 'erdo-image-optimizer' ),
+            'No unused images found in your library.' => __( 'No unused images found in your library.', 'erdo-image-optimizer' ),
+            'No unused images found.' => __( 'No unused images found.', 'erdo-image-optimizer' ),
+            'OPTIMIZED' => __( 'OPTIMIZED', 'erdo-image-optimizer' ),
+            'ORIGINAL' => __( 'ORIGINAL', 'erdo-image-optimizer' ),
+            'Open Connectors' => __( 'Open Connectors', 'erdo-image-optimizer' ),
+            'Please enter width and height.' => __( 'Please enter width and height.', 'erdo-image-optimizer' ),
+            'Quarantine All Unused' => __( 'Quarantine All Unused', 'erdo-image-optimizer' ),
+            'Quarantine is empty.' => __( 'Quarantine is empty.', 'erdo-image-optimizer' ),
+            'Refreshing...' => __( 'Refreshing...', 'erdo-image-optimizer' ),
+            'Remove .htaccess Rules' => __( 'Remove .htaccess Rules', 'erdo-image-optimizer' ),
+            'Remove the WebP/AVIF copies? The original stays as it is.' => __( 'Remove the WebP/AVIF copies? The original stays as it is.', 'erdo-image-optimizer' ),
+            'Removing...' => __( 'Removing...', 'erdo-image-optimizer' ),
+            'Rename failed.' => __( 'Rename failed.', 'erdo-image-optimizer' ),
+            'Renaming...' => __( 'Renaming...', 'erdo-image-optimizer' ),
+            'Resize' => __( 'Resize', 'erdo-image-optimizer' ),
+            'Resize failed: enter a size smaller than the current one.' => __( 'Resize failed: enter a size smaller than the current one.', 'erdo-image-optimizer' ),
+            'Resizing...' => __( 'Resizing...', 'erdo-image-optimizer' ),
+            'Restore' => __( 'Restore', 'erdo-image-optimizer' ),
+            'Restore failed.' => __( 'Restore failed.', 'erdo-image-optimizer' ),
+            'Restoring...' => __( 'Restoring...', 'erdo-image-optimizer' ),
+            'Save Changes' => __( 'Save Changes', 'erdo-image-optimizer' ),
+            'Save Settings' => __( 'Save Settings', 'erdo-image-optimizer' ),
+            'Saved!' => __( 'Saved!', 'erdo-image-optimizer' ),
+            'Saving...' => __( 'Saving...', 'erdo-image-optimizer' ),
+            'Scanning posts...' => __( 'Scanning posts...', 'erdo-image-optimizer' ),
+            'Scanning...' => __( 'Scanning...', 'erdo-image-optimizer' ),
+            'Start Background Convert' => __( 'Start Background Convert', 'erdo-image-optimizer' ),
+            'Start background bulk conversion via WP-Cron? Safe to close this tab.' => __( 'Start background bulk conversion via WP-Cron? Safe to close this tab.', 'erdo-image-optimizer' ),
+            'Starting...' => __( 'Starting...', 'erdo-image-optimizer' ),
+            'View Details' => __( 'View Details', 'erdo-image-optimizer' ),
+            'Write .htaccess Rules' => __( 'Write .htaccess Rules', 'erdo-image-optimizer' ),
+            'Writing...' => __( 'Writing...', 'erdo-image-optimizer' ),
+        );
     }
 
     /* ------------------------------------------------------------------
@@ -558,7 +660,7 @@ class ERDO_Admin_Page {
         $this->verify_capability();
 
         if ( ! isset( $_POST['id'] ) ) {
-            wp_send_json_error( array( 'message' => 'Missing image ID.' ) );
+            wp_send_json_error( array( 'message' => __( 'Missing image ID.', 'erdo-image-optimizer' ) ) );
         }
 
         $id   = intval( $_POST['id'] );
@@ -735,8 +837,7 @@ class ERDO_Admin_Page {
                         $filename_raw  = get_attached_file( $id );
                         $filename_base = $filename_raw ? pathinfo( $filename_raw, PATHINFO_FILENAME ) : '';
                         $sanitized     = ERDO_Renamer::sanitize_stem( $filename_base );
-                        $bunny_on      = get_option( 'erdo_bunny_enabled' ) && get_option( 'erdo_bunny_api_key' );
-                        $has_tools     = ( $filename_base && $filename_base !== $sanitized ) || $bunny_on;
+                        $has_tools     = $filename_base && $filename_base !== $sanitized;
                         if ( $has_tools ) :
                         ?>
                         <div class="erdo-sb-sep"></div>
@@ -762,21 +863,6 @@ class ERDO_Admin_Page {
                             ?>
                             <button type="button" class="button-link erdo-undo-rename-btn" data-id="<?php echo esc_attr( $id ); ?>"><?php esc_html_e( 'Undo', 'erdo-image-optimizer' ); ?></button>
                         </div>
-                        <?php endif; ?>
-
-                        <?php if ( $bunny_on ) :
-                            $cdn_url = get_post_meta( $id, '_erdo_cdn_url', true );
-                        ?>
-                        <button type="button" class="erdo-cdn-upload-btn button erdo-sb-btn erdo-sb-btn-tool"
-                                data-id="<?php echo esc_attr( $id ); ?>">
-                            <span class="dashicons dashicons-cloud-upload"></span>
-                            <span class="erdo-sb-btn-content">
-                                <span><?php esc_html_e( 'Upload to CDN', 'erdo-image-optimizer' ); ?></span>
-                                <?php if ( $cdn_url ) : ?>
-                                <small style="color:#059669;">&#10003; <?php esc_html_e( 'On CDN', 'erdo-image-optimizer' ); ?></small>
-                                <?php endif; ?>
-                            </span>
-                        </button>
                         <?php endif; ?>
 
                         <div class="erdo-sb-sep erdo-sb-sep-danger"></div>
@@ -831,6 +917,15 @@ class ERDO_Admin_Page {
                                     <?php esc_html_e( 'Resize', 'erdo-image-optimizer' ); ?>
                                 </button>
                             </div>
+                            <?php $resize_backup = ERDO_Auditor::resize_backup( $id ); ?>
+                            <?php if ( $resize_backup ) : ?>
+                            <button type="button" class="button-link erdo-restore-size-btn" data-id="<?php echo esc_attr( $id ); ?>">
+                                <?php
+                                /* translators: 1: original width, 2: original height (pixels) */
+                                echo esc_html( sprintf( __( 'Restore original size (%1$d×%2$d)', 'erdo-image-optimizer' ), $resize_backup['width'], $resize_backup['height'] ) );
+                                ?>
+                            </button>
+                            <?php endif; ?>
 
                             <?php elseif ( in_array( $key, array( 'filename', 'alt', 'title' ), true ) ) : ?>
                             <?php
@@ -909,7 +1004,7 @@ class ERDO_Admin_Page {
 
         $id = isset( $_POST['post_id'] ) ? intval( $_POST['post_id'] ) : 0;
         if ( ! $id ) {
-            wp_send_json_error( array( 'message' => 'Invalid ID.' ) );
+            wp_send_json_error( array( 'message' => __( 'Invalid ID.', 'erdo-image-optimizer' ) ) );
         }
 
         ERDO_Auditor::save_image_data( $id, wp_unslash( $_POST ) );
@@ -926,7 +1021,7 @@ class ERDO_Admin_Page {
         $this->verify_capability();
 
         if ( ! isset( $_POST['id'] ) ) {
-            wp_send_json_error( array( 'message' => 'Missing ID.' ) );
+            wp_send_json_error( array( 'message' => __( 'Missing ID.', 'erdo-image-optimizer' ) ) );
         }
 
         $id     = intval( wp_unslash( $_POST['id'] ) );
@@ -1045,6 +1140,19 @@ class ERDO_Admin_Page {
         }
     }
 
+    /** Elle boyutlandırmayı geri al: orijinal yedekten geri gelir. */
+    public function ajax_restore_size() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+
+        $id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
+        $r  = ERDO_Auditor::restore_original_size( $id );
+        if ( is_wp_error( $r ) ) {
+            wp_send_json_error( array( 'message' => $r->get_error_message() ) );
+        }
+        wp_send_json_success();
+    }
+
     /* ------------------------------------------------------------------
        AJAX: Orijinal görseli yedeğinden geri yükle
     ------------------------------------------------------------------ */
@@ -1053,7 +1161,7 @@ class ERDO_Admin_Page {
         $this->verify_capability();
 
         if ( ! isset( $_POST['id'] ) ) {
-            wp_send_json_error( array( 'message' => 'Missing ID.' ) );
+            wp_send_json_error( array( 'message' => __( 'Missing ID.', 'erdo-image-optimizer' ) ) );
         }
 
         $id = intval( wp_unslash( $_POST['id'] ) );
@@ -1127,7 +1235,6 @@ class ERDO_Admin_Page {
         update_option( 'erdo_lossless',            isset( $_POST['erdo_lossless'] ) ? 1 : 0 );
         update_option( 'erdo_serve_webp',          isset( $_POST['erdo_serve_webp'] ) ? 1 : 0 );
         update_option( 'erdo_smart_quality',       isset( $_POST['erdo_smart_quality'] ) ? 1 : 0 );
-        update_option( 'erdo_allow_svg',           isset( $_POST['erdo_allow_svg'] ) ? 1 : 0 );
         update_option( 'erdo_append_original_filename', isset( $_POST['erdo_append_original_filename'] ) ? 1 : 0 );
         if ( ! ERDO_SEO::seo_plugin_handles_image_sitemap() ) {
             update_option( 'erdo_image_sitemap', isset( $_POST['erdo_image_sitemap'] ) ? 1 : 0 );
@@ -1137,6 +1244,13 @@ class ERDO_Admin_Page {
         if ( isset( $_POST['erdo_webp_serve_method'] ) ) {
             $meth = sanitize_text_field( wp_unslash( $_POST['erdo_webp_serve_method'] ) );
             update_option( 'erdo_webp_serve_method', in_array( $meth, array( 'picture', 'htaccess' ), true ) ? $meth : 'picture' );
+        }
+
+        if ( isset( $_POST['erdo_uninstall_siblings'] ) ) {
+            update_option( 'erdo_uninstall_siblings', 'keep' === $_POST['erdo_uninstall_siblings'] ? 'keep' : 'delete' );
+        }
+        if ( isset( $_POST['erdo_uninstall_quarantine'] ) ) {
+            update_option( 'erdo_uninstall_quarantine', 'delete' === $_POST['erdo_uninstall_quarantine'] ? 'delete' : 'restore' );
         }
 
         if ( isset( $_POST['erdo_quarantine_days'] ) ) {
@@ -1157,12 +1271,6 @@ class ERDO_Admin_Page {
             $q = max( 10, min( 100, $q ) );
             update_option( 'erdo_quality', $q );
         }
-
-        // BunnyCDN
-        update_option( 'erdo_bunny_enabled',      isset( $_POST['erdo_bunny_enabled'] ) ? 1 : 0 );
-        update_option( 'erdo_bunny_api_key',      sanitize_text_field( wp_unslash( $_POST['erdo_bunny_api_key'] ?? '' ) ) );
-        update_option( 'erdo_bunny_storage_zone', sanitize_text_field( wp_unslash( $_POST['erdo_bunny_storage_zone'] ?? '' ) ) );
-        update_option( 'erdo_bunny_hostname',     sanitize_text_field( wp_unslash( $_POST['erdo_bunny_hostname'] ?? '' ) ) );
 
         // .htaccess kurallarını ayarla eşitle: yalnızca Apache + .htaccess yöntemi seçiliyken var olmalı.
         if ( get_option( 'erdo_serve_webp' ) && 'htaccess' === get_option( 'erdo_webp_serve_method' ) && ERDO_WebP_Server::is_apache() ) {
@@ -1316,7 +1424,6 @@ class ERDO_Admin_Page {
         $max_w    = get_option( 'erdo_max_width', 0 );
         $srv_webp = get_option( 'erdo_serve_webp', 0 );
         $srv_meth = get_option( 'erdo_webp_serve_method', 'picture' );
-        $allow_svg= get_option( 'erdo_allow_svg', 0 );
         $smart_q  = get_option( 'erdo_smart_quality', 0 );
         $is_apache = ERDO_WebP_Server::is_apache();
         $has_htaccess = ERDO_WebP_Server::htaccess_has_rules();
@@ -1404,15 +1511,25 @@ class ERDO_Admin_Page {
         </div>
 
         <div class="erdo-settings-section">
-            <label style="margin-bottom:4px; font-weight:700; display:block; color:#0f172a;">
-                <?php esc_html_e( 'SVG Support', 'erdo-image-optimizer' ); ?>
+            <label style="margin-bottom:8px; font-weight:700; display:block; color:#0f172a;">
+                <?php esc_html_e( 'When the plugin is deleted', 'erdo-image-optimizer' ); ?>
             </label>
-            <label>
-                <input type="checkbox" name="erdo_allow_svg" value="1" <?php checked( $allow_svg, 1 ); ?>>
-                <span>
-                    <strong><?php esc_html_e( 'Allow SVG Uploads (admin only)', 'erdo-image-optimizer' ); ?></strong>
-                    <p><?php esc_html_e( 'Enables SVG file uploads for administrators. All SVGs are sanitized on upload to prevent XSS attacks.', 'erdo-image-optimizer' ); ?></p>
-                </span>
+            <p style="font-size:12px; color:#64748b; margin:0 0 10px;">
+                <?php esc_html_e( 'Your original images always stay. Settings and plugin data are removed.', 'erdo-image-optimizer' ); ?>
+            </p>
+            <label style="display:block; font-size:13px; margin-bottom:8px;">
+                <?php esc_html_e( 'WebP/AVIF copies', 'erdo-image-optimizer' ); ?>
+                <select name="erdo_uninstall_siblings" style="display:block; margin-top:4px;">
+                    <option value="delete" <?php selected( get_option( 'erdo_uninstall_siblings', 'delete' ), 'delete' ); ?>><?php esc_html_e( 'Delete them (they are no longer served without the plugin)', 'erdo-image-optimizer' ); ?></option>
+                    <option value="keep" <?php selected( get_option( 'erdo_uninstall_siblings', 'delete' ), 'keep' ); ?>><?php esc_html_e( 'Keep them (e.g. if your server or CDN serves them itself)', 'erdo-image-optimizer' ); ?></option>
+                </select>
+            </label>
+            <label style="display:block; font-size:13px;">
+                <?php esc_html_e( 'Images in Quarantine', 'erdo-image-optimizer' ); ?>
+                <select name="erdo_uninstall_quarantine" style="display:block; margin-top:4px;">
+                    <option value="restore" <?php selected( get_option( 'erdo_uninstall_quarantine', 'restore' ), 'restore' ); ?>><?php esc_html_e( 'Put them back into the media library', 'erdo-image-optimizer' ); ?></option>
+                    <option value="delete" <?php selected( get_option( 'erdo_uninstall_quarantine', 'restore' ), 'delete' ); ?>><?php esc_html_e( 'Delete them permanently', 'erdo-image-optimizer' ); ?></option>
+                </select>
             </label>
         </div>
 
@@ -1430,43 +1547,6 @@ class ERDO_Admin_Page {
             <button type="button" id="erdo-cancel-queue-btn" class="button button-link-delete" style="display:none;">
                 <?php esc_html_e( 'Cancel', 'erdo-image-optimizer' ); ?>
             </button>
-        </div>
-
-        <?php
-        $bunny_key  = get_option( 'erdo_bunny_api_key', '' );
-        $bunny_zone = get_option( 'erdo_bunny_storage_zone', '' );
-        $bunny_host = get_option( 'erdo_bunny_hostname', '' );
-        $bunny_on   = get_option( 'erdo_bunny_enabled', 0 );
-        ?>
-        <div class="erdo-settings-section">
-            <label style="margin-bottom:8px; font-weight:700; display:block; color:#0f172a;">
-                <?php esc_html_e( 'BunnyCDN Integration', 'erdo-image-optimizer' ); ?>
-            </label>
-            <label>
-                <input type="checkbox" name="erdo_bunny_enabled" value="1" <?php checked( $bunny_on, 1 ); ?>>
-                <span>
-                    <strong><?php esc_html_e( 'Upload to BunnyCDN after conversion', 'erdo-image-optimizer' ); ?></strong>
-                    <p><?php esc_html_e( 'Automatically upload converted images to BunnyCDN storage after WebP/AVIF conversion.', 'erdo-image-optimizer' ); ?></p>
-                </span>
-            </label>
-            <div style="margin-top:10px; display:grid; gap:8px;">
-                <label style="display:block; font-size:12px; font-weight:600; color:#374151;">
-                    <?php esc_html_e( 'API Key', 'erdo-image-optimizer' ); ?>
-                    <input type="password" name="erdo_bunny_api_key" value="<?php echo esc_attr( $bunny_key ); ?>"
-                           class="regular-text" style="margin-top:2px; width:100%;">
-                </label>
-                <label style="display:block; font-size:12px; font-weight:600; color:#374151;">
-                    <?php esc_html_e( 'Storage Zone Name', 'erdo-image-optimizer' ); ?>
-                    <input type="text" name="erdo_bunny_storage_zone" value="<?php echo esc_attr( $bunny_zone ); ?>"
-                           class="regular-text" style="margin-top:2px; width:100%;" placeholder="my-storage-zone">
-                </label>
-                <label style="display:block; font-size:12px; font-weight:600; color:#374151;">
-                    <?php esc_html_e( 'CDN Hostname (optional)', 'erdo-image-optimizer' ); ?>
-                    <input type="text" name="erdo_bunny_hostname" value="<?php echo esc_attr( $bunny_host ); ?>"
-                           class="regular-text" style="margin-top:2px; width:100%;" placeholder="cdn.mysite.com">
-                    <span style="font-size:11px; color:#64748b;"><?php esc_html_e( 'Leave empty to use [zone].b-cdn.net', 'erdo-image-optimizer' ); ?></span>
-                </label>
-            </div>
         </div>
 
         </form>
@@ -1546,7 +1626,7 @@ class ERDO_Admin_Page {
 
         $id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
         if ( ! $id ) {
-            wp_send_json_error( array( 'message' => 'Invalid ID.' ) );
+            wp_send_json_error( array( 'message' => __( 'Invalid ID.', 'erdo-image-optimizer' ) ) );
         }
 
         $result = ERDO_Auditor::rename_file( $id );
@@ -1735,81 +1815,6 @@ class ERDO_Admin_Page {
         }
 
         wp_send_json_success( array( 'updated' => $updated ) );
-    }
-
-    /* ------------------------------------------------------------------
-       AJAX: BunnyCDN'e görsel yükle
-    ------------------------------------------------------------------ */
-    public function ajax_cdn_upload() {
-        check_ajax_referer( 'erdo_nonce', 'nonce' );
-        $this->verify_capability();
-
-        $id = isset( $_POST['id'] ) ? intval( $_POST['id'] ) : 0;
-        if ( ! $id ) {
-            wp_send_json_error( array( 'message' => 'Invalid ID.' ) );
-        }
-
-        $result = $this->upload_to_bunny( $id );
-        if ( is_wp_error( $result ) ) {
-            wp_send_json_error( array( 'message' => $result->get_error_message() ) );
-        }
-
-        wp_send_json_success( array( 'cdn_url' => $result ) );
-    }
-
-    /* ------------------------------------------------------------------
-       BunnyCDN: Tek görsel yükle — CDN URL'sini döndürür
-    ------------------------------------------------------------------ */
-    private function upload_to_bunny( $post_id ) {
-        $api_key      = get_option( 'erdo_bunny_api_key', '' );
-        $storage_zone = get_option( 'erdo_bunny_storage_zone', '' );
-        $cdn_hostname = get_option( 'erdo_bunny_hostname', '' );
-
-        if ( ! $api_key || ! $storage_zone ) {
-            return new WP_Error( 'no_config', 'BunnyCDN API key or storage zone not configured.' );
-        }
-
-        $file_path = get_attached_file( $post_id );
-        if ( ! $file_path || ! file_exists( $file_path ) ) {
-            return new WP_Error( 'not_found', 'File not found.' );
-        }
-
-        $upload_dir  = wp_upload_dir();
-        $rel_path    = ltrim( str_replace( $upload_dir['basedir'], '', $file_path ), '/' );
-        $cdn_path    = $storage_zone . '/' . $rel_path;
-        $endpoint    = 'https://storage.bunnycdn.com/' . $cdn_path;
-
-        // phpcs:ignore WordPress.WP.AlternativeFunctions.file_get_contents_file_get_contents
-        $file_data = file_get_contents( $file_path );
-        if ( false === $file_data ) {
-            return new WP_Error( 'read_failed', 'Could not read file.' );
-        }
-
-        $response = wp_remote_request( $endpoint, array(
-            'method'  => 'PUT',
-            'headers' => array(
-                'AccessKey'    => $api_key,
-                'Content-Type' => 'application/octet-stream',
-            ),
-            'body'    => $file_data,
-            'timeout' => 60,
-        ) );
-
-        if ( is_wp_error( $response ) ) {
-            return $response;
-        }
-
-        $code = wp_remote_retrieve_response_code( $response );
-        if ( $code < 200 || $code >= 300 ) {
-            return new WP_Error( 'upload_failed', 'BunnyCDN upload failed. HTTP ' . $code );
-        }
-
-        $hostname = $cdn_hostname ?: ( $storage_zone . '.b-cdn.net' );
-        $cdn_url  = 'https://' . trailingslashit( $hostname ) . $rel_path;
-
-        update_post_meta( $post_id, '_erdo_cdn_url', $cdn_url );
-
-        return $cdn_url;
     }
 
     /* ------------------------------------------------------------------
@@ -2148,18 +2153,68 @@ class ERDO_Admin_Page {
                     fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: body } )
                         .then( function ( r ) { return r.json(); } )
                         .then( function ( res ) {
-                            if ( ! res.success ) { out.textContent = ( res.data && res.data.message ) || 'Error'; btn.disabled = false; return; }
+                            if ( ! res.success ) { out.textContent = ( res.data && res.data.message ) || <?php echo wp_json_encode( __( 'Error', 'erdo-image-optimizer' ) ); ?>; btn.disabled = false; return; }
                             fixed += res.data.restore + res.data.repoint;
                             out.textContent = <?php echo wp_json_encode( __( 'Repaired:', 'erdo-image-optimizer' ) ); ?> + ' ' + fixed + ' — ' + <?php echo wp_json_encode( __( 'remaining:', 'erdo-image-optimizer' ) ); ?> + ' ' + res.data.remaining;
                             if ( res.data.remaining > 0 ) { step(); } else { out.textContent += ' ✓'; }
                         } )
-                        .catch( function () { out.textContent = 'Error'; btn.disabled = false; } );
+                        .catch( function () { out.textContent = <?php echo wp_json_encode( __( 'Error', 'erdo-image-optimizer' ) ); ?>; btn.disabled = false; } );
                 };
                 step();
             } );
         } )();
         </script>
         <?php
+    }
+
+    /**
+     * 2.x'ten yükseltenlere bir kerelik: neler değişti, kaldırılan özellikler
+     * ve yerine ne kullanılmalı. Kapatılana kadar yalnızca Pano, Eklentiler ve
+     * eklenti sayfasında görünür.
+     */
+    public function upgrade_notice() {
+        $flags = get_option( 'erdo_upgrade_notice' );
+        if ( ! is_array( $flags ) || ! current_user_can( 'manage_options' ) ) {
+            return;
+        }
+        $screen = get_current_screen();
+        if ( $screen && ! in_array( $screen->id, array( 'dashboard', 'plugins', 'toplevel_page_erdo-image-optimizer' ), true ) ) {
+            return;
+        }
+        ?>
+        <div class="notice notice-info is-dismissible" id="erdo-upgrade-notice" data-nonce="<?php echo esc_attr( wp_create_nonce( 'erdo_nonce' ) ); ?>">
+            <p><strong><?php esc_html_e( 'Erdo Image Optimizer 3.0: what changed', 'erdo-image-optimizer' ); ?></strong></p>
+            <ul style="list-style:disc; margin-left:20px;">
+                <li><?php esc_html_e( 'Your original images are never modified or deleted any more. WebP/AVIF copies are saved next to them and served automatically.', 'erdo-image-optimizer' ); ?></li>
+                <li><?php esc_html_e( '"Delete" now moves images to a Quarantine you can restore from, and unused-image detection uses a full index of where every image is used.', 'erdo-image-optimizer' ); ?></li>
+                <li><?php esc_html_e( 'New: 0–100 image SEO score, safe renaming with redirects, image sitemap and optional AI suggestions with your own provider key.', 'erdo-image-optimizer' ); ?></li>
+                <?php if ( ! empty( $flags['svg'] ) ) : ?>
+                <li><?php esc_html_e( 'SVG uploads were removed. If you still need them, install a dedicated plugin such as Safe SVG.', 'erdo-image-optimizer' ); ?></li>
+                <?php endif; ?>
+                <?php if ( ! empty( $flags['bunny'] ) ) : ?>
+                <li><?php esc_html_e( 'The BunnyCDN upload was removed. Use a BunnyCDN pull zone (or your CDN plugin) instead: it picks up the WebP/AVIF copies on its own.', 'erdo-image-optimizer' ); ?></li>
+                <?php endif; ?>
+                <li><?php esc_html_e( 'Lazy loading and resizing on upload are now left to WordPress itself, which handles them better (including the largest image above the fold).', 'erdo-image-optimizer' ); ?></li>
+            </ul>
+        </div>
+        <script>
+        ( function () {
+            var box = document.getElementById( 'erdo-upgrade-notice' );
+            if ( ! box ) { return; }
+            box.addEventListener( 'click', function ( e ) {
+                if ( ! e.target.classList.contains( 'notice-dismiss' ) ) { return; }
+                fetch( ajaxurl, { method: 'POST', credentials: 'same-origin', body: new URLSearchParams( { action: 'erdo_dismiss_upgrade', nonce: box.dataset.nonce } ) } );
+            } );
+        } )();
+        </script>
+        <?php
+    }
+
+    public function ajax_dismiss_upgrade() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        delete_option( 'erdo_upgrade_notice' );
+        wp_send_json_success();
     }
 
     public function ajax_migrate_scan() {

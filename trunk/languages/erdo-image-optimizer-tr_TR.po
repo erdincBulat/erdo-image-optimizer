@@ -1,337 +1,1581 @@
-# Translation of Erdo Image Optimizer in Turkish
-# Copyright (C) 2026 Erdinc Bulat
-# This file is distributed under the same license as the Erdo Image Optimizer plugin.
-# Erdinc Bulat <erdincbulat14@gmail.com>, 2026.
 msgid ""
 msgstr ""
 "Project-Id-Version: Erdo Image Optimizer 2.0.0\n"
 "Report-Msgid-Bugs-To: https://wordpress.org/support/plugin/erdo-image-optimizer\n"
-"POT-Creation-Date: 2026-05-19 00:00+0000\n"
-"PO-Revision-Date: 2026-05-19 00:00+0000\n"
 "Last-Translator: Erdinc Bulat <erdincbulat14@gmail.com>\n"
 "Language-Team: Turkish <tr@li.org>\n"
-"Language: tr_TR\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
+"POT-Creation-Date: 2026-05-19 00:00+0000\n"
+"PO-Revision-Date: 2026-05-19 00:00+0000\n"
+"Language: tr_TR\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Erdo Make-Translation Script\n"
 
+#: includes/class-admin-page.php:1452
 msgid ".htaccess rewrite (Apache only)"
 msgstr ".htaccess yönlendirme (yalnızca Apache)"
 
+#: includes/class-admin-page.php:1345
 msgid "80% is the recommended sweet spot. Lossless mode overrides this setting."
 msgstr "%80 önerilen ideal değerdir. Kayıpsız mod bu ayarı geçersiz kılar."
 
-msgid "AVIF — Best compression (requires PHP 8.1+)"
-msgstr "AVIF — En iyi sıkıştırma (PHP 8.1+ gerektirir)"
-
+#: includes/class-admin-page.php:175
+#: includes/class-admin-page.php:1465
 msgid "Active"
 msgstr "Aktif"
 
+#: includes/class-admin-page.php:177
 msgid "Add New Image"
 msgstr "Yeni Görsel Ekle"
 
-msgid "Add loading=\"lazy\" to all content images. Defers off-screen images for faster initial load."
-msgstr "Tüm içerik görsellerine loading=\"lazy\" ekler. Ekran dışı görselleri erteler."
-
+#: includes/class-admin-page.php:178
 msgid "All posts have featured images!"
 msgstr "Tüm yazıların öne çıkan görseli var!"
 
-msgid "Allow SVG Uploads (admin only)"
-msgstr "SVG Yüklemesine İzin Ver (yalnızca yönetici)"
-
-msgid "Alt Tags Present"
-msgstr "Alt Etiket Mevcut"
-
+#: includes/class-auditor.php:306
 msgid "Alt Text"
 msgstr "Alt Metin"
 
-msgid "Alt text is missing. Search engines use this to understand your image."
-msgstr "Alt metin eksik. Arama motorları görseli anlamak için bu metni kullanır."
-
+#: includes/class-admin-page.php:709
 msgid "Audit Report"
 msgstr "Denetim Raporu"
 
+#: includes/class-admin-page.php:1352
 msgid "Auto-Convert on Upload"
 msgstr "Yüklemede Otomatik Dönüştür"
 
+#: includes/class-admin-page.php:1353
 msgid "Automatically convert JPEG/PNG/GIF to WebP/AVIF when a new image is uploaded."
 msgstr "Yeni bir görsel yüklendiğinde JPEG/PNG/GIF'i otomatik olarak WebP/AVIF'e dönüştürür."
 
+#: includes/class-admin-page.php:1482
 msgid "Automatically find the lowest quality that still looks good. Overrides the manual quality slider."
 msgstr "İyi görünen en düşük kaliteyi otomatik bulur. Manuel kalite kaydırıcısını geçersiz kılar."
 
-msgid "Automatically resize images larger than this width on upload. Applied before conversion."
-msgstr "Yüklemede bu genişliği aşan görselleri otomatik olarak yeniden boyutlandırır. Dönüşümden önce uygulanır."
-
+#: includes/class-admin-page.php:1538
 msgid "Background Queue"
 msgstr "Arka Plan Kuyruğu"
 
+#. translators: %s: image format name (WebP or AVIF)
+#: includes/class-admin-page.php:365
+#, php-format
 msgid "Bulk Convert (%s)"
 msgstr "Toplu Dönüştür (%s)"
 
-msgid "CONFIRM DELETE"
-msgstr "SİLMEYİ ONAYLA"
-
+#: includes/class-admin-page.php:508
+#: includes/class-admin-page.php:1548
 msgid "Cancel"
 msgstr "İptal"
 
+#: includes/class-admin-page.php:129
+#: includes/class-admin-page.php:482
 msgid "Close"
 msgstr "Kapat"
 
+#: includes/class-admin-page.php:1338
 msgid "Compression Quality"
 msgstr "Sıkıştırma Kalitesi"
 
+#: includes/class-admin-page.php:1313
 msgid "Conversion Format"
 msgstr "Dönüşüm Formatı"
 
+#. translators: %s: target format (WebP or AVIF)
+#: includes/class-admin-page.php:805
+#, php-format
 msgid "Convert to %s"
 msgstr "%s'e Dönüştür"
 
-msgid "Current format is %s. WebP or AVIF is recommended for better performance."
-msgstr "Mevcut format %s. Daha iyi performans için WebP veya AVIF önerilir."
-
-msgid "Danger Zone"
-msgstr "Tehlikeli Bölge"
-
-msgid "Delete All Unused"
-msgstr "Tüm Kullanılmayanları Sil"
-
-msgid "Delete Image"
-msgstr "Görseli Sil"
-
+#: includes/class-auditor.php:365
 msgid "Dimensions"
 msgstr "Boyutlar"
 
-msgid "Disk Space Freed"
-msgstr "Boşaltılan Alan"
-
+#: includes/class-admin-page.php:196
 msgid "Edit Post"
 msgstr "Yazıyı Düzenle"
 
-msgid "Enables SVG file uploads for administrators. All SVGs are sanitized on upload to prevent XSS attacks."
-msgstr "Yöneticilerin SVG dosyası yüklemesine izin verir. XSS saldırılarını önlemek için tüm SVG'ler yüklemede temizlenir."
-
-msgid "End of results — all images scanned."
-msgstr "Sonuçların sonu — tüm görseller tarandı."
-
+#. Plugin Name of the plugin
+#: erdo-image-optimizer.php
+#: includes/class-admin-page.php:83
+#: includes/class-admin-page.php:267
 msgid "Erdo Image Optimizer"
 msgstr "Erdo Görsel Optimizörü"
 
+#: includes/class-auditor.php:347
 msgid "File Size"
 msgstr "Dosya Boyutu"
 
+#. translators: %s: dosya boyutu KB cinsinden.
+#: includes/class-auditor.php:354
+#, php-format
 msgid "File size is %s KB. Aim for under 250 KB."
 msgstr "Dosya boyutu %s KB. 250 KB altını hedefleyin."
 
+#: includes/class-auditor.php:357
 msgid "File size unknown. Re-save or regenerate thumbnails to detect it."
 msgstr "Dosya boyutu bilinmiyor. Tespit için yeniden kaydedin veya küçük resimleri oluşturun."
 
+#: includes/class-admin-page.php:1984
+#: includes/class-auditor.php:316
 msgid "Filename"
 msgstr "Dosya Adı"
 
-msgid "Filename contains underscores or spaces. Use hyphens for better SEO."
-msgstr "Dosya adı alt çizgi veya boşluk içeriyor. Daha iyi SEO için kısa çizgi kullanın."
-
+#: includes/class-auditor.php:328
 msgid "Format"
 msgstr "Format"
 
+#. translators: %d: number of posts
+#: includes/class-admin-page.php:205
+#, php-format
 msgid "Found %d posts without a featured image:"
 msgstr "%d yazının öne çıkan görseli yok:"
 
+#: includes/class-admin-page.php:955
+#: includes/class-admin-page.php:961
 msgid "Generate from Filename"
 msgstr "Dosya Adından Oluştur"
 
+#: includes/class-admin-page.php:84
+#: includes/class-admin-page.php:1826
 msgid "Image Optimizer"
 msgstr "Görsel Optimizörü"
 
+#: includes/class-auditor.php:400
 msgid "Image Title"
 msgstr "Görsel Başlığı"
 
+#: includes/class-auditor.php:379
 msgid "Image dimensions could not be detected. This may resolve after re-saving."
 msgstr "Görsel boyutları tespit edilemedi. Yeniden kaydettikten sonra çözülebilir."
 
-msgid "Image is too large (>%dpx wide). Resize to improve load time."
-msgstr "Görsel çok büyük (>%dpx genişlik). Yükleme süresini iyileştirmek için yeniden boyutlandırın."
-
-msgid "Images are scanned in batches of 50 to maintain performance. Click \"Load More\" to scan your entire library."
-msgstr "Performansı korumak için görseller 50'şer gruplar hâlinde taranır. Tüm kütüphaneyi taramak için \"Daha Fazla Yükle\"ye tıklayın."
-
-msgid "Images scanned"
-msgstr "Görsel tarandı"
-
-msgid "Keep Original Backup"
-msgstr "Orijinal Yedeği Sakla"
-
-msgid "Lazy Loading"
-msgstr "Gecikmeli Yükleme"
-
+#: includes/class-admin-page.php:471
 msgid "Load More Images"
 msgstr "Daha Fazla Görsel Yükle"
 
+#: includes/class-admin-page.php:1359
 msgid "Lossless Mode"
 msgstr "Kayıpsız Mod"
 
-msgid "Max Upload Width"
-msgstr "Maks. Yükleme Genişliği"
-
+#: includes/class-admin-page.php:211
 msgid "Missing Featured Images"
 msgstr "Eksik Öne Çıkan Görseller"
 
+#: includes/class-admin-page.php:352
 msgid "Missing Thumbnails"
 msgstr "Eksik Küçük Resimler"
 
+#: includes/class-admin-page.php:218
 msgid "No images"
 msgstr "Görsel yok"
 
+#: includes/class-admin-page.php:275
 msgid "Optimization"
 msgstr "Optimizasyon"
 
+#: includes/class-admin-page.php:730
 msgid "Optimization Result"
 msgstr "Optimizasyon Sonucu"
 
+#: includes/class-admin-page.php:405
+#: includes/class-admin-page.php:737
+#: includes/class-admin-page.php:1857
 msgid "Optimized"
 msgstr "Optimize"
 
+#: includes/class-admin-page.php:732
 msgid "Original"
 msgstr "Orijinal"
 
-msgid "PHP <picture> (all servers)"
-msgstr "PHP <picture> (tüm sunucular)"
-
+#: includes/class-admin-page.php:1434
 msgid "Performance & Serving"
 msgstr "Performans ve Servis"
 
+#: includes/class-admin-page.php:397
 msgid "Poor"
 msgstr "Kötü"
 
+#: includes/class-admin-page.php:301
 msgid "Potential Cleanup"
 msgstr "Temizlenebilir"
 
+#: includes/class-admin-page.php:379
 msgid "Processing..."
 msgstr "İşleniyor..."
 
+#: includes/class-admin-page.php:433
 msgid "Refresh Audits"
 msgstr "Denetleri Yenile"
 
+#: includes/class-admin-page.php:230
+#: includes/class-admin-page.php:1462
 msgid "Remove .htaccess Rules"
 msgstr ".htaccess Kurallarını Kaldır"
 
-msgid "Remove camera data, GPS location and other metadata to reduce file size."
-msgstr "Dosya boyutunu küçültmek için kamera verileri, GPS konumu ve diğer meta verileri kaldırır."
-
+#: includes/class-admin-page.php:1367
 msgid "Replace spaces and underscores with hyphens for better SEO."
 msgstr "Daha iyi SEO için boşluk ve alt çizgileri kısa çizgiyle değiştirir."
 
+#: includes/class-admin-page.php:235
+#: includes/class-admin-page.php:917
 msgid "Resize"
 msgstr "Yeniden Boyutlandır"
 
-msgid "Restore Original"
-msgstr "Orijinale Döndür"
-
+#: includes/class-admin-page.php:283
 msgid "SEO Health"
 msgstr "SEO Sağlığı"
 
-msgid "SVG Support"
-msgstr "SVG Desteği"
-
-msgid "SVG file is empty or unreadable."
-msgstr "SVG dosyası boş veya okunamıyor."
-
+#: includes/class-admin-page.php:1366
 msgid "Sanitize Filenames on Upload"
 msgstr "Yüklemede Dosya Adını Temizle"
 
+#: includes/class-admin-page.php:241
+#: includes/class-admin-page.php:791
 msgid "Save Changes"
 msgstr "Değişiklikleri Kaydet"
 
+#: includes/class-admin-page.php:242
+#: includes/class-admin-page.php:1557
 msgid "Save Settings"
 msgstr "Ayarları Kaydet"
 
-msgid "Save original file before converting so you can restore it later."
-msgstr "Dönüştürmeden önce orijinal dosyayı kaydeder; böylece daha sonra geri yükleyebilirsiniz."
-
+#: includes/class-admin-page.php:246
+#: includes/class-admin-page.php:293
 msgid "Scanning..."
 msgstr "Taranıyor..."
 
+#: includes/class-admin-page.php:319
 msgid "Search images by filename or title..."
 msgstr "Dosya adı veya başlığa göre ara..."
 
-msgid "Serve WebP to Browsers"
-msgstr "Tarayıcılara WebP Sun"
-
+#: includes/class-admin-page.php:76
+#: includes/class-admin-page.php:324
+#: includes/class-admin-page.php:1307
 msgid "Settings"
 msgstr "Ayarlar"
 
+#: includes/class-admin-page.php:1481
 msgid "Smart Quality (Auto)"
 msgstr "Akıllı Kalite (Otomatik)"
 
+#: includes/class-admin-page.php:247
+#: includes/class-admin-page.php:1545
 msgid "Start Background Convert"
 msgstr "Arka Plan Dönüşümünü Başlat"
 
+#: includes/class-admin-page.php:1541
 msgid "Start a bulk conversion in the background via WP-Cron. The browser tab can be closed while it runs."
 msgstr "WP-Cron aracılığıyla arka planda toplu dönüşüm başlatır. Çalışırken tarayıcı sekmesi kapatılabilir."
 
+#: includes/class-admin-page.php:1373
 msgid "Strip EXIF Metadata"
 msgstr "EXIF Verisini Temizle"
 
-msgid "This action is irreversible!"
-msgstr "Bu işlem geri alınamaz!"
-
-msgid "Title is empty or contains underscores. Keep it clean and readable."
-msgstr "Başlık boş veya alt çizgi içeriyor. Temiz ve okunabilir tutun."
-
+#: includes/class-admin-page.php:291
 msgid "Total Library"
 msgstr "Toplam Kütüphane"
 
+#: includes/class-admin-page.php:307
 msgid "Total Saved"
 msgstr "Toplam Kazanç"
 
-msgid "Transparently deliver WebP files when a browser supports them. Originals are served as fallback."
-msgstr "Tarayıcı destekliyorsa WebP dosyalarını şeffaf şekilde sunar. Desteklemeyenlere orijinal sunulur."
-
-msgid "Type DELETE to confirm"
-msgstr "Onaylamak için DELETE yazın"
-
+#: includes/class-admin-page.php:409
 msgid "Unused"
 msgstr "Kullanılmayan"
 
-msgid "Unused Image"
-msgstr "Kullanılmayan Görsel"
-
+#: includes/class-admin-page.php:299
 msgid "Unused Images"
 msgstr "Kullanılmayan Görseller"
 
+#: includes/class-admin-page.php:951
 msgid "Use Post Title"
 msgstr "Yazı Başlığını Kullan"
 
+#: includes/class-admin-page.php:1471
 msgid "View Nginx configuration snippet"
 msgstr "Nginx yapılandırma parçacığını görüntüle"
 
+#: includes/class-admin-page.php:401
 msgid "Warning"
 msgstr "Uyarı"
 
-msgid "We strongly recommend backing up your site before proceeding."
-msgstr "Devam etmeden önce sitenizi yedeklemenizi kesinlikle öneririz."
-
-msgid "WebP is supported by all modern browsers."
-msgstr "WebP tüm modern tarayıcılar tarafından desteklenir."
-
+#: includes/class-admin-page.php:1316
 msgid "WebP — Recommended (all modern browsers)"
 msgstr "WebP — Önerilen (tüm modern tarayıcılar)"
 
+#: includes/class-admin-page.php:277
 msgid "WebP/AVIF Format"
 msgstr "WebP/AVIF Formatı"
 
+#: includes/class-admin-page.php:251
+#: includes/class-admin-page.php:1458
 msgid "Write .htaccess Rules"
 msgstr ".htaccess Kurallarını Yaz"
 
-msgid "You are about to permanently delete ALL images detected as \"Unused\". Some images may still be used by custom code or hardcoded links that our scanner cannot detect."
-msgstr "\"Kullanılmayan\" olarak tespit edilen TÜM görselleri kalıcı olarak silmek üzeresiniz. Bazı görseller, tarayıcımızın tespit edemediği özel kodlar veya sabit bağlantılar tarafından hâlâ kullanılıyor olabilir."
-
+#. translators: 1: percentage saved, 2: size amount saved
+#: includes/class-admin-page.php:747
+#, php-format
 msgid "You saved %1$s%% (%2$s)"
 msgstr "%1$s%% kazandınız (%2$s)"
 
-msgid "Zero quality loss. Results in larger files than lossy mode."
-msgstr "Sıfır kalite kaybı. Kayıplı moda göre daha büyük dosyalar üretir."
+#. Description of the plugin
+#: erdo-image-optimizer.php
+msgid "Image SEO audit, safe renaming, AI alt text (your own key), unused-image cleanup and non-destructive WebP/AVIF."
+msgstr "Görsel SEO denetimi, güvenli yeniden adlandırma, AI ile alt metin (kendi anahtarınızla), kullanılmayan görsel temizliği ve orijinale dokunmayan WebP/AVIF."
 
+#. Author of the plugin
+#: erdo-image-optimizer.php
+msgid "Erdinc Bulat"
+msgstr "Erdinc Bulat"
+
+#: includes/class-admin-page.php:68
+msgid "Insufficient permissions."
+msgstr "Yetkiniz yok."
+
+#. translators: %d: number of selected images
+#: includes/class-admin-page.php:107
+#, php-format
+msgid "%d selected"
+msgstr "%d seçili"
+
+#: includes/class-admin-page.php:108
+msgid "Rename images"
+msgstr "Görselleri yeniden adlandır"
+
+#: includes/class-admin-page.php:109
+msgid "Fix filenames"
+msgstr "Dosya adlarını düzelt"
+
+#: includes/class-admin-page.php:110
+msgid "Pattern"
+msgstr "Desen"
+
+#: includes/class-admin-page.php:111
+msgid "Keyword"
+msgstr "Anahtar kelime"
+
+#: includes/class-admin-page.php:112
+msgid "Leave empty to use each image’s page focus keyword (Yoast, Rank Math, AIOSEO, SEOPress) or page title."
+msgstr "Boş bırakırsanız her görselin sayfasındaki odak anahtar kelime (Yoast, Rank Math, AIOSEO, SEOPress) ya da sayfa başlığı kullanılır."
+
+#: includes/class-admin-page.php:113
+msgid "Tokens: {keyword} {n} {parent} {title} {original} {alt}"
+msgstr "Değişkenler: {keyword} {n} {parent} {title} {original} {alt}"
+
+#: includes/class-admin-page.php:114
+msgid "Preview"
+msgstr "Önizle"
+
+#. translators: %d: number of images to rename
+#: includes/class-admin-page.php:116
+#, php-format
+msgid "Rename %d images"
+msgstr "%d görseli yeniden adlandır"
+
+#: includes/class-admin-page.php:117
+#: includes/class-admin-page.php:149
+msgid "Current"
+msgstr "Mevcut"
+
+#: includes/class-admin-page.php:118
+msgid "New name"
+msgstr "Yeni ad"
+
+#: includes/class-admin-page.php:119
+msgid "Checking…"
+msgstr "Kontrol ediliyor…"
+
+#: includes/class-admin-page.php:120
+msgid "All filenames are already clean."
+msgstr "Tüm dosya adları zaten temiz."
+
+#: includes/class-admin-page.php:121
+msgid "All sizes and WebP/AVIF copies are renamed together, every reference on the site is updated, and old URLs redirect (301) to the new ones. You can undo this afterwards."
+msgstr "Tüm boyutlar ve WebP/AVIF kopyaları birlikte yeniden adlandırılır, sitedeki her referans güncellenir ve eski URL'ler yenisine yönlenir (301). Sonradan geri alabilirsiniz."
+
+#. translators: 1: images done, 2: images in total
+#: includes/class-admin-page.php:123
+#, php-format
+msgid "Renaming… %1$d / %2$d"
+msgstr "Yeniden adlandırılıyor… %1$d / %2$d"
+
+#. translators: 1: images renamed, 2: images skipped
+#: includes/class-admin-page.php:125
+#, php-format
+msgid "%1$d renamed, %2$d skipped."
+msgstr "%1$d yeniden adlandırıldı, %2$d atlandı."
+
+#: includes/class-admin-page.php:126
+#: includes/class-admin-page.php:864
+msgid "Undo"
+msgstr "Geri al"
+
+#. translators: %d: number of images restored
+#: includes/class-admin-page.php:128
+#, php-format
+msgid "Renaming undone: %d images restored."
+msgstr "Yeniden adlandırma geri alındı: %d görsel eski adına döndü."
+
+#: includes/class-admin-page.php:130
+#: includes/class-admin-page.php:493
+msgid "Clear"
+msgstr "Temizle"
+
+#: includes/class-admin-page.php:131
+#: includes/class-admin-page.php:491
+msgid "Rename…"
+msgstr "Yeniden adlandır…"
+
+#: includes/class-admin-page.php:132
+msgid "Select images"
+msgstr "Görsel seç"
+
+#: includes/class-admin-page.php:133
+msgid "Something went wrong. Please try again."
+msgstr "Bir şeyler ters gitti. Lütfen tekrar deneyin."
+
+#: includes/class-admin-page.php:134
+msgid "Looking at the image…"
+msgstr "Görsele bakılıyor…"
+
+#. translators: 1: images done, 2: images in total
+#: includes/class-admin-page.php:136
+#, php-format
+msgid "Generating suggestions… %1$d / %2$d"
+msgstr "Öneriler oluşturuluyor… %1$d / %2$d"
+
+#. translators: 1: suggestions created, 2: failures
+#: includes/class-admin-page.php:138
+#, php-format
+msgid "Done: %1$d suggestions ready for review, %2$d failed."
+msgstr "Bitti: %1$d öneri incelemenizi bekliyor, %2$d başarısız."
+
+#. translators: 1: number of images, 2: low cost estimate in US dollars, 3: high cost estimate
+#: includes/class-admin-page.php:140
+#, php-format
+msgid "%1$d images. Each image is sent once, resized to 1024 px. Estimated provider cost: about $%2$s–$%3$s with a small vision model. Nothing is saved until you review it."
+msgstr "%1$d görsel. Her görsel bir kez, 1024 px'e küçültülerek gönderilir. Tahmini sağlayıcı maliyeti: küçük bir görsel modelle yaklaşık $%2$s–$%3$s. İnceleyip onaylamadan hiçbir şey kaydedilmez."
+
+#: includes/class-admin-page.php:141
+msgid "No images need suggestions right now."
+msgstr "Şu anda öneri gereken görsel yok."
+
+#: includes/class-admin-page.php:142
+msgid "No suggestions waiting for review."
+msgstr "İncelemeyi bekleyen öneri yok."
+
+#: includes/class-admin-page.php:143
+msgid "Generate suggestions"
+msgstr "Öneri oluştur"
+
+#: includes/class-admin-page.php:144
+msgid "Stop"
+msgstr "Durdur"
+
+#: includes/class-admin-page.php:145
+msgid "Accept"
+msgstr "Kabul et"
+
+#: includes/class-admin-page.php:146
+#: includes/class-admin-page.php:2013
+msgid "Dismiss"
+msgstr "Kapat"
+
+#: includes/class-admin-page.php:147
+msgid "Accept all alt texts"
+msgstr "Tüm alt metinleri kabul et"
+
+#: includes/class-admin-page.php:148
+msgid "Decorative: empty alt"
+msgstr "Dekoratif: boş alt metin"
+
+#: includes/class-admin-page.php:150
+msgid "Images missing alt text"
+msgstr "Alt metni eksik görseller"
+
+#: includes/class-admin-page.php:151
+msgid "Missing or weak alt text"
+msgstr "Alt metni eksik ya da zayıf olanlar"
+
+#. translators: %d: number of images
+#: includes/class-admin-page.php:164
+#, php-format
+msgid "%d already optimized"
+msgstr "%d zaten optimize"
+
+#. translators: %d: number of errors
+#: includes/class-admin-page.php:166
+#, php-format
+msgid "%d errors"
+msgstr "%d hata"
+
+#. translators: %d: number of images
+#: includes/class-admin-page.php:168
+#, php-format
+msgid "%d failed"
+msgstr "%d başarısız"
+
+#. translators: %d: number of images
+#: includes/class-admin-page.php:170
+#, php-format
+msgid "%d images"
+msgstr "%d görsel"
+
+#. translators: %d: number of images
+#: includes/class-admin-page.php:172
+#, php-format
+msgid "%d images processed"
+msgstr "%d görsel işlendi"
+
+#. translators: %d: number of images
+#: includes/class-admin-page.php:174
+#, php-format
+msgid "%d images updated."
+msgstr "%d görsel güncellendi."
+
+#: includes/class-admin-page.php:176
+msgid "Add"
+msgstr "Ekle"
+
+#: includes/class-admin-page.php:179
+msgid "Already clean or could not rename."
+msgstr "Ad zaten temiz ya da yeniden adlandırılamadı."
+
+#: includes/class-admin-page.php:180
+#: includes/class-admin-page.php:1983
+msgid "Alt text"
+msgstr "Alt metin"
+
+#: includes/class-admin-page.php:181
+msgid "Analyzing image..."
+msgstr "Görsel inceleniyor..."
+
+#: includes/class-admin-page.php:182
+#: includes/class-admin-page.php:339
+msgid "Auto Alt Text"
+msgstr "Otomatik Alt Metin"
+
+#: includes/class-admin-page.php:183
+msgid "Background convert running:"
+msgstr "Arka planda dönüştürme sürüyor:"
+
+#: includes/class-admin-page.php:184
+msgid "Before & After"
+msgstr "Önce ve Sonra"
+
+#. translators: 1: posts scanned, 2: posts in total
+#: includes/class-admin-page.php:186
+#, php-format
+msgid "Building the usage index: %1$d / %2$d posts scanned. Unused-image cleanup becomes available when it finishes."
+msgstr "Kullanım indeksi oluşturuluyor: %1$d / %2$d yazı tarandı. Kullanılmayan görsel temizliği tamamlanınca kullanılabilir."
+
+#: includes/class-admin-page.php:187
+msgid "Bulk Convert"
+msgstr "Toplu Dönüştür"
+
+#: includes/class-admin-page.php:188
+msgid "Clear all audit caches and re-scan? This may take a moment."
+msgstr "Tüm denetim önbelleği temizlenip yeniden taransın mı? Bu biraz sürebilir."
+
+#: includes/class-admin-page.php:189
+msgid "Conversion failed."
+msgstr "Dönüştürme başarısız."
+
+#: includes/class-admin-page.php:190
+msgid "Convert"
+msgstr "Dönüştür"
+
+#: includes/class-admin-page.php:191
+msgid "Converting..."
+msgstr "Dönüştürülüyor..."
+
+#: includes/class-admin-page.php:192
+msgid "Could not list unused images."
+msgstr "Kullanılmayan görseller listelenemedi."
+
+#: includes/class-admin-page.php:193
+msgid "Create WebP/AVIF copies for all eligible images? This may take a while depending on your library size."
+msgstr "Uygun tüm görseller için WebP/AVIF kopyaları oluşturulsun mu? Kütüphanenin büyüklüğüne göre bu biraz sürebilir."
+
+#: includes/class-admin-page.php:194
+msgid "Delete this image and all its files permanently? This cannot be undone."
+msgstr "Bu görsel ve tüm dosyaları kalıcı olarak silinsin mi? Bu işlem geri alınamaz."
+
+#: includes/class-admin-page.php:195
+msgid "Done!"
+msgstr "Bitti!"
+
+#: includes/class-admin-page.php:197
+#: includes/class-admin-page.php:2156
+#: includes/class-admin-page.php:2161
+msgid "Error"
+msgstr "Hata"
+
+#: includes/class-admin-page.php:198
+msgid "Error saving data. Please try again."
+msgstr "Veriler kaydedilemedi. Lütfen tekrar deneyin."
+
+#: includes/class-admin-page.php:199
+msgid "Error scanning posts."
+msgstr "Yazılar taranırken hata oluştu."
+
+#: includes/class-admin-page.php:200
+#: includes/class-admin-page.php:347
+msgid "Export SEO CSV"
+msgstr "SEO CSV'sini Dışa Aktar"
+
+#: includes/class-admin-page.php:201
+msgid "Exporting..."
+msgstr "Dışa aktarılıyor..."
+
+#: includes/class-admin-page.php:202
+msgid "Failed."
+msgstr "Başarısız."
+
+#: includes/class-admin-page.php:203
+#: includes/class-admin-page.php:852
+msgid "Fix Filename"
+msgstr "Dosya Adını Düzelt"
+
+#: includes/class-admin-page.php:206
+msgid "Generate alt text from the filename for all images missing alt text? Camera-style names (IMG_1234) are skipped."
+msgstr "Alt metni eksik tüm görseller için dosya adından alt metin üretilsin mi? Kamera tarzı adlar (IMG_1234) atlanır."
+
+#: includes/class-admin-page.php:207
+msgid "Generating..."
+msgstr "Üretiliyor..."
+
+#: includes/class-admin-page.php:208
+#: includes/class-admin-page.php:442
+msgid "Loading library..."
+msgstr "Kütüphane yükleniyor..."
+
+#: includes/class-admin-page.php:209
+msgid "Loading settings..."
+msgstr "Ayarlar yükleniyor..."
+
+#: includes/class-admin-page.php:210
+msgid "Loading..."
+msgstr "Yükleniyor..."
+
+#: includes/class-admin-page.php:212
+msgid "Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab."
+msgstr "Bu görsel karantinaya alınsın mı? Sitenizden kaybolur ama daha sonra Karantina sekmesinden geri yüklenebilir."
+
+#: includes/class-admin-page.php:213
+msgid "Move this image to Quarantine? You can restore it later."
+msgstr "Bu görsel karantinaya alınsın mı? Daha sonra geri yükleyebilirsiniz."
+
+#: includes/class-admin-page.php:214
+#: includes/class-admin-page.php:505
+#: includes/class-admin-page.php:872
+msgid "Move to Quarantine"
+msgstr "Karantinaya Al"
+
+#: includes/class-admin-page.php:215
+msgid "Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken."
+msgstr "Karantinaya alındı. Not: bu görsel sitenizde hâlâ kullanılıyordu — bir sayfa bozuk görünürse geri yükleyin."
+
+#: includes/class-admin-page.php:216
+msgid "No critical images — great start!"
+msgstr "Kritik görsel yok — harika bir başlangıç!"
+
+#: includes/class-admin-page.php:217
+msgid "No fully-optimized images yet."
+msgstr "Henüz tam optimize görsel yok."
+
+#: includes/class-admin-page.php:219
+msgid "No images found to convert."
+msgstr "Dönüştürülecek görsel bulunamadı."
+
+#: includes/class-admin-page.php:220
+msgid "No images with moderate issues."
+msgstr "Orta düzey sorunlu görsel yok."
+
+#: includes/class-admin-page.php:221
+msgid "No unused images found in your library."
+msgstr "Kütüphanenizde kullanılmayan görsel bulunamadı."
+
+#: includes/class-admin-page.php:222
+msgid "No unused images found."
+msgstr "Kullanılmayan görsel bulunamadı."
+
+#: includes/class-admin-page.php:223
+msgid "OPTIMIZED"
+msgstr "OPTİMİZE"
+
+#: includes/class-admin-page.php:224
+msgid "ORIGINAL"
+msgstr "ORİJİNAL"
+
+#: includes/class-admin-page.php:225
+#: includes/class-admin-page.php:1408
+#: includes/class-admin-page.php:1951
+msgid "Open Connectors"
+msgstr "Connectors'ı aç"
+
+#: includes/class-admin-page.php:226
+msgid "Please enter width and height."
+msgstr "Lütfen genişlik ve yükseklik girin."
+
+#: includes/class-admin-page.php:227
+#: includes/class-admin-page.php:358
+msgid "Quarantine All Unused"
+msgstr "Kullanılmayanların Tümünü Karantinaya Al"
+
+#: includes/class-admin-page.php:228
+msgid "Quarantine is empty."
+msgstr "Karantina boş."
+
+#: includes/class-admin-page.php:229
+msgid "Refreshing..."
+msgstr "Yenileniyor..."
+
+#: includes/class-admin-page.php:231
+msgid "Remove the WebP/AVIF copies? The original stays as it is."
+msgstr "WebP/AVIF kopyaları silinsin mi? Orijinal olduğu gibi kalır."
+
+#: includes/class-admin-page.php:232
+msgid "Removing..."
+msgstr "Kaldırılıyor..."
+
+#: includes/class-admin-page.php:233
+msgid "Rename failed."
+msgstr "Yeniden adlandırma başarısız."
+
+#: includes/class-admin-page.php:234
+msgid "Renaming..."
+msgstr "Yeniden adlandırılıyor..."
+
+#: includes/class-admin-page.php:236
+msgid "Resize failed: enter a size smaller than the current one."
+msgstr "Boyutlandırma başarısız: mevcut boyuttan küçük bir değer girin."
+
+#: includes/class-admin-page.php:237
+msgid "Resizing..."
+msgstr "Boyutlandırılıyor..."
+
+#: includes/class-admin-page.php:238
+#: includes/class-admin-page.php:825
+#: includes/class-admin-page.php:1900
+msgid "Restore"
+msgstr "Geri yükle"
+
+#: includes/class-admin-page.php:239
+msgid "Restore failed."
+msgstr "Geri yükleme başarısız."
+
+#: includes/class-admin-page.php:240
+msgid "Restoring..."
+msgstr "Geri yükleniyor..."
+
+#: includes/class-admin-page.php:243
+msgid "Saved!"
+msgstr "Kaydedildi!"
+
+#: includes/class-admin-page.php:244
+msgid "Saving..."
+msgstr "Kaydediliyor..."
+
+#: includes/class-admin-page.php:245
+msgid "Scanning posts..."
+msgstr "Yazılar taranıyor..."
+
+#: includes/class-admin-page.php:248
+msgid "Start background bulk conversion via WP-Cron? Safe to close this tab."
+msgstr "WP-Cron ile arka planda toplu dönüştürme başlatılsın mı? Bu sekmeyi kapatabilirsiniz."
+
+#: includes/class-admin-page.php:249
+msgid "Starting..."
+msgstr "Başlatılıyor..."
+
+#: includes/class-admin-page.php:250
+msgid "View Details"
+msgstr "Ayrıntıları Gör"
+
+#: includes/class-admin-page.php:252
+msgid "Writing..."
+msgstr "Yazılıyor..."
+
+#: includes/class-admin-page.php:285
+msgid "Average image SEO score"
+msgstr "Ortalama görsel SEO puanı"
+
+#: includes/class-admin-page.php:309
+msgid "Lighter for Visitors"
+msgstr "Ziyaretçiler için daha hafif"
+
+#: includes/class-admin-page.php:329
+msgid "Tools"
+msgstr "Araçlar"
+
+#: includes/class-admin-page.php:335
+msgid "Fix All Filenames"
+msgstr "Tüm Dosya Adlarını Düzelt"
+
+#: includes/class-admin-page.php:343
+msgid "AI Suggestions…"
+msgstr "AI Önerileri…"
+
+#: includes/class-admin-page.php:372
+msgid "Add New"
+msgstr "Yeni Ekle"
+
+#: includes/class-admin-page.php:390
+msgid "Building the usage index (where each image is used). Unused-image cleanup becomes available when it finishes."
+msgstr "Kullanım indeksi oluşturuluyor (her görselin nerede kullanıldığı). Kullanılmayan görsel temizliği tamamlanınca kullanılabilir."
+
+#: includes/class-admin-page.php:413
+#: includes/class-admin-page.php:1500
+msgid "Quarantine"
+msgstr "Karantina"
+
+#: includes/class-admin-page.php:417
+msgid "AI Suggestions"
+msgstr "AI Önerileri"
+
+#: includes/class-admin-page.php:423
+msgid "Show only images missing alt text"
+msgstr "Yalnızca alt metni eksik görselleri göster"
+
+#: includes/class-admin-page.php:425
+msgid "Missing Alt"
+msgstr "Alt Metin Eksik"
+
+#: includes/class-admin-page.php:427
+msgid "Card size"
+msgstr "Kart boyutu"
+
+#: includes/class-admin-page.php:428
+msgid "Small"
+msgstr "Küçük"
+
+#: includes/class-admin-page.php:429
+msgid "Medium"
+msgstr "Orta"
+
+#: includes/class-admin-page.php:430
+msgid "Large"
+msgstr "Büyük"
+
+#: includes/class-admin-page.php:453
+msgid "Images moved here are hidden from your site and media library, but nothing is deleted yet. Restore puts the files back exactly as they were."
+msgstr "Buraya taşınan görseller sitenizden ve medya kütüphanesinden gizlenir ama henüz hiçbir şey silinmez. Geri yükle, dosyaları olduğu gibi yerine koyar."
+
+#: includes/class-admin-page.php:461
+msgid "Suggestions are never saved automatically. Check each one against the image, edit if needed, then accept or dismiss it."
+msgstr "Öneriler hiçbir zaman otomatik kaydedilmez. Her birini görselle karşılaştırın, gerekirse düzenleyin, sonra kabul edin ya da kapatın."
+
+#: includes/class-admin-page.php:474
+msgid "Auto-loading was interrupted. Click to continue."
+msgstr "Otomatik yükleme yarıda kaldı. Devam etmek için tıklayın."
+
+#: includes/class-admin-page.php:487
+msgid "Selected images"
+msgstr "Seçili görseller"
+
+#: includes/class-admin-page.php:499
+msgid "Move unused images to Quarantine"
+msgstr "Kullanılmayan görselleri karantinaya al"
+
+#: includes/class-admin-page.php:501
+msgid "Every image that is not referenced anywhere on your site (posts, pages, page builders, custom fields, theme settings, widgets, categories) will be moved to Quarantine. Images whose file name still appears anywhere are skipped."
+msgstr "Sitenizde hiçbir yerde (yazılar, sayfalar, sayfa oluşturucular, özel alanlar, tema ayarları, bileşenler, kategoriler) referans verilmeyen her görsel karantinaya taşınır. Dosya adı hâlâ bir yerde geçen görseller atlanır."
+
+#: includes/class-admin-page.php:502
+msgid "Nothing is deleted."
+msgstr "Hiçbir şey silinmez."
+
+#: includes/class-admin-page.php:502
+msgid "If something looks wrong afterwards, restore the image from the Quarantine tab. Images used only by hard-coded theme files or external sites cannot be detected — check those before deleting permanently."
+msgstr "Sonrasında bir şey yanlış görünürse görseli Karantina sekmesinden geri yükleyin. Yalnızca temaya sabit kodlanmış ya da dış sitelerde kullanılan görseller tespit edilemez — kalıcı olarak silmeden önce bunları kontrol edin."
+
+#: includes/class-admin-page.php:561
+msgid "Select image"
+msgstr "Görseli seç"
+
+#: includes/class-admin-page.php:570
+#: includes/class-admin-page.php:710
+msgid "SEO score (0–100)"
+msgstr "SEO puanı (0–100)"
+
+#: includes/class-admin-page.php:663
+msgid "Missing image ID."
+msgstr "Görsel kimliği eksik."
+
+#: includes/class-admin-page.php:672
+msgid "Search engines read the file name. Use a few descriptive words separated by hyphens; camera names like IMG_1234 say nothing."
+msgstr "Arama motorları dosya adını okur. Tirelerle ayrılmış birkaç açıklayıcı kelime kullanın; IMG_1234 gibi kamera adları hiçbir şey söylemez."
+
+#: includes/class-admin-page.php:673
+msgid "Alt text is the most important image signal for Google and is read aloud by screen readers. Describe what the image shows in one natural sentence. Purely decorative images should be marked decorative instead."
+msgstr "Alt metin, Google için en önemli görsel sinyalidir ve ekran okuyucular tarafından sesli okunur. Görselin ne gösterdiğini doğal bir cümleyle anlatın. Yalnızca süs amaçlı görseller bunun yerine dekoratif olarak işaretlenmelidir."
+
+#: includes/class-admin-page.php:674
+msgid "The title appears in the media library and as a hover tooltip. Search engines do not use it for ranking."
+msgstr "Başlık medya kütüphanesinde ve fareyle üzerine gelince ipucu olarak görünür. Arama motorları sıralamada kullanmaz."
+
+#: includes/class-admin-page.php:675
+msgid "Oversized images slow down your site. Resize to the maximum width your theme needs (usually 1920px or less)."
+msgstr "Fazla büyük görseller sitenizi yavaşlatır. Temanızın ihtiyaç duyduğu en büyük genişliğe (genellikle 1920px ya da daha az) küçültün."
+
+#: includes/class-admin-page.php:676
+msgid "WebP and AVIF offer better compression than JPEG/PNG, making your site faster. The original stays untouched."
+msgstr "WebP ve AVIF, JPEG/PNG'den daha iyi sıkıştırır ve sitenizi hızlandırır. Orijinal dosyaya dokunulmaz."
+
+#: includes/class-admin-page.php:677
+msgid "Large images are the #1 cause of slow websites. Aim to keep images under 250 KB."
+msgstr "Yavaş sitelerin bir numaralı nedeni büyük görsellerdir. Görselleri 250 KB'ın altında tutmaya çalışın."
+
+#: includes/class-admin-page.php:678
+msgid "Images only count for search when they appear on a published page that search engines may index."
+msgstr "Görseller ancak arama motorlarının dizinleyebileceği yayımlanmış bir sayfada göründüklerinde aramada sayılır."
+
+#: includes/class-admin-page.php:762
+msgid "Where it is used"
+msgstr "Nerede kullanılıyor"
+
+#: includes/class-admin-page.php:764
+msgid "Not referenced anywhere on the site."
+msgstr "Sitede hiçbir yerde referans verilmiyor."
+
+#. translators: %d: number of further places
+#: includes/class-admin-page.php:780
+#, php-format
+msgid "…and %d more"
+msgstr "…ve %d tane daha"
+
+#: includes/class-admin-page.php:831
+msgid "Compare"
+msgstr "Karşılaştır"
+
+#. translators: %s: previous file name (without extension)
+#: includes/class-admin-page.php:862
+#, php-format
+msgid "Renamed from \"%s\"."
+msgstr "\"%s\" adından yeniden adlandırıldı."
+
+#: includes/class-admin-page.php:893
+msgid "not scored"
+msgstr "puana katılmaz"
+
+#. translators: 1: original width, 2: original height (pixels)
+#: includes/class-admin-page.php:925
+#, php-format
+msgid "Restore original size (%1$d×%2$d)"
+msgstr "Orijinal boyuta dön (%1$d×%2$d)"
+
+#: includes/class-admin-page.php:937
+msgid "Preview:"
+msgstr "Önizleme:"
+
+#: includes/class-admin-page.php:971
+msgid "Decorative image (adds nothing to the content, empty alt is correct)"
+msgstr "Dekoratif görsel (içeriğe bir şey katmıyor, boş alt metin doğru)"
+
+#. translators: %s: focus keyword from the SEO plugin
+#: includes/class-admin-page.php:977
+#, php-format
+msgid "Page focus keyword: \"%s\". Use it in the alt text only if it describes the image."
+msgstr "Sayfanın odak anahtar kelimesi: \"%s\". Alt metinde yalnızca görseli gerçekten tarif ediyorsa kullanın."
+
+#: includes/class-admin-page.php:1007
+#: includes/class-admin-page.php:1629
+msgid "Invalid ID."
+msgstr "Geçersiz kimlik."
+
+#: includes/class-admin-page.php:1024
+#: includes/class-admin-page.php:1164
+msgid "Missing ID."
+msgstr "Kimlik eksik."
+
+#: includes/class-admin-page.php:1035
+msgid "Animated GIF skipped: this server cannot keep the animation."
+msgstr "Hareketli GIF atlandı: bu sunucu animasyonu koruyamıyor."
+
+#: includes/class-admin-page.php:1036
+msgid "Image is already in a modern format."
+msgstr "Görsel zaten modern bir formatta."
+
+#: includes/class-admin-page.php:1041
+msgid "The original is already smaller than a WebP/AVIF copy would be — nothing to gain."
+msgstr "Orijinal, oluşacak WebP/AVIF kopyasından zaten küçük — kazanç yok."
+
+#: includes/class-admin-page.php:1093
+msgid "The usage index is still being built. Please try again in a moment."
+msgstr "Kullanım indeksi hâlâ oluşturuluyor. Lütfen biraz sonra tekrar deneyin."
+
+#: includes/class-admin-page.php:1319
+msgid "AVIF — Smallest files, slower to encode"
+msgstr "AVIF — En küçük dosyalar, kodlaması daha yavaş"
+
+#: includes/class-admin-page.php:1322
+msgid "AVIF + WebP — Browsers get the best format they support"
+msgstr "AVIF + WebP — Tarayıcılar destekledikleri en iyi formatı alır"
+
+#: includes/class-admin-page.php:1326
+msgid "Your original files are never changed — WebP/AVIF copies are created next to them and served to browsers that support them."
+msgstr "Orijinal dosyalarınız asla değiştirilmez — WebP/AVIF kopyaları yanlarında oluşturulur ve destekleyen tarayıcılara sunulur."
+
+#: includes/class-admin-page.php:1328
+msgid "AVIF is not available on this server."
+msgstr "Bu sunucuda AVIF kullanılamıyor."
+
+#: includes/class-admin-page.php:1331
+msgid "This server cannot create WebP files (GD or Imagick with WebP support is required)."
+msgstr "Bu sunucu WebP dosyası oluşturamıyor (WebP destekli GD ya da Imagick gerekir)."
+
+#: includes/class-admin-page.php:1360
+msgid "WebP only: pixel-identical copies. Larger than lossy; copies that end up bigger than the original are not kept."
+msgstr "Yalnızca WebP: piksel piksel aynı kopyalar. Kayıplı moddan büyüktür; orijinalden büyük çıkan kopyalar tutulmaz."
+
+#: includes/class-admin-page.php:1374
+msgid "Remove camera data and GPS location from new uploads. This rewrites the uploaded original once."
+msgstr "Yeni yüklemelerden kamera bilgisini ve GPS konumunu kaldırır. Bu, yüklenen orijinali bir kez yeniden yazar."
+
+#: includes/class-admin-page.php:1380
+msgid "Append Original Filename When Renaming"
+msgstr "Yeniden Adlandırırken Orijinal Adı Ekle"
+
+#: includes/class-admin-page.php:1381
+msgid "When you set a custom filename in the image detail panel, keep the original name as a suffix (e.g. \"istanbul\" becomes \"istanbul-img-1234\") to avoid collisions and preserve a reference to the source file."
+msgstr "Görsel detay panelinde özel bir dosya adı belirlediğinizde, çakışmaları önlemek ve kaynak dosyaya bir iz bırakmak için orijinal adı sona ekler (ör. \"istanbul\", \"istanbul-img-1234\" olur)."
+
+#: includes/class-admin-page.php:1387
+msgid "Image Sitemap"
+msgstr "Görsel Site Haritası"
+
+#: includes/class-admin-page.php:1391
+msgid "Your SEO plugin already lists images in its sitemap, so this is turned off."
+msgstr "SEO eklentiniz görselleri zaten kendi site haritasında listeliyor, bu yüzden bu özellik kapalı."
+
+#: includes/class-admin-page.php:1393
+msgid "Adds the images of every published page to the WordPress sitemap (wp-sitemap.xml) so Google Images can find them."
+msgstr "Yayımlanmış her sayfanın görsellerini WordPress site haritasına (wp-sitemap.xml) ekler; böylece Google Görseller onları bulabilir."
+
+#: includes/class-admin-page.php:1402
+msgid "AI Suggestions on Upload"
+msgstr "Yüklemede AI Önerisi"
+
+#: includes/class-admin-page.php:1411
+msgid "After an upload, send the image to your connected AI provider in the background and queue an alt text suggestion for review. Nothing is saved without your approval. Off by default because each image costs a few provider tokens."
+msgstr "Yüklemeden sonra görseli arka planda bağlı AI sağlayıcınıza gönderir ve incelemeniz için bir alt metin önerisi hazırlar. Onayınız olmadan hiçbir şey kaydedilmez. Her görsel birkaç sağlayıcı token'ı harcadığı için varsayılan olarak kapalıdır."
+
+#: includes/class-admin-page.php:1440
+msgid "Serve WebP/AVIF to Browsers"
+msgstr "WebP/AVIF'i Tarayıcılara Sun"
+
+#: includes/class-admin-page.php:1441
+msgid "Deliver the WebP/AVIF copies to browsers that support them; everyone else gets the original."
+msgstr "WebP/AVIF kopyalarını destekleyen tarayıcılara sunar; diğerleri orijinali alır."
+
+#: includes/class-admin-page.php:1448
+msgid "PHP &lt;picture&gt; (all servers)"
+msgstr "PHP &lt;picture&gt; (tüm sunucular)"
+
+#: includes/class-admin-page.php:1488
+msgid "Max Upload Size"
+msgstr "Azami Yükleme Boyutu"
+
+#: includes/class-admin-page.php:1493
+msgid "New uploads wider or taller than this get a scaled-down copy that WordPress uses everywhere (the full-size original is kept). WordPress default: 2560."
+msgstr "Bundan daha geniş ya da uzun yeni yüklemeler için WordPress'in her yerde kullandığı küçültülmüş bir kopya oluşturulur (tam boyutlu orijinal saklanır). WordPress varsayılanı: 2560."
+
+#: includes/class-admin-page.php:1504
+msgid "Delete quarantined images permanently after"
+msgstr "Karantinadaki görselleri şu süre sonra kalıcı olarak sil:"
+
+#: includes/class-admin-page.php:1508
+msgid "days (0 = never, delete manually)"
+msgstr "gün (0 = asla, elle silinir)"
+
+#: includes/class-admin-page.php:1515
+msgid "When the plugin is deleted"
+msgstr "Eklenti silindiğinde"
+
+#: includes/class-admin-page.php:1518
+msgid "Your original images always stay. Settings and plugin data are removed."
+msgstr "Orijinal görselleriniz her zaman kalır. Ayarlar ve eklenti verileri kaldırılır."
+
+#: includes/class-admin-page.php:1521
+msgid "WebP/AVIF copies"
+msgstr "WebP/AVIF kopyaları"
+
+#: includes/class-admin-page.php:1523
+msgid "Delete them (they are no longer served without the plugin)"
+msgstr "Silinsin (eklenti olmadan artık sunulmazlar)"
+
+#: includes/class-admin-page.php:1524
+msgid "Keep them (e.g. if your server or CDN serves them itself)"
+msgstr "Kalsın (ör. sunucunuz ya da CDN'iniz onları kendisi sunuyorsa)"
+
+#: includes/class-admin-page.php:1528
+msgid "Images in Quarantine"
+msgstr "Karantinadaki görseller"
+
+#: includes/class-admin-page.php:1530
+msgid "Put them back into the media library"
+msgstr "Medya kütüphanesine geri konsun"
+
+#: includes/class-admin-page.php:1531
+msgid "Delete them permanently"
+msgstr "Kalıcı olarak silinsin"
+
+#: includes/class-admin-page.php:1574
+msgid "All images already have WebP/AVIF copies."
+msgstr "Tüm görsellerin zaten WebP/AVIF kopyası var."
+
+#: includes/class-admin-page.php:1853
+msgid "Total Images"
+msgstr "Toplam Görsel"
+
+#: includes/class-admin-page.php:1861
+msgid "Saved"
+msgstr "Kazanç"
+
+#: includes/class-admin-page.php:1865
+msgid "Open Image Optimizer"
+msgstr "Image Optimizer'ı Aç"
+
+#. translators: %s: human-readable time difference, e.g. "3 days"
+#: includes/class-admin-page.php:1896
+#, php-format
+msgid "Quarantined %s ago"
+msgstr "%s önce karantinaya alındı"
+
+#: includes/class-admin-page.php:1898
+msgid "was in use"
+msgstr "kullanılıyordu"
+
+#: includes/class-admin-page.php:1901
+msgid "Delete permanently"
+msgstr "Kalıcı olarak sil"
+
+#: includes/class-admin-page.php:1943
+msgid "Set up AI suggestions"
+msgstr "AI önerilerini kurun"
+
+#: includes/class-admin-page.php:1947
+msgid "Open Settings > Connectors and install the provider (Anthropic, Google or OpenAI)."
+msgstr "Ayarlar > Connectors ekranını açın ve sağlayıcıyı (Anthropic, Google ya da OpenAI) kurun."
+
+#: includes/class-admin-page.php:1948
+msgid "Paste your own API key there. Erdo never stores it."
+msgstr "Kendi API anahtarınızı oraya yapıştırın. Erdo bu anahtarı asla saklamaz."
+
+#: includes/class-admin-page.php:1949
+msgid "Come back here: suggestions become available right away."
+msgstr "Buraya geri dönün: öneriler hemen kullanılabilir olur."
+
+#: includes/class-admin-page.php:1965
+msgid "Set up"
+msgstr "Kur"
+
+#: includes/class-admin-page.php:1972
+msgid "Suggest alt text, filename and title with AI"
+msgstr "AI ile alt metin, dosya adı ve başlık öner"
+
+#: includes/class-admin-page.php:1985
+msgid "Title"
+msgstr "Başlık"
+
+#: includes/class-admin-page.php:1986
+msgid "Caption"
+msgstr "Altyazı"
+
+#: includes/class-admin-page.php:1990
+msgid "AI suggestion — review before saving"
+msgstr "AI önerisi — kaydetmeden önce inceleyin"
+
+#: includes/class-admin-page.php:2005
+msgid "Decorative image: alt will be left empty on purpose."
+msgstr "Dekoratif görsel: alt metin bilerek boş bırakılacak."
+
+#: includes/class-admin-page.php:2012
+msgid "Accept selected"
+msgstr "Seçilenleri kabul et"
+
+#: includes/class-admin-page.php:2014
+msgid "Try again"
+msgstr "Tekrar dene"
+
+#: includes/class-admin-page.php:2121
+msgid "Erdo Image Optimizer 3.0 needs to repair some images."
+msgstr "Erdo Image Optimizer 3.0'ın bazı görselleri onarması gerekiyor."
+
+#. translators: %d: number of images
+#: includes/class-admin-page.php:2125
+#, php-format
+msgid "%d image was converted by an older version that replaced the original file. Pages that still link to the old file may show a broken image."
+msgid_plural "%d images were converted by an older version that replaced the original file. Pages that still link to the old files may show broken images."
+msgstr[0] "%d görsel, orijinal dosyayı değiştiren eski bir sürüm tarafından dönüştürülmüş. Hâlâ eski dosyaya bağlantı veren sayfalarda görsel kırık görünebilir."
+msgstr[1] "%d görsel, orijinal dosyayı değiştiren eski bir sürüm tarafından dönüştürülmüş. Hâlâ eski dosyalara bağlantı veren sayfalarda görseller kırık görünebilir."
+
+#: includes/class-admin-page.php:2134
+msgid "Until the repair runs, the plugin redirects those links on the fly so visitors see the image."
+msgstr "Onarım çalışana kadar eklenti bu bağlantıları anında yönlendirir, böylece ziyaretçiler görseli görür."
+
+#: includes/class-admin-page.php:2138
+msgid "Repair now"
+msgstr "Şimdi onar"
+
+#: includes/class-admin-page.php:2158
+msgid "Repaired:"
+msgstr "Onarılan:"
+
+#: includes/class-admin-page.php:2158
+msgid "remaining:"
+msgstr "kalan:"
+
+#: includes/class-admin-page.php:2186
+msgid "Erdo Image Optimizer 3.0: what changed"
+msgstr "Erdo Image Optimizer 3.0: neler değişti"
+
+#: includes/class-admin-page.php:2188
+msgid "Your original images are never modified or deleted any more. WebP/AVIF copies are saved next to them and served automatically."
+msgstr "Orijinal görselleriniz artık asla değiştirilmez ya da silinmez. WebP/AVIF kopyaları yanlarına kaydedilir ve otomatik olarak sunulur."
+
+#: includes/class-admin-page.php:2189
+msgid "\"Delete\" now moves images to a Quarantine you can restore from, and unused-image detection uses a full index of where every image is used."
+msgstr "\"Sil\" artık görselleri geri yükleyebileceğiniz bir Karantinaya taşır; kullanılmayan görsel tespiti, her görselin nerede kullanıldığını tutan tam bir indekse dayanır."
+
+#: includes/class-admin-page.php:2190
+msgid "New: 0–100 image SEO score, safe renaming with redirects, image sitemap and optional AI suggestions with your own provider key."
+msgstr "Yeni: 0–100 görsel SEO puanı, yönlendirmeli güvenli yeniden adlandırma, görsel site haritası ve kendi sağlayıcı anahtarınızla isteğe bağlı AI önerileri."
+
+#: includes/class-admin-page.php:2192
+msgid "SVG uploads were removed. If you still need them, install a dedicated plugin such as Safe SVG."
+msgstr "SVG yükleme kaldırıldı. Hâlâ ihtiyacınız varsa Safe SVG gibi buna özel bir eklenti kurun."
+
+#: includes/class-admin-page.php:2195
+msgid "The BunnyCDN upload was removed. Use a BunnyCDN pull zone (or your CDN plugin) instead: it picks up the WebP/AVIF copies on its own."
+msgstr "BunnyCDN'e yükleme kaldırıldı. Bunun yerine bir BunnyCDN pull zone'u (ya da CDN eklentinizi) kullanın: WebP/AVIF kopyalarını kendiliğinden alır."
+
+#: includes/class-admin-page.php:2197
+msgid "Lazy loading and resizing on upload are now left to WordPress itself, which handles them better (including the largest image above the fold)."
+msgstr "Tembel yükleme (lazy loading) ve yüklemede boyutlandırma artık WordPress'in kendisine bırakıldı; WordPress bunları (ekranın üstündeki en büyük görsel dahil) daha iyi yönetiyor."
+
+#: includes/class-ai.php:43
+msgid "AI suggestions need WordPress 7.0 or newer."
+msgstr "AI önerileri için WordPress 7.0 ya da daha yenisi gerekir."
+
+#: includes/class-ai.php:45
+msgid "AI features are turned off on this site."
+msgstr "Bu sitede AI özellikleri kapalı."
+
+#: includes/class-ai.php:60
+msgid "Connect an AI provider that can read images (Anthropic, Google or OpenAI) under Settings > Connectors."
+msgstr "Ayarlar > Connectors altında görsel okuyabilen bir AI sağlayıcısı (Anthropic, Google ya da OpenAI) bağlayın."
+
+#: includes/class-ai.php:92
+msgid "Not an image."
+msgstr "Görsel değil."
+
+#: includes/class-ai.php:172
+msgid "The AI provider is busy (rate limit). Waiting and retrying…"
+msgstr "AI sağlayıcısı yoğun (istek sınırı). Bekleniyor ve yeniden deneniyor…"
+
+#: includes/class-ai.php:235
+msgid "The AI answer could not be read. Please try again."
+msgstr "AI yanıtı okunamadı. Lütfen tekrar deneyin."
+
+#: includes/class-ai.php:240
+msgid "The AI answer had no alt text. Please try again."
+msgstr "AI yanıtında alt metin yoktu. Lütfen tekrar deneyin."
+
+#: includes/class-ai.php:271
+#: includes/class-renamer.php:92
+msgid "File not found."
+msgstr "Dosya bulunamadı."
+
+#: includes/class-ai.php:301
+msgid "This image format cannot be read on this server."
+msgstr "Bu görsel formatı bu sunucuda okunamıyor."
+
+#: includes/class-ai.php:415
+msgid "There is no suggestion for this image."
+msgstr "Bu görsel için öneri yok."
+
+#: includes/class-auditor.php:333
+msgid "A WebP/AVIF version is served to browsers that support it."
+msgstr "Destekleyen tarayıcılara WebP/AVIF sürümü sunuluyor."
+
+#. translators: %s: mevcut format (JPG, PNG vb.).
+#: includes/class-auditor.php:336
+#, php-format
+msgid "Current format is %s. Create a WebP or AVIF version for faster loading."
+msgstr "Mevcut format: %s. Daha hızlı yükleme için WebP ya da AVIF sürümü oluşturun."
+
+#. translators: 1: mevcut genişlik, 2: mevcut yükseklik, 3: maksimum izin verilen boyut (piksel).
+#: includes/class-auditor.php:374
+#, php-format
+msgid "Image is too large (%1$d×%2$dpx, max recommended %3$dpx). Resize to improve load time."
+msgstr "Görsel çok büyük (%1$d×%2$dpx, önerilen en fazla %3$dpx). Yükleme süresini iyileştirmek için küçültün."
+
+#: includes/class-auditor.php:379
+msgid "Dimensions are within the recommended size."
+msgstr "Boyutlar önerilen sınırlar içinde."
+
+#: includes/class-auditor.php:385
+msgid "Not used anywhere on the site, so search engines never see it."
+msgstr "Sitede hiçbir yerde kullanılmıyor, bu yüzden arama motorları onu hiç görmüyor."
+
+#: includes/class-auditor.php:387
+msgid "Only used where search engines do not look (drafts, private or noindex pages, CSS backgrounds)."
+msgstr "Yalnızca arama motorlarının bakmadığı yerlerde kullanılıyor (taslaklar, özel ya da noindex sayfalar, CSS arka planları)."
+
+#: includes/class-auditor.php:389
+msgid "Used on a page search engines can index."
+msgstr "Arama motorlarının dizinleyebileceği bir sayfada kullanılıyor."
+
+#: includes/class-auditor.php:393
+msgid "Usage"
+msgstr "Kullanım"
+
+#: includes/class-auditor.php:405
+msgid "Shown in the media library and as a tooltip. Not used for ranking, so it does not affect the score."
+msgstr "Medya kütüphanesinde ve ipucu olarak görünür. Sıralamada kullanılmadığı için puanı etkilemez."
+
+#: includes/class-auditor.php:580
+msgid "There is no original to restore."
+msgstr "Geri yüklenecek orijinal yok."
+
+#: includes/class-auditor.php:583
+msgid "Could not restore the original file."
+msgstr "Orijinal dosya geri yüklenemedi."
+
+#: includes/class-converter.php:146
+msgid "This server cannot encode WebP or AVIF."
+msgstr "Bu sunucu WebP ya da AVIF kodlayamıyor."
+
+#: includes/class-converter.php:151
+msgid "Image file not found."
+msgstr "Görsel dosyası bulunamadı."
+
+#: includes/class-encoder.php:140
+msgid "Source image could not be read."
+msgstr "Kaynak görsel okunamadı."
+
+#. translators: %s: image format (WEBP or AVIF)
+#: includes/class-encoder.php:147
+#, php-format
+msgid "Animated GIF skipped: this server cannot write animated %s."
+msgstr "Hareketli GIF atlandı: bu sunucu hareketli %s yazamıyor."
+
+#: includes/class-encoder.php:165
+msgid "Encoder produced no output."
+msgstr "Kodlayıcı çıktı üretmedi."
+
+#. translators: %s: image format
+#: includes/class-encoder.php:172
+#, php-format
+msgid "Encoder output is not valid %s."
+msgstr "Kodlayıcı çıktısı geçerli bir %s değil."
+
+#. translators: %s: file name
+#: includes/class-encoder.php:178
+#, php-format
+msgid "Could not write %s"
+msgstr "%s yazılamadı"
+
+#. translators: %s: MIME type
+#: includes/class-encoder.php:215
+#, php-format
+msgid "Unsupported source type %s"
+msgstr "Desteklenmeyen kaynak türü: %s"
+
+#: includes/class-encoder.php:219
+msgid "Source image could not be decoded."
+msgstr "Kaynak görsel çözümlenemedi."
+
+#: includes/class-encoder.php:234
+msgid "GD could not encode the image."
+msgstr "GD görseli kodlayamadı."
+
+#: includes/class-encoder.php:268
+msgid "Imagick could not encode the image."
+msgstr "Imagick görseli kodlayamadı."
+
+#: includes/class-migration.php:188
+msgid "The backup file is missing or outside the uploads folder."
+msgstr "Yedek dosya eksik ya da uploads klasörünün dışında."
+
+#: includes/class-migration.php:196
+msgid "Could not copy the backup back into place."
+msgstr "Yedek yerine kopyalanamadı."
+
+#: includes/class-migration.php:229
+msgid "Converted file is missing."
+msgstr "Dönüştürülmüş dosya eksik."
+
+#: includes/class-quarantine.php:30
+msgctxt "post status"
+msgid "Quarantine"
+msgstr "Karantina"
+
+#: includes/class-quarantine.php:59
+msgid "Not an image attachment."
+msgstr "Görsel eki değil."
+
+#: includes/class-quarantine.php:62
+msgid "Already in quarantine."
+msgstr "Zaten karantinada."
+
+#: includes/class-quarantine.php:69
+msgid "The usage index is still being built. Bulk cleanup is available once it has finished."
+msgstr "Kullanım indeksi hâlâ oluşturuluyor. Toplu temizlik tamamlanınca kullanılabilir."
+
+#: includes/class-quarantine.php:72
+msgid "This image is used on the site."
+msgstr "Bu görsel sitede kullanılıyor."
+
+#: includes/class-quarantine.php:75
+msgid "The file name appears somewhere on the site, so the image may still be in use."
+msgstr "Dosya adı sitede bir yerde geçiyor, bu yüzden görsel hâlâ kullanılıyor olabilir."
+
+#: includes/class-quarantine.php:80
+msgid "Could not create the quarantine folder."
+msgstr "Karantina klasörü oluşturulamadı."
+
+#. translators: %s: file name
+#: includes/class-quarantine.php:91
+#, php-format
+msgid "Could not move %s."
+msgstr "%s taşınamadı."
+
+#: includes/class-quarantine.php:115
+#: includes/class-quarantine.php:150
+msgid "This image is not in quarantine."
+msgstr "Bu görsel karantinada değil."
+
+#. translators: %s: comma-separated file names
+#: includes/class-quarantine.php:132
+#, php-format
+msgid "Could not restore: %s"
+msgstr "Geri yüklenemedi: %s"
+
+#: includes/class-quarantine.php:161
+msgid "Delete failed."
+msgstr "Silme başarısız."
+
+#: includes/class-renamer.php:85
+msgid "Attachment not found."
+msgstr "Ek bulunamadı."
+
+#: includes/class-renamer.php:88
+msgid "Restore the image from quarantine before renaming it."
+msgstr "Yeniden adlandırmadan önce görseli karantinadan geri yükleyin."
+
+#: includes/class-renamer.php:95
+msgid "Only files inside the uploads folder can be renamed."
+msgstr "Yalnızca uploads klasöründeki dosyalar yeniden adlandırılabilir."
+
+#: includes/class-renamer.php:104
+msgid "The new filename is empty after removing unsupported characters."
+msgstr "Desteklenmeyen karakterler çıkarılınca yeni dosya adı boş kalıyor."
+
+#: includes/class-renamer.php:111
+msgid "Filename already clean."
+msgstr "Dosya adı zaten temiz."
+
+#: includes/class-renamer.php:128
+msgid "Could not find a free filename."
+msgstr "Boş bir dosya adı bulunamadı."
+
+#: includes/class-renamer.php:238
+msgid "Could not rename the file on disk."
+msgstr "Dosya diskte yeniden adlandırılamadı."
+
+#: includes/class-renamer.php:431
+#: includes/class-renamer.php:449
+msgid "Nothing to undo."
+msgstr "Geri alınacak bir şey yok."
+
+#: includes/class-seo.php:93
+msgid "This is a camera-style or generic name (IMG_1234, Screenshot, WhatsApp Image…). Rename it to describe what the image shows."
+msgstr "Bu, kamera tarzı ya da genel bir ad (IMG_1234, Screenshot, WhatsApp Image…). Görselin ne gösterdiğini anlatacak şekilde yeniden adlandırın."
+
+#: includes/class-seo.php:96
+msgid "Filename contains underscores or spaces. Use hyphens between words."
+msgstr "Dosya adında alt çizgi ya da boşluk var. Kelimeler arasında tire kullanın."
+
+#: includes/class-seo.php:99
+msgid "Filename is very long. A few descriptive words are enough."
+msgstr "Dosya adı çok uzun. Birkaç açıklayıcı kelime yeterli."
+
+#: includes/class-seo.php:101
+msgid "Descriptive, hyphenated filename."
+msgstr "Açıklayıcı, tireli dosya adı."
+
+#: includes/class-seo.php:115
+msgid "Marked as decorative: an empty alt is correct, screen readers skip it."
+msgstr "Dekoratif olarak işaretli: boş alt metin doğru, ekran okuyucular atlar."
+
+#: includes/class-seo.php:117
+msgid "Alt text is missing. Describe the image for search engines and screen readers, or mark it as decorative."
+msgstr "Alt metin eksik. Görseli arama motorları ve ekran okuyucular için tarif edin ya da dekoratif olarak işaretleyin."
+
+#: includes/class-seo.php:123
+msgid "Alt text just repeats a camera-style filename. Describe what the image shows."
+msgstr "Alt metin yalnızca kamera tarzı bir dosya adını tekrarlıyor. Görselin ne gösterdiğini anlatın."
+
+#: includes/class-seo.php:126
+msgid "Alt text looks like a filename. Write it as a short sentence."
+msgstr "Alt metin dosya adına benziyor. Kısa bir cümle olarak yazın."
+
+#: includes/class-seo.php:131
+msgid "Skip phrases like \"image of\" or \"picture of\": screen readers already announce it is an image."
+msgstr "\"Görseli\", \"resmi\" gibi ifadeleri kullanmayın: ekran okuyucular bunun bir görsel olduğunu zaten söyler."
+
+#: includes/class-seo.php:134
+msgid "Alt text looks like a keyword list. Google treats this as spam; describe the image in one natural sentence."
+msgstr "Alt metin bir anahtar kelime listesine benziyor. Google bunu spam sayar; görseli doğal bir cümleyle tarif edin."
+
+#: includes/class-seo.php:137
+msgid "Alt text is very long. Keep it under about 125 characters; put longer descriptions in the caption."
+msgstr "Alt metin çok uzun. Yaklaşık 125 karakterin altında tutun; uzun açıklamaları altyazıya yazın."
+
+#: includes/class-seo.php:140
+msgid "Alt text only repeats the filename. A short description of what is shown works better."
+msgstr "Alt metin yalnızca dosya adını tekrarlıyor. Görünenin kısa bir tarifi daha iyi sonuç verir."
+
+#: includes/class-seo.php:143
+msgid "Alt text is a single word. Fine for logos and icons; photos usually need a short description."
+msgstr "Alt metin tek kelime. Logo ve simgeler için yeterli; fotoğraflar genellikle kısa bir tarif ister."
+
+#: includes/class-seo.php:145
+msgid "Descriptive alt text."
+msgstr "Açıklayıcı alt metin."
+
+#: includes/class-usage.php:780
+msgid "content"
+msgstr "içerik"
+
+#: includes/class-usage.php:781
+msgid "featured image"
+msgstr "öne çıkan görsel"
+
+#: includes/class-usage.php:782
+msgid "gallery"
+msgstr "galeri"
+
+#: includes/class-usage.php:800
+msgid "Term"
+msgstr "Terim"
+
+#: includes/class-usage.php:805
+msgid "Site icon"
+msgstr "Site simgesi"
+
+#: includes/class-usage.php:806
+msgid "Site logo"
+msgstr "Site logosu"
+
+#: includes/class-usage.php:814
+msgid "Theme settings (logo, header, background)"
+msgstr "Tema ayarları (logo, başlık, arka plan)"
+
+#: includes/class-usage.php:814
+msgid "Setting"
+msgstr "Ayar"

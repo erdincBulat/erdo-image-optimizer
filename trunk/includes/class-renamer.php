@@ -91,8 +91,7 @@ class ERDO_Renamer {
         if ( ! $file || ! file_exists( $file ) ) {
             return new WP_Error( 'not_found', __( 'File not found.', 'erdo-image-optimizer' ) );
         }
-        $base_dir = wp_normalize_path( trailingslashit( wp_upload_dir()['basedir'] ) );
-        if ( 0 !== strpos( wp_normalize_path( $file ), $base_dir ) ) {
+        if ( ! ERDO_References::in_uploads( $file ) ) {
             return new WP_Error( 'outside_uploads', __( 'Only files inside the uploads folder can be renamed.', 'erdo-image-optimizer' ) );
         }
 

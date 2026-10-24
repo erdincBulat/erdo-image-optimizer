@@ -1,7 +1,7 @@
 === Erdo Image Optimizer: Compress & Convert to WebP/AVIF (SEO Audit, Alt Text, Lazy Load) ===
 Contributors: erdincbulat
 Tags: image optimizer, webp, avif, image compression, alt text
-Requires at least: 5.8
+Requires at least: 6.5
 Tested up to: 7.1
 Stable tag: 2.2.2
 License: GPLv2 or later
