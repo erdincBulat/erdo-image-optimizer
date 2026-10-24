@@ -31,6 +31,11 @@ for ( $i = 0; $i < $n; $i += 2 ) {
 wp_defer_term_counting( false );
 ET::info( sprintf( 'built %d images + %d posts in %.1fs', $n, (int) ceil( $n / 2 ), microtime( true ) - $t0 ) );
 
+$t0 = microtime( true );
+et_index_rebuild();
+$build = microtime( true ) - $t0;
+ET::info( sprintf( 'full usage-index build: %.2fs', $build ) );
+
 $t0   = microtime( true );
 $used = et_bulk_used( $ids );
 $cold = microtime( true ) - $t0;
@@ -55,6 +60,10 @@ et_test( 'usage verdicts are correct at scale (even = used, odd = unused)', func
 
 et_test( 'cold full-library scan under 10 ms/image', function () use ( $cold, $n ) {
     et_assert( 1000 * $cold / $n < 10, sprintf( '%.1f ms/image', 1000 * $cold / $n ) );
+}, 'F3' );
+
+et_test( 'full index build under 10 ms per image', function () use ( $build, $n ) {
+    et_assert( 1000 * $build / $n < 10, sprintf( '%.1f ms/image', 1000 * $build / $n ) );
 }, 'F3' );
 
 et_test( 'warm 100-image grid page under 300 ms', function () use ( $warm ) {

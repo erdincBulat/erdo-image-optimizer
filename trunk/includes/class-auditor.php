@@ -176,6 +176,10 @@ class ERDO_Auditor {
             return array();
         }
 
+        // Bekleyen indeks güncellemeleri etkilenen görsellerin audit cache'ini
+        // temizler — önce bunlar işlenmeli, yoksa aşağıda bayat cache okunur.
+        ERDO_Usage::flush();
+
         $ids_str      = implode( ',', array_map( 'intval', $attachment_ids ) );
         $count        = count( $attachment_ids );
         $placeholders = implode( ',', array_fill( 0, $count, '%d' ) );
@@ -260,8 +264,9 @@ class ERDO_Auditor {
             return $results;
         }
 
-        // 5. Sadece cache'siz görseller için usage kontrolü çalıştır
-        $usage_results = self::bulk_check_usage( $uncached_ids );
+        // 5. Sadece cache'siz görseller için usage kontrolü — indeks hazırsa tek sorgu,
+        //    değilse (ilk kurulum sürerken) eski LIKE taraması.
+        $usage_results = ERDO_Usage::is_ready() ? ERDO_Usage::bulk_used( $uncached_ids ) : self::bulk_check_usage( $uncached_ids );
 
         // 6. Cache'siz görselleri analiz et
         foreach ( $uncached_ids as $post_id ) {

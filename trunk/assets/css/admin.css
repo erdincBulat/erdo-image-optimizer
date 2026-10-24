@@ -1684,3 +1684,20 @@
     .erdo-tabs { gap: 4px; }
     .tab-btn { padding: 8px 12px; font-size: 12px; }
 }
+
+/* ------------------------------------------------------------------
+   3.0 — Kullanım haritası, karantina, indeks bildirimi
+------------------------------------------------------------------ */
+
+.erdo-usage-map { margin: 10px 0 12px; padding: 10px 12px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 6px; font-size: 12px; }
+.erdo-usage-map h4 { margin: 0 0 6px; font-size: 12px; color: #0f172a; }
+.erdo-usage-map ul { margin: 0; padding-left: 16px; list-style: disc; }
+.erdo-usage-map li { margin: 2px 0; line-height: 1.4; word-break: break-word; }
+.erdo-usage-none { margin: 0; color: #b45309; }
+
+.erdo-quarantine-help { margin: 0 0 12px; color: #475569; font-size: 13px; }
+.erdo-q-card { cursor: default; }
+.erdo-q-thumb { display: flex; align-items: center; justify-content: center; background: #f1f5f9; }
+.erdo-q-thumb .dashicons { font-size: 32px; width: 32px; height: 32px; color: #94a3b8; }
+.erdo-q-meta { padding: 0 10px; font-size: 11px; color: #64748b; }
+.erdo-q-actions { display: flex; gap: 6px; padding: 8px 10px 10px; flex-wrap: wrap; }

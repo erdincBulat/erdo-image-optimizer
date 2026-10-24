@@ -67,6 +67,9 @@ jQuery(document).ready(function($) {
         if ( target === 'tab-gray' ) {
             $('#erdo-bulk-webp-btn').addClass('hidden');
             $('#erdo-bulk-delete-btn').removeClass('hidden');
+        } else if ( target === 'tab-quarantine' ) {
+            $('#erdo-bulk-webp-btn, #erdo-bulk-delete-btn').addClass('hidden');
+            loadQuarantine();
         } else {
             $('#erdo-bulk-webp-btn').removeClass('hidden');
             $('#erdo-bulk-delete-btn').addClass('hidden');
@@ -389,14 +392,76 @@ jQuery(document).ready(function($) {
        DELETE IMAGE
     ------------------------------------------------------- */
     $(document).on('click', '.erdo-delete-btn', function() {
-        if ( ! confirm('Permanently delete this image? This cannot be undone.') ) return;
+        if ( ! confirm('Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab.') ) return;
         var id = $(this).data('id');
         $.post(
             erdo_vars.ajax_url,
             { action: 'erdo_delete_image', id: id, nonce: erdo_vars.nonce },
-            function() { clearGridCache(); location.reload(); }
+            function( res ) {
+                if ( res && res.success && res.data.in_use ) {
+                    alert('Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken.');
+                }
+                clearGridCache(); location.reload();
+            }
         );
     });
+
+    /* -------------------------------------------------------
+       QUARANTINE TAB
+    ------------------------------------------------------- */
+    function loadQuarantine() {
+        var $grid = $('#erdo-quarantine-grid');
+        $grid.html('<p style="padding:20px;">Loading...</p>');
+        $.post(erdo_vars.ajax_url, { action: 'erdo_quarantine_list', nonce: erdo_vars.nonce }, function( res ) {
+            if ( ! res || ! res.success ) { $grid.html(''); return; }
+            $('#count-quarantine').text( res.data.count );
+            $grid.html( res.data.html || '<p style="padding:20px;">Quarantine is empty.</p>' );
+        });
+    }
+
+    $(document).on('click', '.erdo-q-restore, .erdo-q-purge', function( e ) {
+        e.stopPropagation();
+        var purge = $(this).hasClass('erdo-q-purge');
+        if ( purge && ! confirm('Delete this image and all its files permanently? This cannot be undone.') ) return;
+        var $btn = $(this).prop('disabled', true);
+        $.post(erdo_vars.ajax_url, {
+            action: purge ? 'erdo_quarantine_purge' : 'erdo_quarantine_restore',
+            id: $btn.data('id'),
+            nonce: erdo_vars.nonce
+        }, function( res ) {
+            if ( ! res || ! res.success ) {
+                alert( ( res && res.data && res.data.message ) || 'Failed.' );
+                $btn.prop('disabled', false);
+                return;
+            }
+            clearGridCache();
+            loadQuarantine();
+            loadImages(true);
+        });
+    });
+
+    /* -------------------------------------------------------
+       USAGE INDEX BUILD (first run / after upgrade)
+    ------------------------------------------------------- */
+    (function buildIndex() {
+        var $notice = $('#erdo-index-notice');
+        if ( ! $notice.length || $notice.data('status') === 'ready' ) return;
+        function step() {
+            $.post(erdo_vars.ajax_url, { action: 'erdo_usage_build_step', nonce: erdo_vars.nonce }, function( res ) {
+                if ( ! res || ! res.success ) { setTimeout(step, 5000); return; }
+                var d = res.data;
+                if ( d.status === 'ready' ) {
+                    $notice.addClass('hidden').data('status', 'ready');
+                    clearGridCache();
+                    loadImages(true);
+                    return;
+                }
+                $('#erdo-index-text').text('Building the usage index: ' + d.done + ' / ' + d.total + ' posts scanned. Unused-image cleanup becomes available when it finishes.');
+                step();
+            }).fail(function() { setTimeout(step, 5000); });
+        }
+        step();
+    })();
 
     /* -------------------------------------------------------
        MAGIC FILL BUTTONS
@@ -677,7 +742,7 @@ jQuery(document).ready(function($) {
     $('#erdo-bulk-delete-btn').on('click', function() {
         $('#erdo-safety-modal-overlay').removeClass('hidden');
         $('#erdo-safety-input').val('').trigger('focus');
-        $('#erdo-safety-confirm-btn').prop('disabled', true);
+        $('#erdo-safety-confirm-btn').prop('disabled', false);
     });
 
     $('#erdo-safety-cancel-btn').on('click', function() {
@@ -696,11 +761,15 @@ jQuery(document).ready(function($) {
             erdo_vars.ajax_url,
             { action: 'erdo_get_unused_list', nonce: erdo_vars.nonce },
             function(res) {
-                if ( res.success && res.data.length > 0 ) {
-                    runBulkProcess(res.data, 'erdo_delete_image', btn);
+                if ( ! res.success ) {
+                    alert( ( res.data && res.data.message ) || 'Could not list unused images.' );
+                    btn.prop('disabled', false).text('Quarantine All Unused');
+                } else if ( res.data.length > 0 ) {
+                    // Sunucu her görseli yeniden denetler (indeks + dosya adı); kullanımda olabilecekler atlanır.
+                    runBulkProcess(res.data, 'erdo_quarantine_unused', btn);
                 } else {
                     alert('No unused images found.');
-                    btn.prop('disabled', false).text('Delete All Unused');
+                    btn.prop('disabled', false).text('Quarantine All Unused');
                 }
             }
         );
@@ -1017,7 +1086,7 @@ jQuery(document).ready(function($) {
         }
         html += '<button class="erdo-ctx-item" data-action="rename" data-id="' + id + '"><span class="dashicons dashicons-tag"></span> Fix Filename</button>';
         html += '<div class="erdo-ctx-sep"></div>';
-        html += '<button class="erdo-ctx-item erdo-ctx-danger" data-action="delete" data-id="' + id + '"><span class="dashicons dashicons-trash"></span> Delete</button>';
+        html += '<button class="erdo-ctx-item erdo-ctx-danger" data-action="delete" data-id="' + id + '"><span class="dashicons dashicons-archive"></span> Move to Quarantine</button>';
         html += '</div>';
 
         $ctxMenu = $(html);
@@ -1057,7 +1126,7 @@ jQuery(document).ready(function($) {
                 });
 
         } else if ( 'delete' === action ) {
-            if ( ! confirm('Permanently delete this image?') ) return;
+            if ( ! confirm('Move this image to Quarantine? You can restore it later.') ) return;
             $.post(erdo_vars.ajax_url, { action: 'erdo_delete_image', id: id, nonce: erdo_vars.nonce },
                 function() { clearGridCache(); location.reload(); });
         }

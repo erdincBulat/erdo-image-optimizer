@@ -34,6 +34,11 @@ class ERDO_Admin_Page {
         add_action( 'wp_ajax_erdo_cdn_upload',        array( $this, 'ajax_cdn_upload' ) );
         add_action( 'wp_ajax_erdo_migrate_scan',      array( $this, 'ajax_migrate_scan' ) );
         add_action( 'wp_ajax_erdo_migrate_step',      array( $this, 'ajax_migrate_step' ) );
+        add_action( 'wp_ajax_erdo_quarantine_unused', array( $this, 'ajax_quarantine_unused' ) );
+        add_action( 'wp_ajax_erdo_quarantine_list',   array( $this, 'ajax_quarantine_list' ) );
+        add_action( 'wp_ajax_erdo_quarantine_restore', array( $this, 'ajax_quarantine_restore' ) );
+        add_action( 'wp_ajax_erdo_quarantine_purge',  array( $this, 'ajax_quarantine_purge' ) );
+        add_action( 'wp_ajax_erdo_usage_build_step',  array( $this, 'ajax_usage_build_step' ) );
         add_action( 'admin_notices',                  array( $this, 'migration_notice' ) );
 
         add_action( 'wp_dashboard_setup', array( $this, 'register_dashboard_widget' ) );
@@ -185,8 +190,8 @@ class ERDO_Admin_Page {
                         </div>
                     </div>
                     <button id="erdo-bulk-delete-btn" class="button button-link-delete hidden">
-                        <span class="dashicons dashicons-trash"></span>
-                        <?php esc_html_e( 'Delete All Unused', 'erdo-image-optimizer' ); ?>
+                        <span class="dashicons dashicons-archive"></span>
+                        <?php esc_html_e( 'Quarantine All Unused', 'erdo-image-optimizer' ); ?>
                     </button>
                     <button id="erdo-bulk-webp-btn" class="button button-secondary">
                         <span class="dashicons dashicons-update"></span>
@@ -213,6 +218,15 @@ class ERDO_Admin_Page {
                 <div class="erdo-progress-bar"><div id="erdo-progress-fill"></div></div>
             </div>
 
+            <?php $usage_state = ERDO_Usage::state(); ?>
+            <div class="erdo-batch-notice<?php echo 'ready' === $usage_state['status'] ? ' hidden' : ''; ?>" id="erdo-index-notice"
+                 data-status="<?php echo esc_attr( $usage_state['status'] ); ?>">
+                <span class="dashicons dashicons-update erdo-spin"></span>
+                <span id="erdo-index-text">
+                    <?php esc_html_e( 'Building the usage index (where each image is used). Unused-image cleanup becomes available when it finishes.', 'erdo-image-optimizer' ); ?>
+                </span>
+            </div>
+
             <div class="erdo-tabs-container">
                 <div class="erdo-tabs">
                     <button class="tab-btn btn-red active" data-target="tab-red">
@@ -230,6 +244,10 @@ class ERDO_Admin_Page {
                     <button class="tab-btn btn-gray" data-target="tab-gray">
                         <?php esc_html_e( 'Unused', 'erdo-image-optimizer' ); ?>
                         <span class="count-badge" id="count-gray">0</span>
+                    </button>
+                    <button class="tab-btn btn-gray" data-target="tab-quarantine" id="erdo-quarantine-tab">
+                        <?php esc_html_e( 'Quarantine', 'erdo-image-optimizer' ); ?>
+                        <span class="count-badge" id="count-quarantine"><?php echo esc_html( count( ERDO_Quarantine::ids() ) ); ?></span>
                     </button>
                 </div>
                 <div class="erdo-tab-actions">
@@ -262,6 +280,12 @@ class ERDO_Admin_Page {
                 <div id="tab-orange" class="erdo-content"><div class="erdo-grid"></div></div>
                 <div id="tab-green"  class="erdo-content"><div class="erdo-grid"></div></div>
                 <div id="tab-gray"   class="erdo-content"><div class="erdo-grid"></div></div>
+                <div id="tab-quarantine" class="erdo-content">
+                    <p class="erdo-quarantine-help">
+                        <?php esc_html_e( 'Images moved here are hidden from your site and media library, but nothing is deleted yet. Restore puts the files back exactly as they were.', 'erdo-image-optimizer' ); ?>
+                    </p>
+                    <div class="erdo-grid" id="erdo-quarantine-grid"></div>
+                </div>
             </div>
 
             <div class="erdo-load-more-wrap hidden" id="erdo-load-more-wrap">
@@ -285,16 +309,13 @@ class ERDO_Admin_Page {
         <div id="erdo-safety-modal-overlay" class="hidden">
             <div class="erdo-safety-box">
                 <span class="dashicons dashicons-warning erdo-safety-icon"></span>
-                <h2 class="erdo-safety-title"><?php esc_html_e( 'Danger Zone', 'erdo-image-optimizer' ); ?></h2>
+                <h2 class="erdo-safety-title"><?php esc_html_e( 'Move unused images to Quarantine', 'erdo-image-optimizer' ); ?></h2>
                 <div class="erdo-safety-desc">
-                    <p><strong><?php esc_html_e( 'This action is irreversible!', 'erdo-image-optimizer' ); ?></strong></p>
-                    <p><?php esc_html_e( 'You are about to permanently delete ALL images detected as "Unused". Some images may still be used by custom code or hardcoded links that our scanner cannot detect.', 'erdo-image-optimizer' ); ?></p>
-                    <p><?php esc_html_e( 'We strongly recommend backing up your site before proceeding.', 'erdo-image-optimizer' ); ?></p>
+                    <p><?php esc_html_e( 'Every image that is not referenced anywhere on your site (posts, pages, page builders, custom fields, theme settings, widgets, categories) will be moved to Quarantine. Images whose file name still appears anywhere are skipped.', 'erdo-image-optimizer' ); ?></p>
+                    <p><strong><?php esc_html_e( 'Nothing is deleted.', 'erdo-image-optimizer' ); ?></strong> <?php esc_html_e( 'If something looks wrong afterwards, restore the image from the Quarantine tab. Images used only by hard-coded theme files or external sites cannot be detected — check those before deleting permanently.', 'erdo-image-optimizer' ); ?></p>
                 </div>
-                <input type="text" id="erdo-safety-input" class="erdo-safety-input"
-                    placeholder="<?php esc_attr_e( 'Type DELETE to confirm', 'erdo-image-optimizer' ); ?>">
-                <button id="erdo-safety-confirm-btn" disabled>
-                    <?php esc_html_e( 'CONFIRM DELETE', 'erdo-image-optimizer' ); ?>
+                <button id="erdo-safety-confirm-btn">
+                    <?php esc_html_e( 'Move to Quarantine', 'erdo-image-optimizer' ); ?>
                 </button>
                 <button id="erdo-safety-cancel-btn">
                     <?php esc_html_e( 'Cancel', 'erdo-image-optimizer' ); ?>
@@ -531,6 +552,36 @@ class ERDO_Admin_Page {
                     <div class="modal-sidebar-actions">
                         <?php echo wp_kses_post( $usage_msg ); ?>
 
+                        <?php if ( ERDO_Usage::is_ready() ) : ?>
+                        <?php $sources = ERDO_Usage::sources( $id ); ?>
+                        <div class="erdo-usage-map">
+                            <h4><?php esc_html_e( 'Where it is used', 'erdo-image-optimizer' ); ?></h4>
+                            <?php if ( empty( $sources ) ) : ?>
+                                <p class="erdo-usage-none"><?php esc_html_e( 'Not referenced anywhere on the site.', 'erdo-image-optimizer' ); ?></p>
+                            <?php else : ?>
+                                <ul>
+                                <?php foreach ( array_slice( $sources, 0, 12 ) as $src ) : ?>
+                                    <li>
+                                        <?php if ( $src['url'] ) : ?>
+                                            <a href="<?php echo esc_url( $src['url'] ); ?>" target="_blank" rel="noopener"><?php echo esc_html( $src['label'] ); ?></a>
+                                        <?php else : ?>
+                                            <?php echo esc_html( $src['label'] ); ?>
+                                        <?php endif; ?>
+                                    </li>
+                                <?php endforeach; ?>
+                                <?php if ( count( $sources ) > 12 ) : ?>
+                                    <li>
+                                        <?php
+                                        /* translators: %d: number of further places */
+                                        echo esc_html( sprintf( __( '…and %d more', 'erdo-image-optimizer' ), count( $sources ) - 12 ) );
+                                        ?>
+                                    </li>
+                                <?php endif; ?>
+                                </ul>
+                            <?php endif; ?>
+                        </div>
+                        <?php endif; ?>
+
                         <button type="button" id="erdo-save-btn" class="button button-primary erdo-sb-btn">
                             <span class="dashicons dashicons-saved"></span>
                             <?php esc_html_e( 'Save Changes', 'erdo-image-optimizer' ); ?>
@@ -620,7 +671,7 @@ class ERDO_Admin_Page {
                         <button type="button" class="erdo-delete-btn button button-link-delete erdo-sb-btn"
                                 data-id="<?php echo esc_attr( $id ); ?>">
                             <span class="dashicons dashicons-trash"></span>
-                            <?php esc_html_e( 'Delete Image', 'erdo-image-optimizer' ); ?>
+                            <?php esc_html_e( 'Move to Quarantine', 'erdo-image-optimizer' ); ?>
                         </button>
                     </div>
                 </div>
@@ -800,31 +851,13 @@ class ERDO_Admin_Page {
         check_ajax_referer( 'erdo_nonce', 'nonce' );
         $this->verify_capability();
 
-        $query = new WP_Query( array(
-            'post_type'      => 'attachment',
-            'post_status'    => 'inherit',
-            'post_mime_type' => 'image',
-            'posts_per_page' => -1,
-            'fields'         => 'ids',
-            'no_found_rows'  => true,
-        ) );
-
-        if ( empty( $query->posts ) ) {
-            wp_send_json_success( array() );
-            return;
+        // Kullanım indeksi hazır değilse toplu temizlik yapılmaz — eski LIKE
+        // taraması logo, ACF, WooCommerce vb. kullanımları kaçırıyordu.
+        if ( ! ERDO_Usage::is_ready() ) {
+            wp_send_json_error( array( 'message' => __( 'The usage index is still being built. Please try again in a moment.', 'erdo-image-optimizer' ) ) );
         }
 
-        // Tüm görselleri TEK seferde analiz et (toplu sorgu)
-        $all_results = ERDO_Auditor::bulk_analyze( $query->posts );
-
-        $unused = array();
-        foreach ( $all_results as $id => $data ) {
-            if ( isset( $data['is_used'] ) && ! $data['is_used'] ) {
-                $unused[] = $id;
-            }
-        }
-
-        wp_send_json_success( $unused );
+        wp_send_json_success( ERDO_Usage::unused_ids() );
     }
 
     /* ------------------------------------------------------------------
@@ -838,9 +871,14 @@ class ERDO_Admin_Page {
             wp_send_json_error();
         }
 
-        $id = intval( wp_unslash( $_POST['id'] ) );
-        ERDO_Auditor::delete_image( $id );
-        wp_send_json_success();
+        // Tek görsel için kullanıcının açık isteği: kalıcı silme yerine karantina
+        // (geri alınabilir). Kullanımdaysa yine taşınır ama yanıt bunu bildirir.
+        $id     = intval( wp_unslash( $_POST['id'] ) );
+        $result = ERDO_Quarantine::quarantine( $id, false );
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+        }
+        wp_send_json_success( $result );
     }
 
     /* ------------------------------------------------------------------
@@ -954,6 +992,10 @@ class ERDO_Admin_Page {
         if ( isset( $_POST['erdo_webp_serve_method'] ) ) {
             $meth = sanitize_text_field( wp_unslash( $_POST['erdo_webp_serve_method'] ) );
             update_option( 'erdo_webp_serve_method', in_array( $meth, array( 'picture', 'htaccess' ), true ) ? $meth : 'picture' );
+        }
+
+        if ( isset( $_POST['erdo_quarantine_days'] ) ) {
+            update_option( 'erdo_quarantine_days', max( 0, min( 365, intval( wp_unslash( $_POST['erdo_quarantine_days'] ) ) ) ) );
         }
 
         if ( isset( $_POST['erdo_max_width'] ) ) {
@@ -1161,6 +1203,21 @@ class ERDO_Admin_Page {
                         min="0" max="8000" style="width:90px; margin-top:4px; height:32px;">
                     <span style="font-size:12px; color:#64748b; margin-left:4px;">px &nbsp;(0 = disabled)</span>
                     <p><?php esc_html_e( 'New uploads wider or taller than this get a scaled-down copy that WordPress uses everywhere (the full-size original is kept). WordPress default: 2560.', 'erdo-image-optimizer' ); ?></p>
+                </span>
+            </label>
+        </div>
+
+        <div class="erdo-settings-section">
+            <label style="margin-bottom:4px; font-weight:700; display:block; color:#0f172a;">
+                <?php esc_html_e( 'Quarantine', 'erdo-image-optimizer' ); ?>
+            </label>
+            <label style="align-items:flex-start;">
+                <span>
+                    <strong><?php esc_html_e( 'Delete quarantined images permanently after', 'erdo-image-optimizer' ); ?></strong>
+                    <br>
+                    <input type="number" name="erdo_quarantine_days" value="<?php echo esc_attr( (int) get_option( 'erdo_quarantine_days', 0 ) ); ?>"
+                        min="0" max="365" style="width:90px; margin-top:4px; height:32px;">
+                    <span style="font-size:12px; color:#64748b; margin-left:4px;"><?php esc_html_e( 'days (0 = never, delete manually)', 'erdo-image-optimizer' ); ?></span>
                 </span>
             </label>
         </div>
@@ -1538,6 +1595,71 @@ class ERDO_Admin_Page {
             <?php esc_html_e( 'Open Image Optimizer', 'erdo-image-optimizer' ); ?>
         </a>
         <?php
+    }
+
+    /* ------------------------------------------------------------------
+       KARANTİNA + KULLANIM İNDEKSİ
+    ------------------------------------------------------------------ */
+    public function ajax_quarantine_unused() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        $id     = isset( $_POST['id'] ) ? intval( wp_unslash( $_POST['id'] ) ) : 0;
+        $result = ERDO_Quarantine::quarantine( $id, true );
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( array( 'code' => $result->get_error_code(), 'message' => $result->get_error_message() ) );
+        }
+        wp_send_json_success( $result );
+    }
+
+    public function ajax_quarantine_list() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        $html = '';
+        foreach ( ERDO_Quarantine::ids() as $id ) {
+            $data = get_post_meta( $id, ERDO_Quarantine::META, true );
+            $file = basename( (string) get_post_meta( $id, '_wp_attached_file', true ) );
+            $html .= '<div class="erdo-card erdo-q-card" data-qid="' . esc_attr( $id ) . '">'
+                . '<div class="card-img-holder erdo-q-thumb"><span class="dashicons dashicons-archive"></span></div>'
+                . '<div class="erdo-card-footer"><span class="erdo-card-info">' . esc_html( $file ) . '</span></div>'
+                . '<div class="erdo-q-meta">' . esc_html( sprintf(
+                    /* translators: %s: human-readable time difference, e.g. "3 days" */
+                    __( 'Quarantined %s ago', 'erdo-image-optimizer' ),
+                    human_time_diff( (int) ( $data['time'] ?? time() ) )
+                ) ) . ( ! empty( $data['in_use'] ) ? ' — <strong>' . esc_html__( 'was in use', 'erdo-image-optimizer' ) . '</strong>' : '' ) . '</div>'
+                . '<div class="erdo-q-actions">'
+                . '<button type="button" class="button button-small erdo-q-restore" data-id="' . esc_attr( $id ) . '">' . esc_html__( 'Restore', 'erdo-image-optimizer' ) . '</button> '
+                . '<button type="button" class="button button-small button-link-delete erdo-q-purge" data-id="' . esc_attr( $id ) . '">' . esc_html__( 'Delete permanently', 'erdo-image-optimizer' ) . '</button>'
+                . '</div></div>';
+        }
+        wp_send_json_success( array( 'html' => $html, 'count' => count( ERDO_Quarantine::ids() ) ) );
+    }
+
+    public function ajax_quarantine_restore() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        $id     = isset( $_POST['id'] ) ? intval( wp_unslash( $_POST['id'] ) ) : 0;
+        $result = ERDO_Quarantine::restore( $id );
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+        }
+        wp_send_json_success();
+    }
+
+    public function ajax_quarantine_purge() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        $id     = isset( $_POST['id'] ) ? intval( wp_unslash( $_POST['id'] ) ) : 0;
+        $result = ERDO_Quarantine::purge( $id );
+        if ( is_wp_error( $result ) ) {
+            wp_send_json_error( array( 'message' => $result->get_error_message() ) );
+        }
+        wp_send_json_success();
+    }
+
+    public function ajax_usage_build_step() {
+        check_ajax_referer( 'erdo_nonce', 'nonce' );
+        $this->verify_capability();
+        wp_send_json_success( ERDO_Usage::build_step( 8 ) );
     }
 
     /* ------------------------------------------------------------------

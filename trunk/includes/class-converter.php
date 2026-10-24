@@ -313,13 +313,14 @@ class ERDO_Converter {
     public static function library_stats() {
         global $wpdb;
         // phpcs:disable WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
-        $total = (int) $wpdb->get_var(
-            "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_mime_type LIKE 'image/%'"
-        );
+        $total = (int) $wpdb->get_var( $wpdb->prepare(
+            "SELECT COUNT(ID) FROM {$wpdb->posts} WHERE post_type = 'attachment' AND post_status <> 'erdo_quarantine' AND post_mime_type LIKE %s",
+            $wpdb->esc_like( 'image/' ) . '%'
+        ) );
         $optimized = (int) $wpdb->get_var( $wpdb->prepare(
             "SELECT COUNT(DISTINCT p.ID) FROM {$wpdb->posts} p
              LEFT JOIN {$wpdb->postmeta} m ON m.post_id = p.ID AND m.meta_key = %s
-             WHERE p.post_type = 'attachment' AND p.post_mime_type LIKE %s
+             WHERE p.post_type = 'attachment' AND p.post_status <> 'erdo_quarantine' AND p.post_mime_type LIKE %s
              AND ( m.meta_id IS NOT NULL OR p.post_mime_type IN ('image/webp','image/avif') )",
             self::SAVED_META,
             $wpdb->esc_like( 'image/' ) . '%'

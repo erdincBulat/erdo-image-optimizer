@@ -87,7 +87,7 @@ function et_export( $v ) {
 ------------------------------------------------------------------ */
 
 function et_state_keys() {
-    return array( 'theme_mods_' . get_stylesheet(), 'site_icon', 'sidebars_widgets', 'widget_media_image', 'widget_block' );
+    return array( 'theme_mods_' . get_stylesheet(), 'site_icon', 'site_logo', 'sidebars_widgets', 'widget_media_image', 'widget_block' );
 }
 
 function et_snapshot_state() {

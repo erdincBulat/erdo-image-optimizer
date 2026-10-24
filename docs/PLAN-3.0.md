@@ -135,7 +135,40 @@ Plandaki maddeler (referans):
   - Her durumda önce dry-run raporu, sonra uygulama, sonra 404 taraması.
 - Kaldırılanlar: lazy filtresi, resize-on-upload (→ core eşiği), `_erdo_backup` akışı (geçiş sonrası).
 
-### Faz 3 — Kullanım indeksi + güvenli temizlik
+### Faz 3 — Kullanım indeksi + güvenli temizlik ✅ (2026-10-24)
+**Teslim edildi:**
+- `ERDO_Usage`: `{prefix}erdo_usage` tablosu; artımlı güncelleme (yazı, meta, seçenek, terim); partiler hâlinde tam kurulum (cron / AJAX / CLI).
+  - URL → ID çözümü: boyutlu, `.webp` kardeşi, `-scaled`, `-eNNN`, 2.x kalıntısı.
+  - Yapısal ID anahtarları: blok attr, JSON, serileştirilmiş veri, ACF.
+  - Kullanım haritası (`sources()`).
+- `ERDO_Quarantine`: tahmin edilemez klasör, özel post durumu, geri yükleme, kalıcı silme, otomatik temizlik ayarı (varsayılan kapalı).
+  - Toplu işlemde iki katmanlı denetim: indeks + "dosya adı herhangi bir yerde geçiyor mu".
+- Arayüz: indeks kurulum bildirimi, Karantina sekmesi, detay panelinde "Nerede kullanılıyor", "Quarantine All Unused".
+  - Tekil "Delete" artık karantinaya alıyor.
+- CLI: `wp erdo index`, `wp erdo unused`, `wp erdo quarantine list|add|restore|purge|add-unused`.
+- Uninstall: karantinadakileri geri koyuyor, tabloyu siliyor.
+
+**Sonuç:**
+- 195 PASS, F3 hatası **0**; kalan 12 hata F4'e ait. Plugin Check temiz.
+- Performans (2.000 görsel / 1.000 yazı):
+  - Tam tarama 68 sn → **5 sn**.
+  - İndeks kurulumu **1,75 sn**.
+- Tarayıcıda doğrulandı:
+  - İlk kurulum otomatik tamamlanıyor.
+  - Kullanım haritası linkli.
+  - Toplu karantina yalnızca kullanılmayanları taşıdı; ön yüzde kırık görsel yok.
+  - Geri yükleme butonu çalışıyor.
+
+**Faz sırasında bulunan ek sorunlar:**
+- `bulk_analyze()` ham meta satırlarını 300 sn object cache'te tutuyordu. Görselin audit cache'i temizlense de grid bayat kalıyordu (2.2.2'den kalma, Redis'li sitelerde 5 dakikalık yanlış "kullanılmıyor" riski). İndeks değişince cache grubu temizleniyor.
+- Blok temalarda core `custom_logo` ↔ `site_logo` senkronu yapıyor; ikisi ayrı ayrı izleniyor.
+- Karantina klasörü nginx ve PHP sunucusunda `.htaccess` okunmadığı için açıktı → klasör adına rastgele belirteç eklendi.
+- Windows'ta core'un `wp_delete_attachment` adımı alt boyutları silemiyor (çekirdek / yol sorunu). Purge artık dosyaları kendisi siliyor.
+- Hata ve etkinlik günlüğü tutan eklentiler (test sitesinde Watch Your WP) dosya yollarını seçeneklere yazıyor. Derin kontrol bu yüzden kullanılmayan görselleri kilitliyordu. Adında log/error/debug/cache/history/stats/activity/audit geçen seçenekler artık bu kontrolde atlanıyor (testi var).
+
+**Faz 7'ye kalan:** Karantina onay penceresi hâlâ kırmızı "tehlike" görünümünde; geri alınabilir bir işleme uygun sakin bir tasarıma geçmeli.
+
+Plandaki maddeler (referans):
 - `erdo_usage` tablosu (`dbDelta`) ve ayrıştırıcılar:
   - İçerik: `wp-image-ID`, blok `id` nitelikleri, tam/boyutlu/kardeş URL'ler.
   - Postmeta: serileştirilmiş ve JSON veriyi anlayan, ID ve URL arayan.

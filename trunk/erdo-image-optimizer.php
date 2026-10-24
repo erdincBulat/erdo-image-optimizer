@@ -22,6 +22,8 @@ require_once ERDO_PATH . 'includes/class-encoder.php';
 require_once ERDO_PATH . 'includes/class-converter.php';
 require_once ERDO_PATH . 'includes/class-references.php';
 require_once ERDO_PATH . 'includes/class-migration.php';
+require_once ERDO_PATH . 'includes/class-usage.php';
+require_once ERDO_PATH . 'includes/class-quarantine.php';
 require_once ERDO_PATH . 'includes/class-admin-page.php';
 require_once ERDO_PATH . 'includes/class-webp-server.php';
 require_once ERDO_PATH . 'includes/class-queue.php';
@@ -41,11 +43,15 @@ function erdo_init() {
 
     ERDO_Migration::maybe_upgrade();
     ERDO_Converter::init();
+    ERDO_Usage::init();
     new ERDO_Admin_Page();
     ERDO_Queue::register_interval();
     ERDO_WebP_Server::init();
 }
 add_action( 'plugins_loaded', 'erdo_init' );
+
+// Post durumu kaydı ve çeviri gerektiren etiketler 'init'te yapılmalı.
+add_action( 'init', array( 'ERDO_Quarantine', 'init' ) );
 
 /* ------------------------------------------------------------------
    ETKİNLEŞTİRME / DEVRE DIŞI BIRAKMA
@@ -62,6 +68,8 @@ register_activation_hook( __FILE__, 'erdo_activate' );
 function erdo_deactivate() {
     ERDO_WebP_Server::remove_htaccess_rules();
     wp_clear_scheduled_hook( ERDO_Queue::HOOK );
+    wp_clear_scheduled_hook( ERDO_Usage::CRON_HOOK );
+    wp_clear_scheduled_hook( ERDO_Quarantine::PURGE_HOOK );
 }
 register_deactivation_hook( __FILE__, 'erdo_deactivate' );
 

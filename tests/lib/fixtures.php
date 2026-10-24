@@ -47,6 +47,8 @@ function et_expected_usage() {
         'alpha'         => true,  // transparent PNG
         'gif_static'    => true,
         'oversized'     => true,  // 3000x2000 → WordPress makes a -scaled copy
+        'term_thumb'    => true,  // term meta thumbnail_id (WooCommerce category image)
+        'css_bg'        => true,  // url() in Additional CSS (custom_css post)
         'unused'        => false,
         'attached_only' => false, // attached to a post that doesn't show it
         'dup_b'         => false,
@@ -196,6 +198,8 @@ function et_fixtures() {
     $img['gif_static'] = et_add_attachment( "$dir/fx-static.gif", 'fx static gif', 'Static gif' );
     $jpg( 'oversized', 'fx-oversized.jpg', 3000, 2000, 24, 'fx oversized', 'Oversized' );
     $jpg( 'unused', 'fx-truly-unused.jpg', 800, 500, 25, 'fx truly unused', 'Unused' );
+    $jpg( 'term_thumb', 'fx-term-thumb.jpg', 600, 600, 28, 'fx term thumb', 'Category' );
+    $jpg( 'css_bg', 'fx-css-background.jpg', 1200, 400, 30, 'fx css background', '' );
 
     $post = array();
 
@@ -233,6 +237,13 @@ function et_fixtures() {
     $post['good'] = et_add_post( 'FX Good', et_block_image( $img['good'] ) . '<p>Shoes.</p>' . et_block_image( $img['dup_a'] ) );
     $post['misc'] = et_add_post( 'FX Misc', et_block_image( $img['camera'] ) . et_block_image( $img['dscalt'] ) . et_block_image( $img['alpha'] ) . et_block_image( $img['gif_static'], 'full' ) . et_block_image( $img['oversized'] ) );
 
+    $term = wp_insert_term( 'FX Category ' . wp_rand(), 'category' );
+    if ( ! is_wp_error( $term ) ) {
+        add_term_meta( $term['term_id'], ET_FIXTURE_META, 1 );
+        add_term_meta( $term['term_id'], 'thumbnail_id', $img['term_thumb'] );
+    }
+    $post['css'] = et_add_post( 'fx-css', 'body{background:url(' . wp_get_attachment_url( $img['css_bg'] ) . ') no-repeat}', 'publish', 'custom_css' );
+
     // Site-level references.
     set_theme_mod( 'custom_logo', $img['logo'] );
     set_theme_mod( 'header_image', wp_get_attachment_url( $img['header'] ) );
@@ -258,13 +269,19 @@ function et_cleanup_fixtures() {
     // 'any' skips attachments' "inherit" in some versions — query them explicitly too.
     $ids = array_merge( $ids, get_posts( array(
         'post_type'      => 'attachment',
-        'post_status'    => 'any',
+        'post_status'    => array( 'inherit', 'private', 'trash', 'erdo_quarantine' ),
         'posts_per_page' => -1,
         'meta_key'       => ET_FIXTURE_META, // phpcs:ignore WordPress.DB.SlowDBQuery
         'fields'         => 'ids',
     ) ) );
     foreach ( array_unique( $ids ) as $id ) {
+        if ( function_exists( 'et_unquarantine' ) && 'erdo_quarantine' === get_post_status( $id ) ) {
+            et_unquarantine( $id ); // put files back so WordPress can delete them
+        }
         wp_delete_post( $id, true );
+    }
+    foreach ( get_terms( array( 'taxonomy' => 'category', 'hide_empty' => false, 'meta_key' => ET_FIXTURE_META, 'fields' => 'ids' ) ) as $tid ) { // phpcs:ignore WordPress.DB.SlowDBQuery
+        wp_delete_term( $tid, 'category' );
     }
     foreach ( (array) get_option( ET_FIXTURE_DIRS, array() ) as $dir ) {
         et_rmdir( $dir );

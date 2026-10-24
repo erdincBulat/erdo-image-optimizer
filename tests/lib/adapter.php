@@ -8,14 +8,29 @@
  * behaviour. Mapped to the 3.0 API (ERDO_Converter / ERDO_Migration) since Faz 2.
  */
 
-/** Fresh usage verdict (all caches dropped first). */
+/** Builds the usage index from scratch (synchronously). */
+function et_index_rebuild() {
+    ERDO_Usage::rebuild();
+}
+
+/** Usage verdict straight from the index (built first if needed). */
 function et_is_used( $id ) {
-    ERDO_Auditor::clear_all_cache();
-    return (bool) ERDO_Auditor::check_usage( $id );
+    if ( ! ERDO_Usage::is_ready() ) {
+        ERDO_Usage::rebuild();
+    }
+    return (bool) ERDO_Usage::is_used( $id );
+}
+
+/** Where the index says an image is used: list of human-readable labels. */
+function et_usage_labels( $id ) {
+    return wp_list_pluck( ERDO_Usage::sources( $id ), 'label' );
 }
 
 /** Fresh usage verdicts for many ids, through the bulk path the UI uses. */
 function et_bulk_used( array $ids ) {
+    if ( ! ERDO_Usage::is_ready() ) {
+        ERDO_Usage::rebuild();
+    }
     ERDO_Auditor::clear_all_cache();
     $out = array();
     foreach ( ERDO_Auditor::bulk_analyze( $ids ) as $id => $r ) {
@@ -56,6 +71,31 @@ function et_audit( $id ) {
         'checks' => $checks,
         'raw'    => $r,
     );
+}
+
+/** Unused images the bulk cleanup would offer. */
+function et_unused_ids() {
+    return ERDO_Usage::unused_ids();
+}
+
+/** Moves an image to quarantine. $strict = bulk-mode checks. Returns array|WP_Error. */
+function et_quarantine( $id, $strict = true ) {
+    return ERDO_Quarantine::quarantine( $id, $strict );
+}
+
+/** Brings an image back from quarantine. Returns true|WP_Error. */
+function et_unquarantine( $id ) {
+    return ERDO_Quarantine::restore( $id );
+}
+
+/** Permanently deletes a quarantined image. Returns true|WP_Error. */
+function et_purge( $id ) {
+    return ERDO_Quarantine::purge( $id );
+}
+
+/** IDs currently in quarantine. */
+function et_quarantined_ids() {
+    return ERDO_Quarantine::ids();
 }
 
 /**

@@ -20,7 +20,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
  */
 class ERDO_Migration {
 
-    const DB_VERSION     = 3;
+    const DB_VERSION     = 4;
     const LEGACY_OPTION  = 'erdo_legacy_present';
     const LEGACY_MARKERS = array( '_erdo_savings_bytes', '_erdo_original_size', '_erdo_backup_path' );
 
@@ -29,19 +29,27 @@ class ERDO_Migration {
     ------------------------------------------------------------------ */
 
     public static function maybe_upgrade() {
-        if ( (int) get_option( 'erdo_db_version', 0 ) >= self::DB_VERSION ) {
+        $from = (int) get_option( 'erdo_db_version', 0 );
+        if ( $from >= self::DB_VERSION ) {
             return;
         }
 
-        // 3.0'da kaldırılan ayarlar
-        delete_option( 'erdo_keep_original' );
-        delete_option( 'erdo_lazy_loading' );
+        if ( $from < 3 ) {
+            // 3.0'da kaldırılan ayarlar
+            delete_option( 'erdo_keep_original' );
+            delete_option( 'erdo_lazy_loading' );
 
-        self::refresh_legacy_flag();
+            self::refresh_legacy_flag();
 
-        // 2.x'in .htaccess kuralı yanlış dosya adını arıyordu — doğrusuyla değiştir.
-        if ( get_option( 'erdo_serve_webp' ) && 'htaccess' === get_option( 'erdo_webp_serve_method' ) ) {
-            ERDO_WebP_Server::write_htaccess_rules();
+            // 2.x'in .htaccess kuralı yanlış dosya adını arıyordu — doğrusuyla değiştir.
+            if ( get_option( 'erdo_serve_webp' ) && 'htaccess' === get_option( 'erdo_webp_serve_method' ) ) {
+                ERDO_WebP_Server::write_htaccess_rules();
+            }
+        }
+
+        if ( $from < 4 ) {
+            // Kullanım indeksi tablosu + arka planda ilk kurulum
+            ERDO_Usage::start_build();
         }
 
         update_option( 'erdo_db_version', self::DB_VERSION );

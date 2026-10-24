@@ -14,6 +14,9 @@ if ( ! defined( 'WP_CLI' ) || ! WP_CLI ) { return; }
  *   wp erdo restore --id=42
  *   wp erdo stats
  *   wp erdo migrate --dry-run
+ *   wp erdo index
+ *   wp erdo unused
+ *   wp erdo quarantine list
  *   wp erdo clean-cache
  */
 class ERDO_CLI {
@@ -259,6 +262,134 @@ class ERDO_CLI {
         $progress->finish();
 
         WP_CLI::success( "Restored from backup: {$totals['restore']} | Links updated: {$totals['repoint']} | Errors: {$totals['errors']}" );
+    }
+
+    /* ------------------------------------------------------------------
+       wp erdo index / unused / quarantine
+    ------------------------------------------------------------------ */
+
+    /**
+     * Build (or rebuild) the usage index that records where every image is used.
+     *
+     * ## OPTIONS
+     *
+     * [--status]
+     * : Only show the index status.
+     *
+     * ## EXAMPLES
+     *
+     *   wp erdo index
+     *   wp erdo index --status
+     *
+     * @subcommand index
+     */
+    public function index( $args, $assoc ) {
+        if ( isset( $assoc['status'] ) ) {
+            $s = ERDO_Usage::state();
+            WP_CLI::log( 'Status: ' . $s['status'] . ( $s['built'] ? ' (built ' . human_time_diff( $s['built'] ) . ' ago)' : '' ) );
+            return;
+        }
+        $t = microtime( true );
+        $p = ERDO_Usage::rebuild();
+        WP_CLI::success( sprintf( 'Usage index built: %d posts scanned in %.1fs.', $p['total'], microtime( true ) - $t ) );
+    }
+
+    /**
+     * List images that are not used anywhere on the site.
+     *
+     * ## OPTIONS
+     *
+     * [--format=<format>]
+     * : table, csv, json, ids (default: table).
+     *
+     * @subcommand unused
+     */
+    public function unused( $args, $assoc ) {
+        if ( ! ERDO_Usage::is_ready() ) {
+            WP_CLI::error( 'The usage index is not built yet. Run: wp erdo index' );
+        }
+        $ids = ERDO_Usage::unused_ids();
+        if ( 'ids' === ( $assoc['format'] ?? '' ) ) {
+            WP_CLI::log( implode( ' ', $ids ) );
+            return;
+        }
+        $rows = array_map( function ( $id ) {
+            return array( 'id' => $id, 'file' => basename( (string) get_attached_file( $id ) ), 'attached_to' => (int) wp_get_post_parent_id( $id ) );
+        }, $ids );
+        WP_CLI\Utils\format_items( $assoc['format'] ?? 'table', $rows, array( 'id', 'file', 'attached_to' ) );
+        WP_CLI::log( count( $ids ) . ' unused images.' );
+    }
+
+    /**
+     * Manage the image quarantine (reversible alternative to deleting).
+     *
+     * ## OPTIONS
+     *
+     * <action>
+     * : list | add | restore | purge | add-unused
+     *
+     * [--id=<id>]
+     * : Attachment ID (add, restore, purge).
+     *
+     * [--yes]
+     * : Skip the confirmation for purge / add-unused.
+     *
+     * ## EXAMPLES
+     *
+     *   wp erdo quarantine list
+     *   wp erdo quarantine add-unused
+     *   wp erdo quarantine restore --id=42
+     *   wp erdo quarantine purge --id=42 --yes
+     *
+     * @subcommand quarantine
+     */
+    public function quarantine( $args, $assoc ) {
+        $action = $args[0] ?? 'list';
+        $id     = (int) ( $assoc['id'] ?? 0 );
+
+        switch ( $action ) {
+            case 'list':
+                $rows = array_map( function ( $qid ) {
+                    $d = get_post_meta( $qid, ERDO_Quarantine::META, true );
+                    return array( 'id' => $qid, 'file' => basename( (string) get_post_meta( $qid, '_wp_attached_file', true ) ), 'since' => human_time_diff( (int) ( $d['time'] ?? time() ) ), 'was_in_use' => empty( $d['in_use'] ) ? 'no' : 'yes' );
+                }, ERDO_Quarantine::ids() );
+                WP_CLI\Utils\format_items( 'table', $rows, array( 'id', 'file', 'since', 'was_in_use' ) );
+                return;
+            case 'add':
+                $r = ERDO_Quarantine::quarantine( $id, false );
+                break;
+            case 'restore':
+                $r = ERDO_Quarantine::restore( $id );
+                break;
+            case 'purge':
+                WP_CLI::confirm( "Permanently delete image {$id} and all its files?", $assoc );
+                $r = ERDO_Quarantine::purge( $id );
+                break;
+            case 'add-unused':
+                if ( ! ERDO_Usage::is_ready() ) {
+                    WP_CLI::error( 'The usage index is not built yet. Run: wp erdo index' );
+                }
+                $ids = ERDO_Usage::unused_ids();
+                WP_CLI::confirm( count( $ids ) . ' unused images will be moved to quarantine (reversible). Continue?', $assoc );
+                $moved = 0;
+                foreach ( $ids as $uid ) {
+                    $res = ERDO_Quarantine::quarantine( $uid, true );
+                    if ( is_wp_error( $res ) ) {
+                        WP_CLI::log( "  skipped {$uid}: " . $res->get_error_message() );
+                    } else {
+                        $moved++;
+                    }
+                }
+                WP_CLI::success( "{$moved} images moved to quarantine." );
+                return;
+            default:
+                WP_CLI::error( 'Unknown action. Use: list, add, restore, purge, add-unused' );
+        }
+
+        if ( is_wp_error( $r ) ) {
+            WP_CLI::error( $r->get_error_message() );
+        }
+        WP_CLI::success( 'Done.' );
     }
 
     /* ------------------------------------------------------------------

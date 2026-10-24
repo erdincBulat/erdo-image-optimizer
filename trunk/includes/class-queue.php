@@ -111,8 +111,16 @@ class ERDO_Queue {
                 } elseif ( 'ok' !== $result['status'] ) {
                     $skipped++;
                 }
-            } elseif ( 'delete' === $action && ! ERDO_Auditor::delete_image( $id ) ) {
-                $errors[] = $id;
+            } elseif ( 'delete' === $action ) {
+                // Toplu "silme" = sıkı denetimli karantina; kullanımda olabilecekler atlanır.
+                $result = ERDO_Quarantine::quarantine( $id, true );
+                if ( is_wp_error( $result ) ) {
+                    if ( in_array( $result->get_error_code(), array( 'in_use', 'maybe_in_use', 'already' ), true ) ) {
+                        $skipped++;
+                    } else {
+                        $errors[] = $id;
+                    }
+                }
             }
 
             $done++;

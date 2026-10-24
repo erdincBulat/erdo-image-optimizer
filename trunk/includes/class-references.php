@@ -159,6 +159,20 @@ class ERDO_References {
         }, $text );
     }
 
+    /** Metindeki uploads görsel yolları (göreli, "/" ayraçlı): array( "2026/10/a-300x200.jpg", … ) */
+    public static function find_rel_paths( $text ) {
+        $pattern = self::pattern();
+        if ( ! is_string( $text ) || ! $pattern || false === strpos( str_replace( '\\/', '/', $text ), self::uploads_path() ) ) {
+            return array();
+        }
+        if ( ! preg_match_all( $pattern, $text, $m ) ) {
+            return array();
+        }
+        return array_values( array_unique( array_map( function ( $rel ) {
+            return rawurldecode( str_replace( '\\/', '/', $rel ) );
+        }, $m['rel'] ) ) );
+    }
+
     /** Uploads URL yolu, ör. "/wp-content/uploads/" */
     public static function uploads_path() {
         $path = wp_parse_url( wp_upload_dir()['baseurl'], PHP_URL_PATH );
