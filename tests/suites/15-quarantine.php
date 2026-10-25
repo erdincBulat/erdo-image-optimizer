@@ -123,3 +123,36 @@ et_test( 'explicit single quarantine of a used image is allowed but flagged', fu
     et_not_error( et_unquarantine( $m['img']['gif_static'] ) );
     et_assert_page_ok( $m['post']['misc'], '', array( 'broken' ) );
 } );
+
+et_test( 'quarantine record stores forward-slash paths (update_post_meta strips backslashes on Windows)', function () use ( $m ) {
+    $id = $m['img']['gif_static'];
+    et_not_error( et_quarantine( $id, false ) );
+    $rec = et_quarantine_record( $id );
+    foreach ( $rec['files'] as $orig => $q ) {
+        et_assert( false === strpos( $orig . $q, chr( 92 ) ), 'backslash in stored path: ' . $q );
+        et_assert( file_exists( $q ), 'stored path does not point at the file: ' . $q );
+    }
+    et_not_error( et_unquarantine( $id ) );
+} );
+
+et_test( 'restore still finds the files of an old record whose backslashes were stripped', function () use ( $m ) {
+    $id = $m['img']['gif_static'];
+    $files = array();
+    foreach ( et_quarantine_files( $id ) as $f ) {
+        $files[ $f ] = md5_file( $f );
+    }
+    et_not_error( et_quarantine( $id, false ) );
+    // What a pre-3.0 record looked like on Windows: the backslashes of ABSPATH
+    // ("C:\Users\…\site/wp-content/…") were stripped on save ("C:Users…site/wp-content/…").
+    $rec  = et_quarantine_record( $id );
+    $root = wp_normalize_path( ABSPATH );
+    foreach ( $rec['files'] as $orig => $q ) {
+        $rec['files'][ $orig ] = str_replace( $root, str_replace( '/', '', untrailingslashit( $root ) ) . '/', $q );
+        et_assert( ! file_exists( $rec['files'][ $orig ] ), 'simulated path still resolves' );
+    }
+    et_set_quarantine_record( $id, $rec );
+    et_not_error( et_unquarantine( $id ) );
+    foreach ( $files as $f => $hash ) {
+        et_assert( file_exists( $f ) && md5_file( $f ) === $hash, 'not restored: ' . basename( $f ) );
+    }
+} );

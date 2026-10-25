@@ -20,21 +20,29 @@ $answer = array(
 );
 
 /* --- Availability ---------------------------------------------------- */
-et_test( 'without a connected provider AI is reported unavailable with a setup reason', function () {
+et_test( 'AI availability matches the connected provider and links to Connectors', function () {
     $s = et_ai_status();
     if ( ! function_exists( 'wp_ai_client_prompt' ) ) {
         et_eq( 'wp', $s['reason'] );
         return;
     }
-    et_eq( false, $s['ready'] );
-    et_eq( 'provider', $s['reason'] );
+    // A real provider may be connected on the test site (Settings > Connectors); then it must report ready.
+    $connected = wp_ai_client_prompt( 'Describe this image.' )->with_file( ERDO_AI::PROBE_PNG, 'image/png' )->is_supported_for_text_generation();
+    et_eq( ! $connected, ! $s['ready'] );
+    et_eq( $connected ? '' : 'provider', $s['reason'] );
     et_assert( false !== strpos( $s['setup_url'], 'options-connectors.php' ), 'no link to Connectors' );
 } );
 
 et_test( 'suggest refuses when AI is unavailable and stores nothing', function () use ( $m ) {
     et_ai_unstub();
     delete_transient( 'erdo_ai_status' );
+    // Forced off: a real provider may be connected, and this must not make a paid call.
+    $off = function ( $s ) {
+        return array_merge( $s, array( 'ready' => false, 'reason' => 'provider' ) );
+    };
+    add_filter( 'erdo_ai_status', $off );
     $r = et_ai_suggest( $m['img']['badname'] );
+    remove_filter( 'erdo_ai_status', $off );
     et_assert( is_wp_error( $r ), 'no error' );
     et_eq( null, et_ai_suggestion( $m['img']['badname'] ) );
 } );

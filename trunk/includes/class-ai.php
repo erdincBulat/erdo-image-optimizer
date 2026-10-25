@@ -20,6 +20,8 @@ class ERDO_AI {
     const MAX_SIDE   = 1024;
     const ALT_MAX    = 125;
     const STATUS_KEY = 'erdo_ai_status';
+    /** Yanıt token sınırı; ikincisi yalnızca ilk yanıt kesilirse (finish = length) denenir. */
+    const MAX_TOKENS = array( 2048, 4096 );
 
     /** Görsel girdiyi destekleyen ucuz modeller, sırayla (sağlayıcı bağlı değilse atlanır). */
     const MODEL_PREFERENCE = array( 'claude-haiku-4-5', 'gemini-2.5-flash', 'gpt-5-mini', 'gpt-4.1-mini' );
@@ -120,18 +122,27 @@ class ERDO_AI {
 
         $model = '';
         if ( null === $raw ) {
-            try {
-                $builder = self::builder( $prompt, $image )
-                    ->using_system_instruction( self::system_instruction( $ctx ) )
-                    ->using_temperature( 0.2 )
-                    ->using_max_tokens( 600 )
-                    ->as_json_response( self::schema() );
-                $result = $builder->generate_text_result();
-            } catch ( Throwable $e ) {
-                return new WP_Error( 'ai_failed', $e->getMessage() );
-            }
-            if ( is_wp_error( $result ) ) {
-                return self::friendly_error( $result );
+            // Düşünen modeller (Gemini 2.5, o-serisi) düşünme tokenlarını da bu sınırdan harcar;
+            // 600'de JSON yarıda kesiliyordu. Yalnızca kullanılan token ücretlenir. Yine de
+            // kesilirse (finish = length) bir kez daha geniş sınırla denenir.
+            foreach ( self::MAX_TOKENS as $max_tokens ) {
+                try {
+                    $builder = self::builder( $prompt, $image )
+                        ->using_system_instruction( self::system_instruction( $ctx ) )
+                        ->using_temperature( 0.2 )
+                        ->using_max_tokens( $max_tokens )
+                        ->as_json_response( self::schema() );
+                    $result = $builder->generate_text_result();
+                } catch ( Throwable $e ) {
+                    return new WP_Error( 'ai_failed', $e->getMessage() );
+                }
+                if ( is_wp_error( $result ) ) {
+                    return self::friendly_error( $result );
+                }
+                $candidates = $result->getCandidates();
+                if ( ! $candidates || ! $candidates[0]->getFinishReason()->isLength() ) {
+                    break;
+                }
             }
             $raw   = $result->toText();
             $model = $result->getModelMetadata()->getId();
@@ -366,6 +377,10 @@ class ERDO_AI {
         if ( false === $pos ) {
             $text = wp_strip_all_tags( strip_shortcodes( $content ) );
         } else {
+            // İğne etiketin ortasında (class="wp-image-N"); kesim etiketin başından yapılmazsa
+            // `wp-image-N"/>` gibi parçalar metne sızar.
+            $tag = strrpos( substr( $content, 0, $pos ), '<' );
+            $pos = false === $tag ? $pos : $tag;
             $before = wp_strip_all_tags( substr( $content, max( 0, $pos - 1500 ), min( $pos, 1500 ) ) );
             $after  = wp_strip_all_tags( substr( $content, $pos, 1500 ) );
             $text   = substr( $before, -250 ) . ' ' . substr( $after, 0, 250 );
@@ -455,6 +470,7 @@ class ERDO_AI {
 
         delete_post_meta( $id, self::META );
         ERDO_Auditor::clear_cache( $id );
+        ERDO_Activity::log( 'ai_accept' );
         return array( 'applied' => $applied, 'filename' => $filename );
     }
 

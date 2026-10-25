@@ -1,0 +1,803 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Erdo 3.0 UI Mockup</title>
+<style>
+/* ------------------------------------------------------------------
+   Design tokens — WordPress admin native.
+   --wp-admin-theme-color is set by core for the user's admin colour
+   scheme, so the plugin follows Blue / Ocean / Midnight etc.
+------------------------------------------------------------------ */
+:root{
+  --wp-admin-theme-color:#2271b1;
+  --e-accent:var(--wp-admin-theme-color);
+  --e-accent-soft:color-mix(in srgb, var(--e-accent) 10%, #fff);
+  --e-text:#1d2327; --e-muted:#50575e; --e-faint:#8c8f94;
+  --e-border:#dcdcde; --e-border-strong:#c3c4c7;
+  --e-surface:#fff; --e-bg:#f0f0f1; --e-subtle:#f6f7f7;
+  --e-good:#00762a; --e-good-bg:#edfaef;
+  --e-warn:#8a5a00; --e-warn-bg:#fcf9e8; --e-warn-line:#dba617;
+  --e-bad:#b32d2e;  --e-bad-bg:#fcf0f1;  --e-bad-line:#d63638;
+  --e-gray:#50575e; --e-gray-bg:#f0f0f1;
+  --e-radius:8px; --e-radius-sm:4px;
+  --e-shadow:0 1px 2px rgba(0,0,0,.04);
+  --e-shadow-pop:0 8px 28px rgba(0,0,0,.16);
+  --e-font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Oxygen-Sans,Ubuntu,Cantarell,"Helvetica Neue",sans-serif;
+}
+*{box-sizing:border-box}
+body{margin:0;font:13px/1.5 var(--e-font);color:var(--e-text);background:var(--e-bg)}
+button{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--e-accent);outline-offset:2px}
+
+/* ---------- mockup chrome (not part of the plugin) ---------- */
+.mk-bar{position:sticky;top:0;z-index:100;background:#1e1e1e;color:#fff;display:flex;gap:4px;align-items:center;padding:6px 10px;overflow-x:auto;font-size:12px}
+.mk-bar strong{margin-right:8px;white-space:nowrap;color:#f0c33c}
+.mk-bar button{background:#333;border:0;color:#ddd;padding:5px 10px;border-radius:4px;cursor:pointer;white-space:nowrap}
+.mk-bar button.on{background:#f0c33c;color:#111}
+.mk-note{background:#fff8d6;border:1px dashed #c9a400;border-radius:6px;padding:10px 12px;margin:16px 0;font-size:12.5px;color:#4a3b00}
+.mk-note b{color:#000}
+.mk-note ul{margin:4px 0 0 18px;padding:0}
+.wp-shell{display:flex;min-height:calc(100vh - 34px)}
+.wp-menu{width:160px;background:#1d2327;color:#f0f0f1;flex:none;padding-top:8px}
+.wp-menu div{padding:8px 12px;font-size:13px;color:#c3c4c7}
+.wp-menu .cur{background:var(--e-accent);color:#fff;position:relative}
+.wp-menu .cur:after{content:"";position:absolute;right:0;top:50%;margin-top:-8px;border:8px solid transparent;border-right-color:var(--e-bg)}
+.wp-main{flex:1;min-width:0;padding:0 20px 60px}
+@media (max-width:782px){.wp-menu{display:none}.wp-main{padding:0 10px 60px}}
+
+/* ---------- page header ---------- */
+.e-head{display:flex;align-items:center;gap:12px;padding:18px 0 10px;flex-wrap:wrap}
+.e-head h1{font-size:23px;font-weight:400;margin:0;display:flex;align-items:center;gap:10px}
+.e-logo{width:28px;height:28px;border-radius:7px;background:var(--e-accent);display:grid;place-items:center;color:#fff;font-weight:700;font-size:15px}
+.e-ver{font-size:11px;color:var(--e-muted);border:1px solid var(--e-border);border-radius:20px;padding:1px 8px;background:#fff}
+.e-head .sp{flex:1}
+.wp-header-end{border:0;margin:0}
+.notice{background:#fff;border:1px solid var(--e-border-strong);border-left:4px solid var(--e-accent);padding:8px 12px;margin:6px 0 14px;box-shadow:var(--e-shadow);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.notice.warn{border-left-color:var(--e-warn-line)}
+.notice p{margin:0;flex:1;min-width:220px}
+
+/* ---------- tabs (nav) ---------- */
+.e-nav{display:flex;gap:2px;border-bottom:1px solid var(--e-border-strong);margin-bottom:20px;overflow-x:auto;overflow-y:hidden;scrollbar-width:thin}
+.e-nav a{padding:10px 14px;text-decoration:none;color:var(--e-muted);font-size:14px;border-bottom:3px solid transparent;margin-bottom:-1px;white-space:nowrap;display:flex;gap:6px;align-items:center;cursor:pointer}
+.e-nav a:hover{color:var(--e-text)}
+.e-nav a.on{color:var(--e-text);border-bottom-color:var(--e-accent);font-weight:600}
+.e-count{font-size:11px;background:var(--e-gray-bg);color:var(--e-muted);border-radius:10px;padding:0 7px;line-height:18px;font-weight:600}
+.e-nav a.on .e-count{background:var(--e-accent-soft);color:var(--e-accent)}
+
+/* ---------- buttons (WP-like) ---------- */
+.btn{display:inline-flex;align-items:center;gap:6px;min-height:32px;padding:0 12px;border-radius:var(--e-radius-sm);border:1px solid var(--e-accent);background:#fff;color:var(--e-accent);cursor:pointer;white-space:nowrap;text-decoration:none;font-size:13px}
+.btn:hover{background:var(--e-accent-soft)}
+.btn.primary{background:var(--e-accent);color:#fff}
+.btn.primary:hover{filter:brightness(.92)}
+.btn.ghost{border-color:transparent}
+.btn.quiet{border-color:var(--e-border-strong);color:var(--e-text)}
+.btn.sm{min-height:26px;padding:0 8px;font-size:12px}
+.btn.danger-link{border:0;background:none;color:var(--e-bad);padding:0;min-height:auto;text-decoration:underline}
+.btn[disabled]{opacity:.5;cursor:default}
+.ico{width:16px;height:16px;flex:none;display:inline-block}
+
+/* ---------- cards ---------- */
+.card{background:var(--e-surface);border:1px solid var(--e-border);border-radius:var(--e-radius);box-shadow:var(--e-shadow)}
+.card-h{display:flex;align-items:center;gap:8px;padding:14px 16px;border-bottom:1px solid var(--e-border)}
+.card-h h2{font-size:14px;margin:0;font-weight:600;flex:1}
+.card-b{padding:16px}
+.muted{color:var(--e-muted)} .faint{color:var(--e-faint)}
+.small{font-size:12px}
+
+/* ---------- overview ---------- */
+.ov-top{display:grid;grid-template-columns:minmax(260px,320px) 1fr;gap:16px;margin-bottom:16px}
+@media (max-width:960px){.ov-top{grid-template-columns:1fr}}
+.health{display:flex;gap:18px;align-items:center}
+.ring{--v:72;--c:var(--e-warn-line);width:112px;height:112px;border-radius:50%;flex:none;display:grid;place-items:center;background:conic-gradient(var(--c) calc(var(--v)*1%), #e8e8ea 0)}
+.ring>div{width:88px;height:88px;border-radius:50%;background:#fff;display:grid;place-items:center;text-align:center}
+.ring b{font-size:30px;line-height:1;display:block}
+.ring span{font-size:11px;color:var(--e-muted)}
+.health h3{margin:0 0 4px;font-size:15px}
+.health p{margin:0 0 8px;color:var(--e-muted)}
+.metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:0}
+@media (max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}}
+.metric{padding:16px;border-left:1px solid var(--e-border)}
+.metric:first-child{border-left:0}
+.metric .lbl{font-size:12px;color:var(--e-muted);display:block}
+.metric .val{display:block;font-size:24px;font-weight:600;line-height:1.3}
+.metric .sub{display:block;font-size:12px;color:var(--e-muted)}
+.bar{height:6px;background:#e8e8ea;border-radius:3px;overflow:hidden;margin-top:8px}
+.bar i{display:block;height:100%;background:var(--e-accent)}
+.ov-grid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+@media (max-width:1100px){.ov-grid{grid-template-columns:1fr}}
+.task{display:flex;gap:14px;align-items:center;padding:14px 16px;border-top:1px solid var(--e-border)}
+.task:first-child{border-top:0}
+.task .n{min-width:52px;text-align:center;font-size:20px;font-weight:600;border-radius:6px;padding:6px 0}
+.task .n.bad{background:var(--e-bad-bg);color:var(--e-bad)}
+.task .n.warn{background:var(--e-warn-bg);color:var(--e-warn)}
+.task .n.info{background:var(--e-accent-soft);color:var(--e-accent)}
+.task .n.gray{background:var(--e-gray-bg);color:var(--e-gray)}
+.task .t{flex:1;min-width:0}
+.task .t b{display:block;font-size:13.5px}
+.task .t span{color:var(--e-muted);font-size:12.5px}
+.task .a{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+@media (max-width:700px){.task{flex-wrap:wrap}.task .a{width:100%;justify-content:flex-start;padding-left:66px}}
+.env li{display:flex;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid var(--e-border);list-style:none}
+.env li:first-child{border-top:0}
+.env{margin:0;padding:0}
+.ok{color:var(--e-good);font-weight:600}.no{color:var(--e-bad);font-weight:600}.mid{color:var(--e-warn);font-weight:600}
+
+/* ---------- pills / score ---------- */
+.pill{display:inline-flex;align-items:center;gap:4px;border-radius:20px;padding:1px 8px;font-size:11.5px;font-weight:600;line-height:18px;white-space:nowrap}
+.pill.good{background:var(--e-good-bg);color:var(--e-good)}
+.pill.warn{background:var(--e-warn-bg);color:var(--e-warn)}
+.pill.bad{background:var(--e-bad-bg);color:var(--e-bad)}
+.pill.gray{background:var(--e-gray-bg);color:var(--e-gray)}
+.pill.info{background:var(--e-accent-soft);color:var(--e-accent)}
+.score{display:inline-grid;place-items:center;min-width:34px;height:22px;border-radius:11px;font-weight:700;font-size:12px;padding:0 6px}
+.score.good{background:var(--e-good);color:#fff}
+.score.warn{background:#f0c33c;color:#3a2a00}
+.score.bad{background:var(--e-bad-line);color:#fff}
+.score.gray{background:#a7aaad;color:#fff}
+
+/* ---------- library ---------- */
+.toolbar{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+.search{position:relative;flex:1;min-width:200px;max-width:340px}
+.search input{width:100%;min-height:32px;border:1px solid var(--e-border-strong);border-radius:var(--e-radius-sm);padding:0 10px 0 30px;font:inherit}
+.search svg{position:absolute;left:9px;top:8px}
+.seg{display:inline-flex;border:1px solid var(--e-border-strong);border-radius:var(--e-radius-sm);overflow:hidden;background:#fff}
+.seg button{border:0;background:none;padding:0 10px;min-height:30px;cursor:pointer;border-left:1px solid var(--e-border);display:flex;align-items:center;gap:5px}
+.seg button:first-child{border-left:0}
+.seg button.on{background:var(--e-accent-soft);color:var(--e-accent);font-weight:600}
+select.sel{min-height:32px;border:1px solid var(--e-border-strong);border-radius:var(--e-radius-sm);padding:0 26px 0 8px;background:#fff;font:inherit}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:14px}
+.chip{border:1px solid var(--e-border-strong);background:#fff;border-radius:16px;padding:3px 10px;cursor:pointer;font-size:12.5px;display:flex;gap:6px;align-items:center}
+.chip.on{border-color:var(--e-accent);background:var(--e-accent-soft);color:var(--e-accent);font-weight:600}
+.chip .dot{width:8px;height:8px;border-radius:50%}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px}
+.tile{background:#fff;border:1px solid var(--e-border);border-radius:var(--e-radius);overflow:hidden;cursor:pointer;position:relative;transition:box-shadow .15s}
+.tile:hover{box-shadow:0 2px 10px rgba(0,0,0,.08)}
+.tile.sel{outline:2px solid var(--e-accent);outline-offset:-1px}
+.thumb{aspect-ratio:4/3;position:relative}
+.thumb .score{position:absolute;top:8px;right:8px;box-shadow:0 1px 3px rgba(0,0,0,.25)}
+.thumb .chk{position:absolute;top:8px;left:8px;width:20px;height:20px;border-radius:4px;background:rgba(255,255,255,.92);border:1px solid var(--e-border-strong);display:grid;place-items:center;opacity:0}
+.tile:hover .chk,.tile.sel .chk{opacity:1}
+.tile.sel .chk{background:var(--e-accent);border-color:var(--e-accent);color:#fff}
+.tmeta{padding:8px 10px}
+.tname{font-weight:600;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tissues{display:flex;gap:4px;margin-top:6px;flex-wrap:wrap}
+.tag{font-size:10.5px;border-radius:3px;padding:0 5px;line-height:17px;background:var(--e-subtle);color:var(--e-muted);border:1px solid var(--e-border)}
+.tag.fmt{background:var(--e-good-bg);color:var(--e-good);border-color:#b8e6bf}
+.selbar{position:sticky;bottom:12px;margin-top:16px;background:#1d2327;color:#fff;border-radius:var(--e-radius);display:flex;align-items:center;gap:8px;padding:8px 10px 8px 16px;box-shadow:var(--e-shadow-pop);flex-wrap:wrap}
+.selbar .btn{border-color:#50575e;background:#2c3338;color:#fff}
+.selbar .btn.primary{background:var(--e-accent);border-color:var(--e-accent)}
+.selbar .sp{flex:1}
+table.list{width:100%;border-collapse:collapse;background:#fff;border:1px solid var(--e-border);border-radius:var(--e-radius);overflow:hidden}
+table.list th{text-align:left;font-weight:600;font-size:12px;color:var(--e-muted);padding:8px 10px;border-bottom:1px solid var(--e-border);background:var(--e-subtle)}
+table.list td{padding:8px 10px;border-bottom:1px solid var(--e-border);vertical-align:middle}
+table.list .lt{width:44px;height:34px;border-radius:4px}
+
+/* ---------- drawer ---------- */
+.overlay{position:fixed;inset:34px 0 0 0;background:rgba(0,0,0,.35);z-index:50;display:none}
+.drawer{position:fixed;top:34px;right:0;bottom:0;width:min(720px,100%);background:#fff;z-index:60;box-shadow:var(--e-shadow-pop);display:none;flex-direction:column}
+.show .overlay{display:block}.show .drawer{display:flex}
+.dr-h{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--e-border)}
+.dr-h h2{margin:0;font-size:15px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dr-b{flex:1;overflow:auto;padding:16px;display:grid;grid-template-columns:240px 1fr;gap:20px;align-content:start}
+@media (max-width:640px){.dr-b{grid-template-columns:1fr}}
+.dr-f{border-top:1px solid var(--e-border);padding:10px 16px;display:flex;gap:8px;align-items:center;background:var(--e-subtle)}
+.dr-f .sp{flex:1}
+.field{margin-bottom:14px}
+.field label{display:block;font-weight:600;margin-bottom:4px}
+.field input,.field textarea{width:100%;border:1px solid var(--e-border-strong);border-radius:var(--e-radius-sm);padding:6px 8px;font:inherit}
+.field .help{font-size:12px;color:var(--e-muted);margin-top:3px}
+.field .row{display:flex;gap:6px}
+.field .row input{flex:1}
+.fn{display:flex;border:1px solid var(--e-border-strong);border-radius:var(--e-radius-sm);overflow:hidden}
+.fn input{border:0;flex:1;padding:6px 8px;font:inherit;min-width:0}
+.fn span{background:var(--e-subtle);padding:6px 8px;color:var(--e-muted);border-left:1px solid var(--e-border)}
+.checks{list-style:none;margin:0;padding:0}
+.checks li{display:grid;grid-template-columns:18px 1fr auto;gap:8px;padding:7px 0;border-top:1px solid var(--e-border);align-items:start}
+.checks li:first-child{border-top:0}
+.checks .pts{font-size:11.5px;color:var(--e-muted);font-variant-numeric:tabular-nums}
+.checks small{display:block;color:var(--e-muted)}
+.sec-t{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:var(--e-muted);font-weight:600;margin:18px 0 6px}
+.sec-t:first-child{margin-top:0}
+.fmt-t{width:100%;border-collapse:collapse;font-size:12px}
+.fmt-t td{padding:4px 0;border-top:1px solid var(--e-border)}
+.fmt-t td:last-child{text-align:right;font-variant-numeric:tabular-nums}
+.ai-box{border:1px solid color-mix(in srgb,var(--e-accent) 35%,#fff);background:var(--e-accent-soft);border-radius:var(--e-radius);padding:10px 12px;margin-bottom:14px}
+.ai-box b{display:flex;gap:6px;align-items:center}
+.usage a{color:var(--e-accent)}
+.usage li{padding:3px 0}
+
+/* ---------- dialogs ---------- */
+.dlg-wrap{position:fixed;inset:34px 0 0 0;background:rgba(0,0,0,.35);z-index:70;display:none;align-items:center;justify-content:center;padding:16px}
+.dlg-wrap.show{display:flex}
+.dlg{background:#fff;border-radius:10px;width:min(560px,100%);box-shadow:var(--e-shadow-pop);max-height:calc(100vh - 80px);display:flex;flex-direction:column}
+.dlg-h{padding:18px 20px 6px;display:flex;gap:12px;align-items:flex-start}
+.dlg-h h2{margin:0;font-size:17px}
+.dlg-h .bub{width:36px;height:36px;border-radius:50%;background:var(--e-accent-soft);color:var(--e-accent);display:grid;place-items:center;flex:none}
+.dlg-b{padding:6px 20px 14px 68px;overflow:auto}
+.dlg-f{padding:12px 20px;border-top:1px solid var(--e-border);display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap}
+.steps{display:flex;gap:6px;padding:0 20px 0 68px;margin-bottom:8px}
+.steps span{font-size:11.5px;color:var(--e-faint);display:flex;align-items:center;gap:4px}
+.steps span.on{color:var(--e-accent);font-weight:600}
+.steps span.done{color:var(--e-good)}
+.steps span+span:before{content:"›";margin-right:4px;color:var(--e-faint)}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 16px;margin:10px 0;padding:10px 12px;background:var(--e-subtle);border-radius:6px}
+.kv b{font-variant-numeric:tabular-nums}
+.prog{height:8px;background:#e8e8ea;border-radius:4px;overflow:hidden;margin:10px 0 4px}
+.prog i{display:block;height:100%;background:var(--e-accent);width:64%}
+
+/* ---------- cleanup ---------- */
+.subnav{display:inline-flex;margin-bottom:14px}
+.explain{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:16px}
+@media (max-width:800px){.explain{grid-template-columns:1fr}}
+.explain .card-b b{display:block;font-size:20px}
+.qrow td .btn{margin-left:4px}
+
+/* ---------- AI ---------- */
+.ai-item{display:grid;grid-template-columns:120px 1fr auto;gap:16px;padding:16px;border-top:1px solid var(--e-border);align-items:start}
+.ai-item:first-child{border-top:0}
+@media (max-width:800px){.ai-item{grid-template-columns:80px 1fr}.ai-item .acts{grid-column:1/-1}}
+.ai-item .im{aspect-ratio:1;border-radius:6px}
+.cmp{display:grid;grid-template-columns:20px 90px 1fr 1fr;gap:6px 10px;align-items:start;font-size:12.5px}
+@media (max-width:1000px){.cmp{grid-template-columns:20px 80px 1fr}.cmp .cur{display:none}}
+.cmp .hd{font-size:11px;color:var(--e-muted);text-transform:uppercase;letter-spacing:.04em}
+.cmp .cur{color:var(--e-muted)}
+.cmp .cur s{color:var(--e-bad)}
+.cmp input[type=text]{width:100%;border:1px solid var(--e-border-strong);border-radius:4px;padding:3px 6px;font:inherit}
+.acts{display:flex;flex-direction:column;gap:6px}
+
+/* ---------- settings ---------- */
+.set{display:grid;grid-template-columns:200px 1fr;gap:20px}
+@media (max-width:800px){.set{grid-template-columns:1fr}}
+.set-nav{display:flex;flex-direction:column;gap:2px;position:sticky;top:50px;align-self:start}
+@media (max-width:800px){.set-nav{flex-direction:row;overflow-x:auto;position:static}}
+.set-nav a{padding:8px 10px;border-radius:6px;color:var(--e-text);text-decoration:none;cursor:pointer;white-space:nowrap}
+.set-nav a.on{background:#fff;font-weight:600;box-shadow:inset 3px 0 0 var(--e-accent)}
+.srow{display:grid;grid-template-columns:1fr 240px;gap:16px;padding:14px 16px;border-top:1px solid var(--e-border);align-items:center}
+.srow:first-child{border-top:0}
+@media (max-width:640px){.srow{grid-template-columns:1fr}}
+.srow b{display:block}
+.srow p{margin:2px 0 0;color:var(--e-muted);font-size:12.5px}
+.srow .ctl{justify-self:end;display:flex;gap:8px;align-items:center}
+@media (max-width:640px){.srow .ctl{justify-self:start}}
+.tog{width:36px;height:20px;border-radius:10px;background:#8c8f94;position:relative;flex:none;cursor:pointer;border:0}
+.tog:after{content:"";position:absolute;width:14px;height:14px;border-radius:50%;background:#fff;top:3px;left:3px;transition:left .15s}
+.tog.on{background:var(--e-accent)}
+.tog.on:after{left:19px}
+.radios label{display:flex;gap:8px;align-items:flex-start;padding:6px 0}
+.radios small{display:block;color:var(--e-muted)}
+.savebar{position:sticky;bottom:0;background:#fff;border-top:1px solid var(--e-border);padding:10px 16px;display:flex;gap:10px;align-items:center;justify-content:flex-end;border-radius:0 0 var(--e-radius) var(--e-radius)}
+
+/* ---------- wizard ---------- */
+.wiz{max-width:720px;margin:24px auto}
+.wiz-steps{display:flex;gap:0;margin-bottom:16px}
+.wiz-steps div{flex:1;text-align:center;font-size:12px;color:var(--e-muted);padding-top:22px;position:relative}
+.wiz-steps div:before{content:attr(data-n);position:absolute;top:0;left:50%;transform:translateX(-50%);width:20px;height:20px;border-radius:50%;background:#dcdcde;color:#fff;font-weight:700;font-size:11px;line-height:20px}
+.wiz-steps div.done:before{background:var(--e-good);content:"✓"}
+.wiz-steps div.on{color:var(--e-text);font-weight:600}
+.wiz-steps div.on:before{background:var(--e-accent)}
+.chk-list{list-style:none;margin:0;padding:0}
+.chk-list li{display:grid;grid-template-columns:22px 1fr auto;gap:10px;padding:10px 0;border-top:1px solid var(--e-border);align-items:start}
+.chk-list li:first-child{border-top:0}
+.rec{border:1px solid var(--e-border);border-radius:var(--e-radius);padding:12px;margin-top:12px;background:var(--e-subtle)}
+.rec li{margin:3px 0}
+
+.screen{display:none}.screen.on{display:block}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-search" viewBox="0 0 16 16"><circle cx="7" cy="7" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/><path d="M11 11l3.5 3.5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 16 16"><path d="M2 2h5v5H2zM9 2h5v5H9zM2 9h5v5H2zM9 9h5v5H9z" fill="currentColor"/></symbol>
+  <symbol id="i-list" viewBox="0 0 16 16"><path d="M2 3h12v2H2zM2 7h12v2H2zM2 11h12v2H2z" fill="currentColor"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 16 16"><path d="M8 1l1.6 4.4L14 7l-4.4 1.6L8 13l-1.6-4.4L2 7l4.4-1.6z" fill="currentColor"/></symbol>
+  <symbol id="i-undo" viewBox="0 0 16 16"><path d="M5 3L1.5 6.5 5 10M2 6.5h7a4.5 4.5 0 010 9H6" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-box" viewBox="0 0 16 16"><path d="M2 4.5L8 2l6 2.5v7L8 14l-6-2.5z M2 4.5L8 7l6-2.5 M8 7v7" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></symbol>
+  <symbol id="i-check" viewBox="0 0 16 16"><path d="M3 8.5l3 3 7-7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-x" viewBox="0 0 16 16"><path d="M4 4l8 8M12 4l-8 8" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></symbol>
+  <symbol id="i-warn" viewBox="0 0 16 16"><path d="M8 1.5l7 12.5H1z" fill="currentColor"/><path d="M8 6v4M8 11.5v.5" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/></symbol>
+  <symbol id="i-dot" viewBox="0 0 16 16"><circle cx="8" cy="8" r="4" fill="currentColor"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 16 16"><path d="M2 2h6l6 6-6 6-6-6z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/><circle cx="5.5" cy="5.5" r="1.2" fill="currentColor"/></symbol>
+  <symbol id="i-convert" viewBox="0 0 16 16"><path d="M2 6a6 6 0 0110.5-3M14 10a6 6 0 01-10.5 3M12.5 1v2.5H10M3.5 15v-2.5H6" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-ext" viewBox="0 0 16 16"><path d="M9 2h5v5M14 2L7 9M12 10v4H2V4h4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+</svg>
+
+<nav class="mk-bar" aria-label="Mockup screens">
+  <strong>MAKET · Faz 7</strong>
+  <button data-s="overview" class="on">1 · Genel Bakış</button>
+  <button data-s="library">2 · Kütüphane</button>
+  <button data-s="drawer">3 · Görsel detayı</button>
+  <button data-s="cleanup">4 · Temizlik + karantina onayı</button>
+  <button data-s="ai">5 · AI Önerileri</button>
+  <button data-s="settings">6 · Ayarlar</button>
+  <button data-s="wizard">7 · İlk açılış sihirbazı</button>
+  <button data-s="bulk">8 · Toplu işlem akışı</button>
+</nav>
+
+<div class="wp-shell" id="shell">
+  <div class="wp-menu" aria-hidden="true">
+    <div>Dashboard</div><div>Posts</div><div>Media</div><div class="cur">Image SEO</div><div>Pages</div><div>Appearance</div><div>Plugins</div><div>Settings</div>
+  </div>
+
+  <main class="wp-main">
+    <!-- ======== header (shared) ======== -->
+    <div class="e-head">
+      <h1><span class="e-logo">e</span>Erdo Image Optimizer <span class="e-ver">3.0.0</span></h1>
+      <span class="sp"></span>
+      <a class="btn quiet sm" href="#">Documentation</a>
+      <a class="btn primary" href="#">+ Upload images</a>
+    </div>
+    <hr class="wp-header-end">
+
+    <!-- notices land here (below wp-header-end, full width) -->
+    <div class="notice" id="notice-index">
+      <svg class="ico" style="color:var(--e-accent)"><use href="#i-convert"/></svg>
+      <p><b>Building the usage index — 62%.</b> Unused-image cleanup becomes available when it finishes. You can keep working.</p>
+    </div>
+
+    <nav class="e-nav" aria-label="Erdo sections">
+      <a data-s="overview" class="on">Overview</a>
+      <a data-s="library">Library <span class="e-count">1,284</span></a>
+      <a data-s="cleanup">Cleanup <span class="e-count">37</span></a>
+      <a data-s="ai">AI Suggestions <span class="e-count">6</span></a>
+      <a data-s="settings">Settings</a>
+    </nav>
+
+    <!-- ================================================= 1 OVERVIEW -->
+    <section class="screen on" id="s-overview">
+      <div class="ov-top">
+        <div class="card card-b health">
+          <div class="ring" style="--v:72"><div><b>72</b><span>of 100</span></div></div>
+          <div>
+            <h3>Image health: fair</h3>
+            <p>Average of SEO score and modern-format coverage across 1,284 images.</p>
+            <span class="pill warn">+6 since last week</span>
+          </div>
+        </div>
+        <div class="card metrics">
+          <div class="metric"><span class="lbl">Average SEO score</span><span class="val">68</span><span class="sub">412 below 50</span><div class="bar"><i style="width:68%"></i></div></div>
+          <div class="metric"><span class="lbl">WebP / AVIF coverage</span><span class="val">81%</span><span class="sub">1,040 of 1,284</span><div class="bar"><i style="width:81%"></i></div></div>
+          <div class="metric"><span class="lbl">Saved for visitors</span><span class="val">412 MB</span><span class="sub">−58% on converted files</span></div>
+          <div class="metric"><span class="lbl">Unused images</span><span class="val">37</span><span class="sub">96 MB · 4 in quarantine</span></div>
+        </div>
+      </div>
+
+      <div class="ov-grid">
+        <div class="card">
+          <div class="card-h"><h2>Fix next</h2><span class="small muted">Sorted by SEO impact</span></div>
+          <div>
+            <div class="task"><div class="n bad">142</div>
+              <div class="t"><b>Images missing alt text</b><span>Used on published pages · alt text is 40% of the score</span></div>
+              <div class="a"><button class="btn primary sm" data-go="ai"><svg class="ico"><use href="#i-spark"/></svg>Suggest with AI</button><button class="btn sm" data-go="library">Review</button></div></div>
+            <div class="task"><div class="n warn">96</div>
+              <div class="t"><b>Camera-style file names</b><span>IMG_4821.jpg, DSC0021.jpg, Screenshot 2026-…</span></div>
+              <div class="a"><button class="btn sm" data-go="bulk">Preview new names</button></div></div>
+            <div class="task"><div class="n info">244</div>
+              <div class="t"><b>Images without a WebP/AVIF copy</b><span>Originals stay untouched · ~180 MB estimated savings</span></div>
+              <div class="a"><button class="btn sm" data-go="bulk">Convert in background</button></div></div>
+            <div class="task"><div class="n warn">31</div>
+              <div class="t"><b>Oversized images</b><span>Wider than 2560 px or larger than 500 KB</span></div>
+              <div class="a"><button class="btn sm" data-go="library">Review</button></div></div>
+            <div class="task"><div class="n gray">37</div>
+              <div class="t"><b>Unused images</b><span>Not found in content, settings, widgets or terms</span></div>
+              <div class="a"><button class="btn sm" data-go="cleanup">Review &amp; quarantine</button></div></div>
+          </div>
+        </div>
+
+        <div style="display:flex;flex-direction:column;gap:16px">
+          <div class="card">
+            <div class="card-h"><h2>This server</h2><a class="small" href="#" style="color:var(--e-accent)">Run check again</a></div>
+            <div class="card-b" style="padding-top:6px;padding-bottom:6px">
+              <ul class="env">
+                <li><span>WebP encoding</span><span class="ok">Works · GD</span></li>
+                <li><span>AVIF encoding</span><span class="no">Not available</span></li>
+                <li><span>Delivery</span><span>&lt;picture&gt; tags</span></li>
+                <li><span>Web server</span><span>nginx</span></li>
+                <li><span>CDN</span><span class="mid">Cloudflare detected</span></li>
+                <li><span>AI provider</span><span class="ok">Google · connected</span></li>
+              </ul>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-h"><h2>Recent activity</h2></div>
+            <div class="card-b small" style="display:flex;flex-direction:column;gap:8px">
+              <div>Renamed 24 images <span class="faint">· 2 h ago</span> <a href="#" style="color:var(--e-accent)">Undo</a></div>
+              <div>Accepted 8 AI alt texts <span class="faint">· yesterday</span></div>
+              <div>Moved 4 images to quarantine <span class="faint">· 3 days ago</span> <a href="#" style="color:var(--e-accent)">Restore</a></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="mk-note"><b>Not (Genel Bakış):</b>
+        <ul>
+          <li>Bugünkü 5 renkli istatistik kartı + halkalar yerine: tek "sağlık" puanı + 4 sade metrik. Renk yalnızca durum anlamı taşıyor (kırmızı = sorun, sarı = uyarı), dekorasyon için değil.</li>
+          <li>"Fix next" listesi her sorunu sayısı, nedeni ve <b>tek bir sonraki adımı</b> ile gösteriyor; butonlar ilgili sekmeye veya önizleme akışına götürüyor.</li>
+          <li>Admin bildirimleri <code>&lt;hr class="wp-header-end"&gt;</code> altına iniyor → başlığın içine sıkışma sorunu biter.</li>
+          <li>Renkler <code>--wp-admin-theme-color</code>'dan geliyor: kullanıcı admin renk şemasını değiştirirse eklenti de uyar.</li>
+          <li>"Recent activity" = E6 etkinlik günlüğü (geri alınabilir işlemler doğrudan buradan).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 2 LIBRARY -->
+    <section class="screen" id="s-library">
+      <div class="toolbar">
+        <label class="search"><svg class="ico faint"><use href="#i-search"/></svg><input type="search" placeholder="Search file name, title or alt text" aria-label="Search images"></label>
+        <select class="sel" aria-label="Issue"><option>All issues</option><option>Missing alt text</option><option>Camera file name</option><option>No WebP/AVIF</option><option>Oversized</option><option>Not on an indexable page</option></select>
+        <select class="sel" aria-label="Sort"><option>Lowest score first</option><option>Newest</option><option>Largest file</option></select>
+        <span style="flex:1"></span>
+        <div class="seg" role="group" aria-label="View"><button class="on" aria-pressed="true" id="v-grid"><svg class="ico"><use href="#i-grid"/></svg>Grid</button><button aria-pressed="false" id="v-list"><svg class="ico"><use href="#i-list"/></svg>List</button></div>
+        <div class="seg" role="group" aria-label="Card size"><button>S</button><button class="on">M</button><button>L</button></div>
+      </div>
+      <div class="chips" role="group" aria-label="Score filter">
+        <button class="chip on">All <span class="faint">1,284</span></button>
+        <button class="chip"><span class="dot" style="background:var(--e-bad-line)"></span>Poor <span class="faint">412</span></button>
+        <button class="chip"><span class="dot" style="background:#f0c33c"></span>Needs work <span class="faint">305</span></button>
+        <button class="chip"><span class="dot" style="background:var(--e-good)"></span>Good <span class="faint">530</span></button>
+        <button class="chip"><span class="dot" style="background:#a7aaad"></span>Unused <span class="faint">37</span></button>
+      </div>
+
+      <div class="grid" id="grid"></div>
+      <table class="list hidden" id="list">
+        <thead><tr><th style="width:28px"><input type="checkbox" aria-label="Select all"></th><th></th><th>File</th><th>Alt text</th><th>Score</th><th>Format</th><th>Size</th><th>Used on</th></tr></thead>
+        <tbody id="listbody"></tbody>
+      </table>
+
+      <div class="selbar" role="region" aria-label="Selected images">
+        <b>3 selected</b>
+        <button class="btn sm primary"><svg class="ico"><use href="#i-spark"/></svg>AI suggestions</button>
+        <button class="btn sm" data-go="bulk"><svg class="ico"><use href="#i-tag"/></svg>Rename…</button>
+        <button class="btn sm"><svg class="ico"><use href="#i-convert"/></svg>Convert</button>
+        <button class="btn sm"><svg class="ico"><use href="#i-box"/></svg>Quarantine</button>
+        <span class="sp"></span>
+        <button class="btn sm ghost" style="border-color:transparent;background:none">Clear</button>
+      </div>
+
+      <div class="mk-note"><b>Not (Kütüphane):</b>
+        <ul>
+          <li>Kırmızı/turuncu/yeşil sekmeler → tek ızgara + puan filtresi çipleri + "sorun" açılır menüsü. "Missing Alt" butonu bu menüye taşındı.</li>
+          <li>Kartta puan sayıyla yazılıyor (yalnızca renk değil, WCAG), altta en fazla 2 sorun etiketi ve servis edilen format.</li>
+          <li><b>Liste görünümü yeni</b> (alt metni doğrudan okumak için; büyük kütüphanelerde daha hızlı tarama).</li>
+          <li>Seçim çubuğu altta yapışık: AI önerisi, yeniden adlandır, dönüştür, karantina. Mevcut Ctrl/Cmd+tık ve onay kutusu seçimi korunur.</li>
+          <li>Karta tıklayınca modal yerine <b>sağdan açılan panel</b> (ekran 3) — ızgara görünür kalır, ok tuşlarıyla sıradaki görsele geçilir.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 3 DRAWER (shown over library) -->
+    <section class="screen" id="s-drawer">
+      <div class="grid" id="grid2" style="opacity:.6"></div>
+      <div class="mk-note"><b>Not (Görsel detayı):</b>
+        <ul>
+          <li>Sol: önizleme, önce/sonra kaydırıcısı (mevcut container sürükleme kalıbı korunur), format tablosu, "Nerede kullanılıyor".</li>
+          <li>Sağ: puan maddeleri, düzenlenebilir alanlar, AI öneri kutusu. Puan satırları sorunu ve kazanılacak puanı söylüyor.</li>
+          <li>Kaydet / geri al altta yapışık; "Quarantine" küçük ve ikincil, kırmızı değil (geri alınabilir işlem).</li>
+          <li>Klavye: Esc kapatır, ← → önceki/sonraki görsel, odak panel içinde tutulur.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 4 CLEANUP -->
+    <section class="screen" id="s-cleanup">
+      <div class="subnav seg" role="tablist"><button class="on" role="tab" aria-selected="true" id="st-u">Unused <span class="e-count">37</span></button><button role="tab" id="st-q">Quarantine <span class="e-count">4</span></button></div>
+
+      <div id="pane-u">
+      <div class="explain">
+        <div class="card"><div class="card-b"><span class="muted small">Unused</span><b>37 images · 96 MB</b><span class="small muted">Not referenced in posts, pages, page builders, custom fields, theme settings, widgets or terms.</span></div></div>
+        <div class="card"><div class="card-b"><span class="muted small">Skipped for safety</span><b>9 images</b><span class="small muted">The file name still appears somewhere (e.g. CSS or a builder setting). <a href="#" style="color:var(--e-accent)">See where</a></span></div></div>
+        <div class="card"><div class="card-b"><span class="muted small">What cannot be checked</span><b style="font-size:14px;margin:4px 0">Theme files &amp; other sites</b><span class="small muted">Images hard-coded in PHP templates or hot-linked from other domains.</span></div></div>
+      </div>
+
+      <div class="toolbar">
+        <b style="font-size:14px">Unused images</b><span style="flex:1"></span>
+        <button class="btn primary" id="open-q"><svg class="ico"><use href="#i-box"/></svg>Move 37 to quarantine…</button>
+      </div>
+      <div class="grid" id="grid3"></div>
+      </div>
+
+      <div class="card hidden" id="pane-q">
+        <div class="card-h"><h2>Quarantine</h2><span class="small muted">Hidden from the site and media library · nothing is deleted yet · auto-delete: never</span></div>
+        <table class="list" style="border:0">
+          <thead><tr><th></th><th>File</th><th>Moved</th><th>Size</th><th style="text-align:right">Actions</th></tr></thead>
+          <tbody>
+            <tr class="qrow"><td><div class="lt" style="background:linear-gradient(135deg,#b9c9d6,#6c8aa3)"></div></td><td><b>old-banner-2019.jpg</b><br><span class="small muted">Was attached to “Spring Sale”</span></td><td>3 days ago</td><td>1.2 MB</td><td style="text-align:right"><button class="btn sm"><svg class="ico"><use href="#i-undo"/></svg>Restore</button><button class="btn sm danger-link">Delete permanently</button></td></tr>
+            <tr class="qrow"><td><div class="lt" style="background:linear-gradient(135deg,#e2c9a8,#a0784c)"></div></td><td><b>img-0042.png</b><br><span class="small muted">Never used</span></td><td>3 days ago</td><td>840 KB</td><td style="text-align:right"><button class="btn sm"><svg class="ico"><use href="#i-undo"/></svg>Restore</button><button class="btn sm danger-link">Delete permanently</button></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="mk-note"><b>Not (Temizlik):</b>
+        <ul>
+          <li>"Unused" ve "Quarantine" tek sekmede; neyin kontrol edildiği, neyin güvenlik için atlandığı ve <b>neyin kontrol edilemediği</b> açıkça yazıyor.</li>
+          <li>Karantina onay penceresi artık sakin: mavi "kutu" ikonu, kırmızı/uyarı yok, net "geri alınabilir" mesajı ("Move 37 to quarantine…" butonuna tıkla).</li>
+          <li>Kalıcı silme yalnızca karantinada ve küçük metin bağlantısı olarak duruyor; onu ayrıca onaylatıyoruz (geri alınamaz olduğu için o pencere kırmızı kalır).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 5 AI -->
+    <section class="screen" id="s-ai">
+      <div class="toolbar">
+        <div><b style="font-size:14px">6 suggestions waiting for review</b><div class="small muted">Nothing is saved until you accept it. Each suggestion was made by Google Gemini 2.5 Flash.</div></div>
+        <span style="flex:1"></span>
+        <button class="btn quiet"><svg class="ico"><use href="#i-spark"/></svg>Suggest for 142 more…</button>
+        <button class="btn primary"><svg class="ico"><use href="#i-check"/></svg>Accept checked (11 fields)</button>
+      </div>
+      <div class="card" id="ai-list"></div>
+      <div class="mk-note"><b>Not (AI Önerileri):</b>
+        <ul>
+          <li>Her öneri <b>mevcut değer ↔ önerilen değer</b> yan yana; alan bazında onay kutusu ve yerinde düzenleme.</li>
+          <li>Dosya adı önerisi kabul edilirse yeniden adlandırma + 301 yönlendirme zaten yapılıyor; satırda bu not olarak görünüyor.</li>
+          <li>"Suggest for 142 more…" önce maliyet/adet önizlemesi gösteren toplu akışı açar (ekran 8 ile aynı desen).</li>
+          <li>Sağlayıcı bağlı değilse liste yerine tek bir kurulum kartı: "Settings → Connectors" bağlantısı.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 6 SETTINGS -->
+    <section class="screen" id="s-settings">
+      <div class="set">
+        <nav class="set-nav" aria-label="Settings sections">
+          <a class="on">Conversion</a><a>Delivery</a><a>Uploads</a><a>SEO</a><a>AI</a><a>Cleanup</a><a>Uninstall</a>
+        </nav>
+        <div class="card">
+          <div class="card-h"><h2>Conversion</h2><span class="small muted">Originals are never changed — WebP/AVIF copies are saved next to them.</span></div>
+          <div class="srow"><div><b>Format</b><p>Which modern copies to create.</p></div>
+            <div class="radios" style="grid-column:1/-1">
+              <label><input type="radio" name="f" checked> <span><b>WebP</b> <span class="pill good">Recommended</span><small>Supported by every current browser. Fast to create.</small></span></label>
+              <label><input type="radio" name="f" disabled> <span class="faint"><b>AVIF</b><small>Smallest files. Not available on this server (GD without AVIF).</small></span></label>
+              <label><input type="radio" name="f" disabled> <span class="faint"><b>AVIF + WebP</b><small>Browsers get the best format they support. Needs AVIF.</small></span></label>
+            </div></div>
+          <div class="srow"><div><b>Quality</b><p>80 is a good balance between size and sharpness.</p></div><div class="ctl"><input type="range" min="40" max="100" value="80" aria-label="Quality"><b>80</b></div></div>
+          <div class="srow"><div><b>Smart quality</b><p>Find the lowest quality that still looks the same, per image. Replaces the slider.</p></div><div class="ctl"><button class="tog" aria-pressed="false" aria-label="Smart quality"></button></div></div>
+          <div class="srow"><div><b>Lossless WebP</b><p>Pixel-identical copies. Usually larger; copies bigger than the original are not kept.</p></div><div class="ctl"><button class="tog" aria-pressed="false" aria-label="Lossless"></button></div></div>
+          <div class="srow"><div><b>Convert new uploads</b><p>Create the copies automatically right after an upload.</p></div><div class="ctl"><button class="tog on" aria-pressed="true" aria-label="Convert new uploads"></button></div></div>
+          <div class="savebar"><span class="small muted">Unsaved changes</span><button class="btn quiet">Discard</button><button class="btn primary">Save changes</button></div>
+        </div>
+      </div>
+      <div class="mk-note"><b>Not (Ayarlar):</b>
+        <ul>
+          <li>Modal yerine kendi sekmesi; solda 7 bölüm (dar ekranda yatay kaydırma). Her ayarın altında tek cümle açıklama.</li>
+          <li>Sunucunun desteklemediği seçenekler gizlenmiyor, <b>nedeniyle birlikte</b> pasif gösteriliyor.</li>
+          <li>Bölümler: Conversion · Delivery (picture/.htaccess/nginx metni) · Uploads (dosya adı, EXIF, maks. boyut) · SEO (site haritası, ad eki) · AI (yüklemede öneri, Connectors linki) · Cleanup (karantina süresi, arka plan kuyruğu) · Uninstall.</li>
+          <li>Kaydet çubuğu yalnızca değişiklik olunca beliriyor, altta yapışık.</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 7 WIZARD -->
+    <section class="screen" id="s-wizard">
+      <div class="wiz">
+        <div class="wiz-steps"><div data-n="1" class="done">Check this server</div><div data-n="2" class="on">Recommended settings</div><div data-n="3">First scan</div></div>
+        <div class="card">
+          <div class="card-h"><h2>We tested what this server can do</h2></div>
+          <div class="card-b">
+            <ul class="chk-list">
+              <li><svg class="ico ok"><use href="#i-check"/></svg><div><b>WebP</b><div class="small muted">Test image encoded with GD in 41 ms.</div></div><span class="pill good">Works</span></li>
+              <li><svg class="ico no"><use href="#i-x"/></svg><div><b>AVIF</b><div class="small muted">GD on this host has no AVIF support. Ask your host for Imagick with AVIF if you want it.</div></div><span class="pill gray">Not available</span></li>
+              <li><svg class="ico" style="color:var(--e-warn-line)"><use href="#i-warn"/></svg><div><b>Cloudflare in front of the site</b><div class="small muted">Server rewrites would be cached for every browser, so we use &lt;picture&gt; tags (CDN-safe).</div></div><span class="pill warn">Handled</span></li>
+              <li><svg class="ico ok"><use href="#i-check"/></svg><div><b>Yoast SEO active</b><div class="small muted">Yoast already lists images in its sitemap — our image sitemap stays off. Focus keywords will be used for scoring.</div></div><span class="pill good">Detected</span></li>
+            </ul>
+            <div class="rec">
+              <b>Recommended for this site</b>
+              <ul style="margin:6px 0 0 18px;padding:0">
+                <li>Create <b>WebP</b> copies at quality 80, for new uploads too</li>
+                <li>Serve them with <b>&lt;picture&gt; tags</b></li>
+                <li>Clean file names on upload; keep EXIF (turn off in Settings → Uploads)</li>
+                <li>Quarantine is kept until you empty it</li>
+              </ul>
+            </div>
+          </div>
+          <div class="dlg-f" style="justify-content:space-between"><button class="btn ghost" style="border-color:transparent">Skip, I’ll configure it myself</button><div style="display:flex;gap:8px"><button class="btn quiet">Back</button><button class="btn primary">Use these settings &amp; scan</button></div></div>
+        </div>
+      </div>
+      <div class="mk-note"><b>Not (Sihirbaz):</b>
+        <ul>
+          <li>Yalnızca ilk kurulumda ve 2.x'ten yükseltmede bir kez gösterilir; atlanabilir, Ayarlar'dan tekrar açılabilir.</li>
+          <li>1: gerçek deneme kodlaması + sunucu/CDN/SEO eklentisi tespiti → 2: tek tıkla önerilen ayarlar → 3: kullanım indeksi + ilk puanlama ilerleme çubuğu, sonunda Genel Bakış'a geçer.</li>
+          <li>2.x'ten gelen ve hasarlı görseli olan sitelerde 3. adımın önüne "Onarım" adımı eklenir (mevcut onarım akışı).</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ================================================= 8 BULK FLOW -->
+    <section class="screen" id="s-bulk">
+      <div class="grid" id="grid4" style="opacity:.6"></div>
+      <div class="mk-note"><b>Not (Toplu işlem akışı):</b> Her toplu işlem aynı 4 adımı izler: <b>Önizleme → Onay → İlerleme → Sonuç + Geri al</b>. Ekrandaki pencereler: yeniden adlandırma önizlemesi, arka planda dönüştürme ilerlemesi ve sonuç. İlerleme sırasında pencere kapatılabilir; iş kuyrukta sürer ve başlık altında ince bir ilerleme bildirimi kalır.</div>
+    </section>
+
+  </main>
+</div>
+
+<!-- drawer -->
+<div id="drawer-root">
+  <div class="overlay"></div>
+  <aside class="drawer" role="dialog" aria-modal="true" aria-labelledby="dr-title">
+    <div class="dr-h">
+      <span class="score bad">38</span>
+      <h2 id="dr-title">IMG_4821.jpg</h2>
+      <button class="btn quiet sm" aria-label="Previous image">←</button><button class="btn quiet sm" aria-label="Next image">→</button>
+      <button class="btn ghost sm" aria-label="Close" style="border-color:transparent"><svg class="ico"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="dr-b">
+      <div>
+        <div style="aspect-ratio:4/3;border-radius:6px;background:linear-gradient(135deg,#9ec5d9,#2f6f8f 70%,#1f4a5e);position:relative">
+          <div style="position:absolute;top:0;bottom:0;left:55%;width:2px;background:#fff"></div>
+          <span class="pill" style="position:absolute;left:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff">JPEG 1.8 MB</span>
+          <span class="pill" style="position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.6);color:#fff">WebP 412 KB</span>
+        </div>
+        <div class="sec-t" style="margin-top:14px">Files</div>
+        <table class="fmt-t">
+          <tr><td>Original · 4032×3024</td><td>1.8 MB</td></tr>
+          <tr><td>WebP copy (served)</td><td class="ok">412 KB −77%</td></tr>
+          <tr><td>Sizes</td><td>6 · all converted</td></tr>
+        </table>
+        <div class="sec-t">Used on</div>
+        <ul class="usage small" style="margin:0;padding:0;list-style:none">
+          <li><a href="#">Bosphorus at sunset</a> <span class="faint">· post content</span></li>
+          <li><a href="#">Home</a> <span class="faint">· featured image</span></li>
+        </ul>
+        <div class="sec-t">Actions</div>
+        <div style="display:flex;flex-wrap:wrap;gap:6px"><button class="btn sm quiet">Resize…</button><button class="btn sm quiet">Remove copies</button><button class="btn sm quiet"><svg class="ico"><use href="#i-box"/></svg>Quarantine</button></div>
+      </div>
+      <div>
+        <div class="ai-box">
+          <b><svg class="ico"><use href="#i-spark"/></svg>AI suggestion</b>
+          <div class="small" style="margin:4px 0 8px">Alt: “Bosphorus Bridge lit up at sunset seen from Ortaköy” · File: <code>bosphorus-bridge-sunset-ortakoy</code></div>
+          <button class="btn sm primary">Use suggestion</button> <button class="btn sm ghost" style="border-color:transparent">Dismiss</button>
+        </div>
+        <div class="field"><label for="f-alt">Alt text</label><textarea id="f-alt" rows="2" placeholder="Describe the image for people who can’t see it"></textarea><div class="help">Missing · focus keyword of “Bosphorus at sunset”: <b>bosphorus sunset</b></div></div>
+        <div class="field"><label for="f-fn">File name</label><div class="fn"><input id="f-fn" value="IMG_4821"><span>.jpg</span></div><div class="help">Renaming moves every size and copy, updates links and adds a 301 redirect.</div></div>
+        <div class="field"><label for="f-t">Title</label><input id="f-t" value="IMG_4821"></div>
+        <label class="small" style="display:flex;gap:6px;align-items:center;margin-bottom:16px"><input type="checkbox"> Decorative image (empty alt is correct)</label>
+
+        <div class="sec-t">SEO score · 38 / 100</div>
+        <ul class="checks">
+          <li><svg class="ico no"><use href="#i-x"/></svg><div>Alt text<small>Missing — adds 40 points</small></div><span class="pts">0/40</span></li>
+          <li><svg class="ico no"><use href="#i-x"/></svg><div>File name<small>Camera name “IMG_4821”</small></div><span class="pts">0/20</span></li>
+          <li><svg class="ico ok"><use href="#i-check"/></svg><div>Modern format<small>WebP copy served</small></div><span class="pts">10/10</span></li>
+          <li><svg class="ico ok"><use href="#i-check"/></svg><div>File size<small>412 KB served</small></div><span class="pts">10/10</span></li>
+          <li><svg class="ico" style="color:var(--e-warn-line)"><use href="#i-warn"/></svg><div>Dimensions<small>4032 px wide, shown at most 1200 px</small></div><span class="pts">3/5</span></li>
+          <li><svg class="ico ok"><use href="#i-check"/></svg><div>Context<small>On 2 published, indexable pages</small></div><span class="pts">15/15</span></li>
+        </ul>
+      </div>
+    </div>
+    <div class="dr-f"><span class="small muted">Changes are saved when you click Save.</span><span class="sp"></span><button class="btn quiet">Cancel</button><button class="btn primary">Save</button></div>
+  </aside>
+</div>
+
+<!-- quarantine confirm (calm) -->
+<div class="dlg-wrap" id="dlg-q" role="dialog" aria-modal="true" aria-labelledby="dq-t">
+  <div class="dlg">
+    <div class="dlg-h"><div class="bub"><svg class="ico"><use href="#i-box"/></svg></div><div><h2 id="dq-t">Move 37 images to quarantine?</h2></div></div>
+    <div class="dlg-b">
+      <p style="margin-top:0">They disappear from your site and media library, but <b>nothing is deleted</b>. You can restore any of them in one click from Cleanup → Quarantine.</p>
+      <div class="kv"><span>Images moved</span><b>37</b><span>Space freed from the library</span><b>96 MB</b><span>Skipped (file name still found)</span><b>9</b></div>
+      <p class="small muted" style="margin-bottom:0">Images used only in theme files or on other websites can’t be detected. Check those before deleting anything permanently.</p>
+    </div>
+    <div class="dlg-f"><button class="btn quiet" data-close>Cancel</button><button class="btn primary" data-close>Move to quarantine</button></div>
+  </div>
+</div>
+
+<!-- bulk flow dialogs -->
+<div class="dlg-wrap" id="dlg-bulk" role="dialog" aria-modal="true" aria-labelledby="db-t">
+  <div style="display:flex;gap:16px;flex-wrap:wrap;justify-content:center;align-items:flex-start;max-height:100%;overflow:auto">
+    <div class="dlg" style="width:min(560px,100%)">
+      <div class="dlg-h"><div class="bub"><svg class="ico"><use href="#i-tag"/></svg></div><div><h2 id="db-t">Rename 96 images</h2><div class="small muted">Step 1 of 3 · nothing has changed yet</div></div></div>
+      <div class="steps"><span class="on">Preview</span><span>Apply</span><span>Done</span></div>
+      <div class="dlg-b" style="padding-left:20px">
+        <div class="field" style="margin-bottom:10px"><label>Pattern</label><div class="row"><input value="{keyword}-{n}"><select class="sel"><option>Insert tag</option><option>{keyword}</option><option>{parent}</option><option>{title}</option><option>{alt}</option></select></div><div class="help">{keyword} uses the focus keyword of the page the image is on.</div></div>
+        <table class="list" style="font-size:12.5px">
+          <thead><tr><th>Current</th><th>New name</th></tr></thead>
+          <tbody>
+            <tr><td class="muted">IMG_4821.jpg</td><td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap"><input value="bosphorus-sunset-1" style="flex:1;min-width:120px;border:1px solid var(--e-border-strong);border-radius:4px;padding:2px 6px">.jpg</td></tr>
+            <tr><td class="muted">DSC0021.JPG</td><td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap"><input value="bosphorus-sunset-2" style="flex:1;min-width:120px;border:1px solid var(--e-border-strong);border-radius:4px;padding:2px 6px">.jpg</td></tr>
+            <tr><td class="muted">Screenshot 2026-03-11.png</td><td style="display:flex;gap:4px;align-items:center;flex-wrap:wrap"><input value="pricing-table-2" style="flex:1;min-width:120px;border:1px solid var(--e-border-strong);border-radius:4px;padding:2px 6px">.png <span class="pill warn">name taken → -2</span></td></tr>
+          </tbody>
+        </table>
+        <p class="small muted" style="margin-bottom:0">All sizes and WebP/AVIF copies move with the file, links in 14 posts are updated and old URLs redirect (301).</p>
+      </div>
+      <div class="dlg-f"><button class="btn quiet">Cancel</button><button class="btn primary">Rename 96 images</button></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:16px;width:min(420px,100%)">
+      <div class="dlg" style="width:100%">
+        <div class="dlg-h"><div class="bub"><svg class="ico"><use href="#i-convert"/></svg></div><div><h2>Converting 244 images</h2><div class="small muted">Step 2 of 3 · runs in the background</div></div></div>
+        <div class="dlg-b" style="padding-left:20px">
+          <div class="prog"><i></i></div>
+          <div class="small" style="display:flex;justify-content:space-between"><span>156 of 244</span><span class="muted">about 2 min left</span></div>
+          <p class="small muted">You can close this window or leave the page — conversion keeps running and a small progress note stays at the top.</p>
+        </div>
+        <div class="dlg-f"><button class="btn quiet">Stop</button><button class="btn primary">Run in background</button></div>
+      </div>
+      <div class="dlg" style="width:100%">
+        <div class="dlg-h"><div class="bub" style="background:var(--e-good-bg);color:var(--e-good)"><svg class="ico"><use href="#i-check"/></svg></div><div><h2>Done — 244 images converted</h2><div class="small muted">Step 3 of 3</div></div></div>
+        <div class="dlg-b" style="padding-left:20px">
+          <div class="kv"><span>WebP copies kept</span><b>231</b><span>Skipped (copy was larger)</span><b>13</b><span>Saved for visitors</span><b>176 MB</b></div>
+        </div>
+        <div class="dlg-f"><button class="btn quiet"><svg class="ico"><use href="#i-undo"/></svg>Undo (remove copies)</button><button class="btn primary">Close</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+// --- sample data -------------------------------------------------------
+var imgs=[
+ ['IMG_4821.jpg',38,'bad',['No alt','Camera name'],'WebP',205],
+ ['DSC0021.JPG',42,'bad',['No alt','Camera name'],'JPG',25],
+ ['Screenshot 2026-03-11.png',46,'bad',['No alt','No WebP'],'PNG',260],
+ ['hagia-sophia-dome.jpg',64,'warn',['Oversized'],'WebP',35],
+ ['galata-tower-night.jpg',71,'warn',['Weak alt'],'WebP',230],
+ ['team-photo-2026.jpg',58,'warn',['Draft only'],'WebP',15],
+ ['espresso-cup-wooden-table.jpg',92,'good',[],'WebP',30],
+ ['istanbul-skyline-aerial.jpg',100,'good',[],'AVIF',200],
+ ['pricing-table.png',88,'good',[],'WebP',180],
+ ['old-banner-2019.jpg',null,'gray',['Unused'],'JPG',350],
+ ['logo-white.png',96,'good',[],'WebP',0],
+ ['prague-fire-bicycle.jpg',84,'good',[],'WebP',10]
+];
+function thumb(h){return 'background:linear-gradient(135deg,hsl('+h+' 45% 78%),hsl('+(h+30)+' 40% 42%))'}
+function tile(d,i,sel){
+  var s=d[1]===null?'—':d[1];
+  var tags=d[3].slice(0,2).map(function(t){return '<span class="tag">'+t+'</span>'}).join('');
+  var fmt=d[4]==='WebP'||d[4]==='AVIF'?'<span class="tag fmt">'+d[4]+'</span>':'<span class="tag">'+d[4]+'</span>';
+  return '<div class="tile'+(sel?' sel':'')+'" tabindex="0" data-i="'+i+'"><div class="thumb" style="'+thumb(d[5])+'"><span class="chk">'+(sel?'<svg class="ico" style="width:12px;height:12px"><use href="#i-check"/></svg>':'')+'</span><span class="score '+d[2]+'">'+s+'</span></div><div class="tmeta"><div class="tname" title="'+d[0]+'">'+d[0]+'</div><div class="tissues">'+fmt+tags+'</div></div></div>';
+}
+function fill(id,filter,selected){
+  var el=document.getElementById(id); if(!el)return;
+  el.innerHTML=imgs.map(function(d,i){return (!filter||filter(d))?tile(d,i,selected&&selected.indexOf(i)>-1):''}).join('');
+}
+fill('grid',null,[0,1,2]); fill('grid2'); fill('grid4');
+fill('grid3',function(d){return d[2]==='gray'||d[0].indexOf('team')===0||d[0].indexOf('DSC')===0});
+document.querySelectorAll('#grid3 .score').forEach(function(e){e.className='score gray';e.textContent='—'});
+['u','q'].forEach(function(k){document.getElementById('st-'+k).addEventListener('click',function(){['u','q'].forEach(function(o){document.getElementById('st-'+o).classList.toggle('on',o===k);document.getElementById('pane-'+o).classList.toggle('hidden',o!==k)})})});
+document.getElementById('listbody').innerHTML=imgs.map(function(d){
+  var alt=d[3].indexOf('No alt')>-1?'<span class="pill bad">Missing</span>':'<span class="small">'+d[0].replace(/\.\w+$/,'').replace(/-/g,' ')+'</span>';
+  return '<tr><td><input type="checkbox"></td><td><div class="lt" style="'+thumb(d[5])+'"></div></td><td><b>'+d[0]+'</b></td><td>'+alt+'</td><td><span class="score '+d[2]+'">'+(d[1]===null?'—':d[1])+'</span></td><td>'+d[4]+'</td><td>'+(200+d[5]*3)+' KB</td><td class="small">'+(d[2]==='gray'?'<span class="faint">Nowhere</span>':'<a href="#" style="color:var(--e-accent)">2 pages</a>')+'</td></tr>';
+}).join('');
+
+// --- AI list ------------------------------------------------------------
+var ai=[
+ ['IMG_4821.jpg',205,'—','Bosphorus Bridge lit up at sunset seen from Ortaköy','IMG_4821','bosphorus-bridge-sunset-ortakoy'],
+ ['DSC0021.JPG',25,'image of tower','Galata Tower above the Karaköy rooftops at dusk','DSC0021','galata-tower-karakoy-dusk'],
+ ['espresso-cup.jpg',30,'—','Espresso in a white cup on a rustic wooden table',null,null]
+];
+document.getElementById('ai-list').innerHTML=ai.map(function(a){
+  var fn=a[4]?'<input type="checkbox" checked aria-label="Apply file name"><span>File name</span><span class="cur">'+a[4]+'.jpg</span><span><input type="text" value="'+a[5]+'"><div class="small muted">Links update + 301 redirect</div></span>':'';
+  return '<div class="ai-item"><div class="im" style="'+thumb(a[1])+'"></div><div><div style="margin-bottom:8px"><b>'+a[0]+'</b> <span class="faint small">· used on “Bosphorus at sunset”</span></div><div class="cmp"><span></span><span class="hd">Field</span><span class="hd cur">Current</span><span class="hd">Suggested</span><input type="checkbox" checked aria-label="Apply alt text"><span>Alt text</span><span class="cur">'+(a[2]==='—'?'<span class="pill bad">Missing</span>':'<s>'+a[2]+'</s> <span class="small">generic phrase</span>')+'</span><input type="text" value="'+a[3]+'">'+fn+'<input type="checkbox" aria-label="Apply title"><span>Title</span><span class="cur">'+(a[4]||'espresso-cup')+'</span><input type="text" value="'+a[3].split(' ').slice(0,4).join(' ')+'"></div></div><div class="acts"><button class="btn sm primary"><svg class="ico"><use href="#i-check"/></svg>Accept</button><button class="btn sm quiet">Dismiss</button></div></div>';
+}).join('');
+
+// --- screen switching -----------------------------------------------------
+var map={drawer:'library',bulk:'library'};
+function go(s){
+  document.querySelectorAll('.screen').forEach(function(e){e.classList.toggle('on',e.id==='s-'+s)});
+  document.querySelectorAll('.mk-bar button').forEach(function(b){b.classList.toggle('on',b.dataset.s===s)});
+  var tab=map[s]||s;
+  document.querySelectorAll('.e-nav a').forEach(function(a){a.classList.toggle('on',a.dataset.s===tab)});
+  document.getElementById('drawer-root').classList.toggle('show',s==='drawer');
+  document.getElementById('dlg-bulk').classList.toggle('show',s==='bulk');
+  document.getElementById('dlg-q').classList.remove('show');
+  var wiz=s==='wizard';
+  document.querySelector('.e-nav').classList.toggle('hidden',wiz);
+  document.getElementById('notice-index').classList.toggle('hidden',wiz);
+  window.scrollTo(0,0);
+}
+document.querySelectorAll('[data-s]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.s)})});
+document.querySelectorAll('[data-go]').forEach(function(b){b.addEventListener('click',function(){go(b.dataset.go)})});
+document.getElementById('open-q').addEventListener('click',function(){document.getElementById('dlg-q').classList.add('show')});
+document.querySelectorAll('[data-close]').forEach(function(b){b.addEventListener('click',function(){document.getElementById('dlg-q').classList.remove('show')})});
+document.getElementById('grid').addEventListener('click',function(e){var t=e.target.closest('.tile');if(t)go('drawer')});
+document.querySelector('.overlay').addEventListener('click',function(){go('library')});
+document.querySelector('.dr-h .btn.ghost').addEventListener('click',function(){go('library')});
+document.getElementById('v-grid').addEventListener('click',function(){this.classList.add('on');document.getElementById('v-list').classList.remove('on');document.getElementById('grid').classList.remove('hidden');document.getElementById('list').classList.add('hidden')});
+document.getElementById('v-list').addEventListener('click',function(){this.classList.add('on');document.getElementById('v-grid').classList.remove('on');document.getElementById('list').classList.remove('hidden');document.getElementById('grid').classList.add('hidden')});
+document.querySelectorAll('.tog').forEach(function(t){t.addEventListener('click',function(){t.classList.toggle('on');t.setAttribute('aria-pressed',t.classList.contains('on'))})});
+document.addEventListener('keydown',function(e){if(e.key==='Escape'){if(document.getElementById('drawer-root').classList.contains('show')||document.getElementById('dlg-bulk').classList.contains('show'))go('library');document.getElementById('dlg-q').classList.remove('show')}});
+</script>
+</body>
+</html>

@@ -247,3 +247,10 @@ et_test( 'a quarantined image cannot be renamed', function () use ( $m ) {
     et_assert( is_wp_error( et_rename( $id, 'should-not-happen' ) ), 'rename accepted' );
     et_not_error( et_unquarantine( $id ) );
 } );
+
+et_test( 'undo restores the exact old name, even one that is not "clean" (IMG_1234)', function () use ( $m ) {
+    // The camera fixture was renamed IMG_1234.JPG → img-1234.jpg by "fix filename" above.
+    et_not_error( et_rename_undo_last( $m['img']['camera'] ) );
+    et_eq( 'IMG_1234', pathinfo( get_attached_file( $m['img']['camera'] ), PATHINFO_FILENAME ) );
+    et_assert_page_ok( $m['post']['misc'], '', array( 'broken' ) );
+} );

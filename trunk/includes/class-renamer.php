@@ -99,7 +99,16 @@ class ERDO_Renamer {
         $root = self::root_stem( $file );
         $old_ext = pathinfo( $file, PATHINFO_EXTENSION );
 
-        $stem = self::sanitize_stem( null === $new_name ? $root : $new_name );
+        if ( ! empty( $opts['exact'] ) && null !== $new_name ) {
+            // Geri alma: kayıttaki eski ad olduğu gibi (ör. "IMG_1234"); yalnızca yol
+            // ayırıcıları ve gizli dosya adları reddedilir. Temizlenirse eski ad geri gelmez.
+            $stem = trim( (string) $new_name );
+            if ( $stem !== wp_basename( $stem ) || false !== strpbrk( $stem, '/\:*?"<>|' ) || '.' === substr( $stem, 0, 1 ) || strlen( $stem ) > 200 ) {
+                $stem = '';
+            }
+        } else {
+            $stem = self::sanitize_stem( null === $new_name ? $root : $new_name );
+        }
         if ( '' === $stem ) {
             return new WP_Error( 'invalid_name', __( 'The new filename is empty after removing unsupported characters.', 'erdo-image-optimizer' ) );
         }
@@ -416,8 +425,14 @@ class ERDO_Renamer {
             unset( $batches[ $batch_id ] );
             $batches[ $batch_id ] = $batch;
             update_option( self::BATCHES_OPTION, array_slice( $batches, -self::MAX_BATCHES, null, true ), false );
+            ERDO_Activity::log( 'rename', count( $undo ), array( 'batch' => $batch_id ) );
         }
         return $out;
+    }
+
+    public static function batch_exists( $batch_id ) {
+        $batches = (array) get_option( self::BATCHES_OPTION, array() );
+        return ! empty( $batches[ $batch_id ]['items'] );
     }
 
     public static function new_batch_id() {
@@ -433,7 +448,7 @@ class ERDO_Renamer {
         $done = 0;
         $errs = 0;
         foreach ( $batches[ $batch_id ]['items'] as $id => $old_stem ) {
-            $r = self::rename( (int) $id, $old_stem );
+            $r = self::rename( (int) $id, $old_stem, array( 'exact' => true ) );
             is_wp_error( $r ) && 'clean' !== $r->get_error_code() ? $errs++ : $done++;
         }
         unset( $batches[ $batch_id ] );
@@ -448,7 +463,7 @@ class ERDO_Renamer {
         if ( ! $last ) {
             return new WP_Error( 'no_log', __( 'Nothing to undo.', 'erdo-image-optimizer' ) );
         }
-        $r = self::rename( $id, $last['from'], array( 'no_log' => true ) );
+        $r = self::rename( $id, $last['from'], array( 'no_log' => true, 'exact' => true ) );
         if ( ! is_wp_error( $r ) ) {
             array_pop( $log );
             update_post_meta( $id, self::LOG_META, array_values( $log ) );

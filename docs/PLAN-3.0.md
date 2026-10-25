@@ -291,7 +291,22 @@ Plandaki maddeler (referans):
 - `uninstall.php`: tablo, meta, ayarlar; kardeş ve karantina dosyaları için açık bir tercih.
 - Yükseltme rutini: `erdo_db_version`, geçiş bildirimi, onarım sihirbazına yönlendirme.
 
-### Faz 7 — Arayüz yeniden tasarımı
+### Faz 7 — Arayüz yeniden tasarımı ✅ (2026-10-25)
+**Teslim edildi:**
+- Maket `docs/mockups/faz7-ui.html` (Stitch MCP kimlik doğrulama hatası verdiği için HTML olarak yapıldı), kullanıcı onayladı.
+- Beş sekme (`?tab=`): Genel Bakış (sağlık puanı, 4 metrik, "Sıradaki düzeltmeler", sunucu kartı, son işlemler), Kütüphane (ızgara + yeni liste görünümü, puan çipleri, sorun filtresi, istemci tarafı arama/sıralama, seçim çubuğu), Temizlik (kullanılmayanlar + karantina, "Tümünü geri yükle"), AI Önerileri (mevcut ↔ önerilen, alan bazında onay), Ayarlar (kendi sekmesi, 7 bölüm, her ayarda tek cümle açıklama, desteklenmeyen seçenek nedeniyle pasif).
+- Görsel detayı sağdan açılan panel: ←/→ ile gezinme, Esc, odak tuzağı.
+- Ortak diyalog: önizleme → onay → ilerleme → sonuç + geri al. Dönüştürme kuyruğu pencere açıkken tarayıcıdan da ilerletiliyor (kilitli), son dönüştürme geri alınabiliyor.
+- İlk açılış sihirbazı: gerçek deneme kodlaması, CDN/SEO eklentisi/AI tespiti → önerilen ayarlar → kullanım dizini.
+- E6'nın temeli: `ERDO_Activity` işlem günlüğü + Genel Bakış'tan geri alma.
+- Bildirimler `wp-header-end` altında (sıkışma bitti); karantina onayı sakin, yalnızca kalıcı silme kırmızı.
+- WP admin renk şemasına uyum (`--wp-admin-theme-color`), puanlar hep sayıyla, dar ekran düzeni, tr_TR 0 eksik.
+
+**Faz sırasında bulunan ek sorunlar (düzeltildi, testleri var):**
+- Windows'ta karantina geri yüklenemiyordu: `update_post_meta()` yol değerlerindeki ters eğik çizgileri siliyordu (`C:\Users…` → `C:Users…`). Faz 4'teki "dosyalar karantinada kaldı" olayının nedeni buydu. Yollar artık normalize saklanıyor, eski kayıtlar `{id}-*/dosya` aramasıyla kurtarılıyor (uninstall dahil). Aynı düzeltme `_erdo_legacy_files` için de yapıldı.
+- Yeniden adlandırmayı geri almak "temiz olmayan" eski adı (ör. `DSC_0193`) geri getirmiyordu; geri alma artık eski adı olduğu gibi kullanıyor.
+
+Plandaki maddeler (referans):
 - **Bilgi mimarisi (sekmeler):**
   - Genel Bakış: site görsel sağlık puanı + "şimdi düzelt" görev kartları.
   - Kütüphane: ızgara/liste, filtreler, çoklu seçim, toplu işlem çubuğu.

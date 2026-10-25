@@ -146,7 +146,8 @@ class ERDO_Migration {
         }
 
         // Eski .webp dosyalarını kaydet (silinmez, attachment silinince temizlenir).
-        $keep = array_values( array_filter( $old, 'file_exists' ) );
+        // İleri eğik çizgi: update_post_meta() ters eğik çizgileri siler (Windows yolları).
+        $keep = array_map( 'wp_normalize_path', array_values( array_filter( $old, 'file_exists' ) ) );
         if ( 'restore' === $plan['mode'] && $keep ) {
             update_post_meta( $attachment_id, '_erdo_legacy_files', $keep );
         }

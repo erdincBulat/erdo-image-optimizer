@@ -9,15 +9,16 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-24T15:03:30+00:00\n"
+"POT-Creation-Date: 2026-10-25T10:15:48+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: erdo-image-optimizer\n"
 
 #. Plugin Name of the plugin
 #: erdo-image-optimizer.php
-#: includes/class-admin-page.php:83
-#: includes/class-admin-page.php:267
+#: includes/class-admin-page.php:80
+#: includes/views/page.php:28
+#: includes/views/setup.php:15
 msgid "Erdo Image Optimizer"
 msgstr ""
 
@@ -31,1236 +32,1424 @@ msgstr ""
 msgid "Erdinc Bulat"
 msgstr ""
 
-#: includes/class-admin-page.php:68
+#. translators: %d: number of images
+#: includes/class-activity.php:68
+#, php-format
+msgid "Renamed %d image"
+msgid_plural "Renamed %d images"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of images
+#: includes/class-activity.php:75
+#, php-format
+msgid "Moved %d image to quarantine"
+msgid_plural "Moved %d images to quarantine"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of images
+#: includes/class-activity.php:80
+#, php-format
+msgid "Restored %d image from quarantine"
+msgid_plural "Restored %d images from quarantine"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of images
+#: includes/class-activity.php:84
+#, php-format
+msgid "Deleted %d image permanently"
+msgid_plural "Deleted %d images permanently"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of images
+#: includes/class-activity.php:88
+#, php-format
+msgid "Created WebP/AVIF copies for %d image"
+msgid_plural "Created WebP/AVIF copies for %d images"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of images
+#: includes/class-activity.php:95
+#, php-format
+msgid "Accepted AI suggestions for %d image"
+msgid_plural "Accepted AI suggestions for %d images"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %d: number of images
+#: includes/class-activity.php:99
+#, php-format
+msgid "Added alt text from the file name to %d image"
+msgid_plural "Added alt text from the file name to %d images"
+msgstr[0] ""
+msgstr[1] ""
+
+#. translators: %s: human-readable time difference, e.g. "2 hours"
+#: includes/class-activity.php:107
+#: includes/class-admin-page.php:1242
+#, php-format
+msgid "%s ago"
+msgstr ""
+
+#: includes/class-admin-page.php:65
 msgid "Insufficient permissions."
 msgstr ""
 
-#: includes/class-admin-page.php:76
-#: includes/class-admin-page.php:324
-#: includes/class-admin-page.php:1307
+#: includes/class-admin-page.php:73
+#: includes/views/page.php:20
 msgid "Settings"
 msgstr ""
 
-#: includes/class-admin-page.php:84
-#: includes/class-admin-page.php:1826
+#: includes/class-admin-page.php:81
+#: includes/class-admin-page.php:1184
 msgid "Image Optimizer"
 msgstr ""
 
-#. translators: %d: number of selected images
-#: includes/class-admin-page.php:107
-#, php-format
-msgid "%d selected"
-msgstr ""
-
-#: includes/class-admin-page.php:108
-msgid "Rename images"
-msgstr ""
-
-#: includes/class-admin-page.php:109
-msgid "Fix filenames"
-msgstr ""
-
-#: includes/class-admin-page.php:110
-msgid "Pattern"
-msgstr ""
-
-#: includes/class-admin-page.php:111
-msgid "Keyword"
-msgstr ""
-
-#: includes/class-admin-page.php:112
-msgid "Leave empty to use each image’s page focus keyword (Yoast, Rank Math, AIOSEO, SEOPress) or page title."
-msgstr ""
-
-#: includes/class-admin-page.php:113
-msgid "Tokens: {keyword} {n} {parent} {title} {original} {alt}"
-msgstr ""
-
-#: includes/class-admin-page.php:114
-msgid "Preview"
-msgstr ""
-
-#. translators: %d: number of images to rename
-#: includes/class-admin-page.php:116
-#, php-format
-msgid "Rename %d images"
-msgstr ""
-
+#. translators: placeholders are filled in by the script in this order (numbers or names)
 #: includes/class-admin-page.php:117
-#: includes/class-admin-page.php:149
-msgid "Current"
+#, php-format
+msgid "%1$d / %2$d images scanned"
 msgstr ""
 
-#: includes/class-admin-page.php:118
-msgid "New name"
-msgstr ""
-
+#. translators: placeholders are filled in by the script in this order (numbers or names)
 #: includes/class-admin-page.php:119
-msgid "Checking…"
+#, php-format
+msgid "%1$d image · %2$s"
 msgstr ""
 
-#: includes/class-admin-page.php:120
-msgid "All filenames are already clean."
-msgstr ""
-
+#. translators: placeholders are filled in by the script in this order (numbers or names)
 #: includes/class-admin-page.php:121
-msgid "All sizes and WebP/AVIF copies are renamed together, every reference on the site is updated, and old URLs redirect (301) to the new ones. You can undo this afterwards."
+#, php-format
+msgid "%1$d images · %2$s"
 msgstr ""
 
-#. translators: 1: images done, 2: images in total
+#. translators: placeholders are filled in by the script in this order (numbers or names)
 #: includes/class-admin-page.php:123
 #, php-format
-msgid "Renaming… %1$d / %2$d"
+msgid "%1$d images. Each image is sent once, resized to 1024 px. Estimated provider cost: about $%2$s–$%3$s with a small vision model."
 msgstr ""
 
-#. translators: 1: images renamed, 2: images skipped
+#. translators: placeholders are filled in by the script in this order (numbers or names)
 #: includes/class-admin-page.php:125
 #, php-format
-msgid "%1$d renamed, %2$d skipped."
+msgid "%1$d of %2$d"
 msgstr ""
 
-#: includes/class-admin-page.php:126
-#: includes/class-admin-page.php:864
-msgid "Undo"
-msgstr ""
-
-#. translators: %d: number of images restored
-#: includes/class-admin-page.php:128
+#. translators: placeholders are filled in by the script in this order (numbers or names)
+#: includes/class-admin-page.php:127
 #, php-format
-msgid "Renaming undone: %d images restored."
+msgid "%1$d of %2$d images"
 msgstr ""
 
+#. translators: %d: number
 #: includes/class-admin-page.php:129
-#: includes/class-admin-page.php:482
-msgid "Close"
+#, php-format
+msgid "%d image"
 msgstr ""
 
-#: includes/class-admin-page.php:130
-#: includes/class-admin-page.php:493
-msgid "Clear"
-msgstr ""
-
+#. translators: %d: number
 #: includes/class-admin-page.php:131
-#: includes/class-admin-page.php:491
-msgid "Rename…"
+#, php-format
+msgid "%d image below 50"
 msgstr ""
 
-#: includes/class-admin-page.php:132
-msgid "Select images"
-msgstr ""
-
+#. translators: %d: number
 #: includes/class-admin-page.php:133
-msgid "Something went wrong. Please try again."
-msgstr ""
-
-#: includes/class-admin-page.php:134
-msgid "Looking at the image…"
-msgstr ""
-
-#. translators: 1: images done, 2: images in total
-#: includes/class-admin-page.php:136
-#, php-format
-msgid "Generating suggestions… %1$d / %2$d"
-msgstr ""
-
-#. translators: 1: suggestions created, 2: failures
-#: includes/class-admin-page.php:138
-#, php-format
-msgid "Done: %1$d suggestions ready for review, %2$d failed."
-msgstr ""
-
-#. translators: 1: number of images, 2: low cost estimate in US dollars, 3: high cost estimate
-#: includes/class-admin-page.php:140
-#, php-format
-msgid "%1$d images. Each image is sent once, resized to 1024 px. Estimated provider cost: about $%2$s–$%3$s with a small vision model. Nothing is saved until you review it."
-msgstr ""
-
-#: includes/class-admin-page.php:141
-msgid "No images need suggestions right now."
-msgstr ""
-
-#: includes/class-admin-page.php:142
-msgid "No suggestions waiting for review."
-msgstr ""
-
-#: includes/class-admin-page.php:143
-msgid "Generate suggestions"
-msgstr ""
-
-#: includes/class-admin-page.php:144
-msgid "Stop"
-msgstr ""
-
-#: includes/class-admin-page.php:145
-msgid "Accept"
-msgstr ""
-
-#: includes/class-admin-page.php:146
-#: includes/class-admin-page.php:2013
-msgid "Dismiss"
-msgstr ""
-
-#: includes/class-admin-page.php:147
-msgid "Accept all alt texts"
-msgstr ""
-
-#: includes/class-admin-page.php:148
-msgid "Decorative: empty alt"
-msgstr ""
-
-#: includes/class-admin-page.php:150
-msgid "Images missing alt text"
-msgstr ""
-
-#: includes/class-admin-page.php:151
-msgid "Missing or weak alt text"
-msgstr ""
-
-#. translators: %d: number of images
-#: includes/class-admin-page.php:164
-#, php-format
-msgid "%d already optimized"
-msgstr ""
-
-#. translators: %d: number of errors
-#: includes/class-admin-page.php:166
-#, php-format
-msgid "%d errors"
-msgstr ""
-
-#. translators: %d: number of images
-#: includes/class-admin-page.php:168
-#, php-format
-msgid "%d failed"
-msgstr ""
-
-#. translators: %d: number of images
-#: includes/class-admin-page.php:170
 #, php-format
 msgid "%d images"
 msgstr ""
 
-#. translators: %d: number of images
-#: includes/class-admin-page.php:172
+#. translators: %d: number
+#: includes/class-admin-page.php:135
 #, php-format
-msgid "%d images processed"
+msgid "%d images below 50"
 msgstr ""
 
-#. translators: %d: number of images
-#: includes/class-admin-page.php:174
+#. translators: %d: number
+#: includes/class-admin-page.php:137
 #, php-format
-msgid "%d images updated."
+msgid "%d in quarantine"
 msgstr ""
 
-#: includes/class-admin-page.php:175
-#: includes/class-admin-page.php:1465
-msgid "Active"
-msgstr ""
-
-#: includes/class-admin-page.php:176
-msgid "Add"
-msgstr ""
-
-#: includes/class-admin-page.php:177
-msgid "Add New Image"
-msgstr ""
-
-#: includes/class-admin-page.php:178
-msgid "All posts have featured images!"
-msgstr ""
-
-#: includes/class-admin-page.php:179
-msgid "Already clean or could not rename."
-msgstr ""
-
-#: includes/class-admin-page.php:180
-#: includes/class-admin-page.php:1983
-msgid "Alt text"
-msgstr ""
-
-#: includes/class-admin-page.php:181
-msgid "Analyzing image..."
-msgstr ""
-
-#: includes/class-admin-page.php:182
-#: includes/class-admin-page.php:339
-msgid "Auto Alt Text"
-msgstr ""
-
-#: includes/class-admin-page.php:183
-msgid "Background convert running:"
-msgstr ""
-
-#: includes/class-admin-page.php:184
-msgid "Before & After"
-msgstr ""
-
-#. translators: 1: posts scanned, 2: posts in total
-#: includes/class-admin-page.php:186
+#. translators: %d: number
+#: includes/class-admin-page.php:139
 #, php-format
-msgid "Building the usage index: %1$d / %2$d posts scanned. Unused-image cleanup becomes available when it finishes."
+msgid "%d published post has no featured image:"
 msgstr ""
 
-#: includes/class-admin-page.php:187
-msgid "Bulk Convert"
-msgstr ""
-
-#: includes/class-admin-page.php:188
-msgid "Clear all audit caches and re-scan? This may take a moment."
-msgstr ""
-
-#: includes/class-admin-page.php:189
-msgid "Conversion failed."
-msgstr ""
-
-#: includes/class-admin-page.php:190
-msgid "Convert"
-msgstr ""
-
-#: includes/class-admin-page.php:191
-msgid "Converting..."
-msgstr ""
-
-#: includes/class-admin-page.php:192
-msgid "Could not list unused images."
-msgstr ""
-
-#: includes/class-admin-page.php:193
-msgid "Create WebP/AVIF copies for all eligible images? This may take a while depending on your library size."
-msgstr ""
-
-#: includes/class-admin-page.php:194
-msgid "Delete this image and all its files permanently? This cannot be undone."
-msgstr ""
-
-#: includes/class-admin-page.php:195
-msgid "Done!"
-msgstr ""
-
-#: includes/class-admin-page.php:196
-msgid "Edit Post"
-msgstr ""
-
-#: includes/class-admin-page.php:197
-#: includes/class-admin-page.php:2156
-#: includes/class-admin-page.php:2161
-msgid "Error"
-msgstr ""
-
-#: includes/class-admin-page.php:198
-msgid "Error saving data. Please try again."
-msgstr ""
-
-#: includes/class-admin-page.php:199
-msgid "Error scanning posts."
-msgstr ""
-
-#: includes/class-admin-page.php:200
-#: includes/class-admin-page.php:347
-msgid "Export SEO CSV"
-msgstr ""
-
-#: includes/class-admin-page.php:201
-msgid "Exporting..."
-msgstr ""
-
-#: includes/class-admin-page.php:202
-msgid "Failed."
-msgstr ""
-
-#: includes/class-admin-page.php:203
-#: includes/class-admin-page.php:852
-msgid "Fix Filename"
-msgstr ""
-
-#. translators: %d: number of posts
-#: includes/class-admin-page.php:205
+#. translators: %d: number
+#: includes/class-admin-page.php:141
 #, php-format
-msgid "Found %d posts without a featured image:"
+msgid "%d published posts have no featured image (first 50 shown):"
 msgstr ""
 
-#: includes/class-admin-page.php:206
-msgid "Generate alt text from the filename for all images missing alt text? Camera-style names (IMG_1234) are skipped."
-msgstr ""
-
-#: includes/class-admin-page.php:207
-msgid "Generating..."
-msgstr ""
-
-#: includes/class-admin-page.php:208
-#: includes/class-admin-page.php:442
-msgid "Loading library..."
-msgstr ""
-
-#: includes/class-admin-page.php:209
-msgid "Loading settings..."
-msgstr ""
-
-#: includes/class-admin-page.php:210
-msgid "Loading..."
-msgstr ""
-
-#: includes/class-admin-page.php:211
-msgid "Missing Featured Images"
-msgstr ""
-
-#: includes/class-admin-page.php:212
-msgid "Move this image to Quarantine? It disappears from your site but can be restored later from the Quarantine tab."
-msgstr ""
-
-#: includes/class-admin-page.php:213
-msgid "Move this image to Quarantine? You can restore it later."
-msgstr ""
-
-#: includes/class-admin-page.php:214
-#: includes/class-admin-page.php:505
-#: includes/class-admin-page.php:872
-msgid "Move to Quarantine"
-msgstr ""
-
-#: includes/class-admin-page.php:215
-msgid "Moved to Quarantine. Note: this image was still used on your site — restore it if a page looks broken."
-msgstr ""
-
-#: includes/class-admin-page.php:216
-msgid "No critical images — great start!"
-msgstr ""
-
-#: includes/class-admin-page.php:217
-msgid "No fully-optimized images yet."
-msgstr ""
-
-#: includes/class-admin-page.php:218
-msgid "No images"
-msgstr ""
-
-#: includes/class-admin-page.php:219
-msgid "No images found to convert."
-msgstr ""
-
-#: includes/class-admin-page.php:220
-msgid "No images with moderate issues."
-msgstr ""
-
-#: includes/class-admin-page.php:221
-msgid "No unused images found in your library."
-msgstr ""
-
-#: includes/class-admin-page.php:222
-msgid "No unused images found."
-msgstr ""
-
-#: includes/class-admin-page.php:223
-msgid "OPTIMIZED"
-msgstr ""
-
-#: includes/class-admin-page.php:224
-msgid "ORIGINAL"
-msgstr ""
-
-#: includes/class-admin-page.php:225
-#: includes/class-admin-page.php:1408
-#: includes/class-admin-page.php:1951
-msgid "Open Connectors"
-msgstr ""
-
-#: includes/class-admin-page.php:226
-msgid "Please enter width and height."
-msgstr ""
-
-#: includes/class-admin-page.php:227
-#: includes/class-admin-page.php:358
-msgid "Quarantine All Unused"
-msgstr ""
-
-#: includes/class-admin-page.php:228
-msgid "Quarantine is empty."
-msgstr ""
-
-#: includes/class-admin-page.php:229
-msgid "Refreshing..."
-msgstr ""
-
-#: includes/class-admin-page.php:230
-#: includes/class-admin-page.php:1462
-msgid "Remove .htaccess Rules"
-msgstr ""
-
-#: includes/class-admin-page.php:231
-msgid "Remove the WebP/AVIF copies? The original stays as it is."
-msgstr ""
-
-#: includes/class-admin-page.php:232
-msgid "Removing..."
-msgstr ""
-
-#: includes/class-admin-page.php:233
-msgid "Rename failed."
-msgstr ""
-
-#: includes/class-admin-page.php:234
-msgid "Renaming..."
-msgstr ""
-
-#: includes/class-admin-page.php:235
-#: includes/class-admin-page.php:917
-msgid "Resize"
-msgstr ""
-
-#: includes/class-admin-page.php:236
-msgid "Resize failed: enter a size smaller than the current one."
-msgstr ""
-
-#: includes/class-admin-page.php:237
-msgid "Resizing..."
-msgstr ""
-
-#: includes/class-admin-page.php:238
-#: includes/class-admin-page.php:825
-#: includes/class-admin-page.php:1900
-msgid "Restore"
-msgstr ""
-
-#: includes/class-admin-page.php:239
-msgid "Restore failed."
-msgstr ""
-
-#: includes/class-admin-page.php:240
-msgid "Restoring..."
-msgstr ""
-
-#: includes/class-admin-page.php:241
-#: includes/class-admin-page.php:791
-msgid "Save Changes"
-msgstr ""
-
-#: includes/class-admin-page.php:242
-#: includes/class-admin-page.php:1557
-msgid "Save Settings"
-msgstr ""
-
-#: includes/class-admin-page.php:243
-msgid "Saved!"
-msgstr ""
-
-#: includes/class-admin-page.php:244
-msgid "Saving..."
-msgstr ""
-
-#: includes/class-admin-page.php:245
-msgid "Scanning posts..."
-msgstr ""
-
-#: includes/class-admin-page.php:246
-#: includes/class-admin-page.php:293
-msgid "Scanning..."
-msgstr ""
-
-#: includes/class-admin-page.php:247
-#: includes/class-admin-page.php:1545
-msgid "Start Background Convert"
-msgstr ""
-
-#: includes/class-admin-page.php:248
-msgid "Start background bulk conversion via WP-Cron? Safe to close this tab."
-msgstr ""
-
-#: includes/class-admin-page.php:249
-msgid "Starting..."
-msgstr ""
-
-#: includes/class-admin-page.php:250
-msgid "View Details"
-msgstr ""
-
-#: includes/class-admin-page.php:251
-#: includes/class-admin-page.php:1458
-msgid "Write .htaccess Rules"
-msgstr ""
-
-#: includes/class-admin-page.php:252
-msgid "Writing..."
-msgstr ""
-
-#: includes/class-admin-page.php:275
-msgid "Optimization"
-msgstr ""
-
-#: includes/class-admin-page.php:277
-msgid "WebP/AVIF Format"
-msgstr ""
-
-#: includes/class-admin-page.php:283
-msgid "SEO Health"
-msgstr ""
-
-#: includes/class-admin-page.php:285
-msgid "Average image SEO score"
-msgstr ""
-
-#: includes/class-admin-page.php:291
-msgid "Total Library"
-msgstr ""
-
-#: includes/class-admin-page.php:299
-msgid "Unused Images"
-msgstr ""
-
-#: includes/class-admin-page.php:301
-msgid "Potential Cleanup"
-msgstr ""
-
-#: includes/class-admin-page.php:307
-msgid "Total Saved"
-msgstr ""
-
-#: includes/class-admin-page.php:309
-msgid "Lighter for Visitors"
-msgstr ""
-
-#: includes/class-admin-page.php:319
-msgid "Search images by filename or title..."
-msgstr ""
-
-#: includes/class-admin-page.php:329
-msgid "Tools"
-msgstr ""
-
-#: includes/class-admin-page.php:335
-msgid "Fix All Filenames"
-msgstr ""
-
-#: includes/class-admin-page.php:343
-msgid "AI Suggestions…"
-msgstr ""
-
-#: includes/class-admin-page.php:352
-msgid "Missing Thumbnails"
-msgstr ""
-
-#. translators: %s: image format name (WebP or AVIF)
-#: includes/class-admin-page.php:365
+#. translators: %d: number
+#: includes/class-admin-page.php:143
 #, php-format
-msgid "Bulk Convert (%s)"
+msgid "%d selected"
 msgstr ""
 
-#: includes/class-admin-page.php:372
-msgid "Add New"
-msgstr ""
-
-#: includes/class-admin-page.php:379
-msgid "Processing..."
-msgstr ""
-
-#: includes/class-admin-page.php:390
-msgid "Building the usage index (where each image is used). Unused-image cleanup becomes available when it finishes."
-msgstr ""
-
-#: includes/class-admin-page.php:397
-msgid "Poor"
-msgstr ""
-
-#: includes/class-admin-page.php:401
-msgid "Warning"
-msgstr ""
-
-#: includes/class-admin-page.php:405
-#: includes/class-admin-page.php:737
-#: includes/class-admin-page.php:1857
-msgid "Optimized"
-msgstr ""
-
-#: includes/class-admin-page.php:409
-msgid "Unused"
-msgstr ""
-
-#: includes/class-admin-page.php:413
-#: includes/class-admin-page.php:1500
-msgid "Quarantine"
-msgstr ""
-
-#: includes/class-admin-page.php:417
-msgid "AI Suggestions"
-msgstr ""
-
-#: includes/class-admin-page.php:423
-msgid "Show only images missing alt text"
-msgstr ""
-
-#: includes/class-admin-page.php:425
-msgid "Missing Alt"
-msgstr ""
-
-#: includes/class-admin-page.php:427
-msgid "Card size"
-msgstr ""
-
-#: includes/class-admin-page.php:428
-msgid "Small"
-msgstr ""
-
-#: includes/class-admin-page.php:429
-msgid "Medium"
-msgstr ""
-
-#: includes/class-admin-page.php:430
-msgid "Large"
-msgstr ""
-
-#: includes/class-admin-page.php:433
-msgid "Refresh Audits"
-msgstr ""
-
-#: includes/class-admin-page.php:453
-msgid "Images moved here are hidden from your site and media library, but nothing is deleted yet. Restore puts the files back exactly as they were."
-msgstr ""
-
-#: includes/class-admin-page.php:461
-msgid "Suggestions are never saved automatically. Check each one against the image, edit if needed, then accept or dismiss it."
-msgstr ""
-
-#: includes/class-admin-page.php:471
-msgid "Load More Images"
-msgstr ""
-
-#: includes/class-admin-page.php:474
-msgid "Auto-loading was interrupted. Click to continue."
-msgstr ""
-
-#: includes/class-admin-page.php:487
-msgid "Selected images"
-msgstr ""
-
-#: includes/class-admin-page.php:499
-msgid "Move unused images to Quarantine"
-msgstr ""
-
-#: includes/class-admin-page.php:501
-msgid "Every image that is not referenced anywhere on your site (posts, pages, page builders, custom fields, theme settings, widgets, categories) will be moved to Quarantine. Images whose file name still appears anywhere are skipped."
-msgstr ""
-
-#: includes/class-admin-page.php:502
-msgid "Nothing is deleted."
-msgstr ""
-
-#: includes/class-admin-page.php:502
-msgid "If something looks wrong afterwards, restore the image from the Quarantine tab. Images used only by hard-coded theme files or external sites cannot be detected — check those before deleting permanently."
-msgstr ""
-
-#: includes/class-admin-page.php:508
-#: includes/class-admin-page.php:1548
-msgid "Cancel"
-msgstr ""
-
-#: includes/class-admin-page.php:561
-msgid "Select image"
-msgstr ""
-
-#: includes/class-admin-page.php:570
-#: includes/class-admin-page.php:710
-msgid "SEO score (0–100)"
-msgstr ""
-
-#: includes/class-admin-page.php:663
-msgid "Missing image ID."
-msgstr ""
-
-#: includes/class-admin-page.php:672
-msgid "Search engines read the file name. Use a few descriptive words separated by hyphens; camera names like IMG_1234 say nothing."
-msgstr ""
-
-#: includes/class-admin-page.php:673
-msgid "Alt text is the most important image signal for Google and is read aloud by screen readers. Describe what the image shows in one natural sentence. Purely decorative images should be marked decorative instead."
-msgstr ""
-
-#: includes/class-admin-page.php:674
-msgid "The title appears in the media library and as a hover tooltip. Search engines do not use it for ranking."
-msgstr ""
-
-#: includes/class-admin-page.php:675
-msgid "Oversized images slow down your site. Resize to the maximum width your theme needs (usually 1920px or less)."
-msgstr ""
-
-#: includes/class-admin-page.php:676
-msgid "WebP and AVIF offer better compression than JPEG/PNG, making your site faster. The original stays untouched."
-msgstr ""
-
-#: includes/class-admin-page.php:677
-msgid "Large images are the #1 cause of slow websites. Aim to keep images under 250 KB."
-msgstr ""
-
-#: includes/class-admin-page.php:678
-msgid "Images only count for search when they appear on a published page that search engines may index."
-msgstr ""
-
-#: includes/class-admin-page.php:709
-msgid "Audit Report"
-msgstr ""
-
-#: includes/class-admin-page.php:730
-msgid "Optimization Result"
-msgstr ""
-
-#: includes/class-admin-page.php:732
-msgid "Original"
-msgstr ""
-
-#. translators: 1: percentage saved, 2: size amount saved
-#: includes/class-admin-page.php:747
+#. translators: %d: number
+#: includes/class-admin-page.php:145
 #, php-format
-msgid "You saved %1$s%% (%2$s)"
+msgid "%d skipped (copy was larger)"
 msgstr ""
 
-#: includes/class-admin-page.php:762
-msgid "Where it is used"
-msgstr ""
-
-#: includes/class-admin-page.php:764
-msgid "Not referenced anywhere on the site."
-msgstr ""
-
-#. translators: %d: number of further places
-#: includes/class-admin-page.php:780
+#. translators: %d: number
+#: includes/class-admin-page.php:147
 #, php-format
-msgid "…and %d more"
+msgid "%d suggestion waiting for review"
 msgstr ""
 
-#. translators: %s: target format (WebP or AVIF)
-#: includes/class-admin-page.php:805
+#. translators: %d: number
+#: includes/class-admin-page.php:149
 #, php-format
-msgid "Convert to %s"
+msgid "%d suggestions waiting for review"
 msgstr ""
 
-#: includes/class-admin-page.php:831
-msgid "Compare"
+#: includes/class-admin-page.php:150
+msgid "Accept"
 msgstr ""
 
-#. translators: %s: previous file name (without extension)
-#: includes/class-admin-page.php:862
+#. translators: %d: number
+#: includes/class-admin-page.php:152
 #, php-format
-msgid "Renamed from \"%s\"."
+msgid "Accept checked (%d fields)"
 msgstr ""
 
-#: includes/class-admin-page.php:893
-msgid "not scored"
-msgstr ""
-
-#. translators: 1: original width, 2: original height (pixels)
-#: includes/class-admin-page.php:925
+#. translators: %d: number
+#: includes/class-admin-page.php:154
 #, php-format
-msgid "Restore original size (%1$d×%2$d)"
+msgid "Add alt text to %d image"
 msgstr ""
 
-#: includes/class-admin-page.php:937
-msgid "Preview:"
-msgstr ""
-
-#: includes/class-admin-page.php:951
-msgid "Use Post Title"
-msgstr ""
-
-#: includes/class-admin-page.php:955
-#: includes/class-admin-page.php:961
-msgid "Generate from Filename"
-msgstr ""
-
-#: includes/class-admin-page.php:971
-msgid "Decorative image (adds nothing to the content, empty alt is correct)"
-msgstr ""
-
-#. translators: %s: focus keyword from the SEO plugin
-#: includes/class-admin-page.php:977
+#. translators: %d: number
+#: includes/class-admin-page.php:156
 #, php-format
-msgid "Page focus keyword: \"%s\". Use it in the alt text only if it describes the image."
+msgid "Add alt text to %d images"
 msgstr ""
 
-#: includes/class-admin-page.php:1007
-#: includes/class-admin-page.php:1629
-msgid "Invalid ID."
+#: includes/class-admin-page.php:157
+#: includes/views/page.php:326
+msgid "AI suggestions"
 msgstr ""
 
-#: includes/class-admin-page.php:1024
-#: includes/class-admin-page.php:1164
-msgid "Missing ID."
+#: includes/class-admin-page.php:158
+msgid "All file names are already clean."
 msgstr ""
 
-#: includes/class-admin-page.php:1035
-msgid "Animated GIF skipped: this server cannot keep the animation."
-msgstr ""
-
-#: includes/class-admin-page.php:1036
-msgid "Image is already in a modern format."
-msgstr ""
-
-#: includes/class-admin-page.php:1041
-msgid "The original is already smaller than a WebP/AVIF copy would be — nothing to gain."
-msgstr ""
-
-#: includes/class-admin-page.php:1093
-msgid "The usage index is still being built. Please try again in a moment."
-msgstr ""
-
-#: includes/class-admin-page.php:1313
-msgid "Conversion Format"
-msgstr ""
-
-#: includes/class-admin-page.php:1316
-msgid "WebP — Recommended (all modern browsers)"
-msgstr ""
-
-#: includes/class-admin-page.php:1319
-msgid "AVIF — Smallest files, slower to encode"
-msgstr ""
-
-#: includes/class-admin-page.php:1322
-msgid "AVIF + WebP — Browsers get the best format they support"
-msgstr ""
-
-#: includes/class-admin-page.php:1326
-msgid "Your original files are never changed — WebP/AVIF copies are created next to them and served to browsers that support them."
-msgstr ""
-
-#: includes/class-admin-page.php:1328
-msgid "AVIF is not available on this server."
-msgstr ""
-
-#: includes/class-admin-page.php:1331
-msgid "This server cannot create WebP files (GD or Imagick with WebP support is required)."
-msgstr ""
-
-#: includes/class-admin-page.php:1338
-msgid "Compression Quality"
-msgstr ""
-
-#: includes/class-admin-page.php:1345
-msgid "80% is the recommended sweet spot. Lossless mode overrides this setting."
-msgstr ""
-
-#: includes/class-admin-page.php:1352
-msgid "Auto-Convert on Upload"
-msgstr ""
-
-#: includes/class-admin-page.php:1353
-msgid "Automatically convert JPEG/PNG/GIF to WebP/AVIF when a new image is uploaded."
-msgstr ""
-
-#: includes/class-admin-page.php:1359
-msgid "Lossless Mode"
-msgstr ""
-
-#: includes/class-admin-page.php:1360
-msgid "WebP only: pixel-identical copies. Larger than lossy; copies that end up bigger than the original are not kept."
-msgstr ""
-
-#: includes/class-admin-page.php:1366
-msgid "Sanitize Filenames on Upload"
-msgstr ""
-
-#: includes/class-admin-page.php:1367
-msgid "Replace spaces and underscores with hyphens for better SEO."
-msgstr ""
-
-#: includes/class-admin-page.php:1373
-msgid "Strip EXIF Metadata"
-msgstr ""
-
-#: includes/class-admin-page.php:1374
-msgid "Remove camera data and GPS location from new uploads. This rewrites the uploaded original once."
-msgstr ""
-
-#: includes/class-admin-page.php:1380
-msgid "Append Original Filename When Renaming"
-msgstr ""
-
-#: includes/class-admin-page.php:1381
-msgid "When you set a custom filename in the image detail panel, keep the original name as a suffix (e.g. \"istanbul\" becomes \"istanbul-img-1234\") to avoid collisions and preserve a reference to the source file."
-msgstr ""
-
-#: includes/class-admin-page.php:1387
-msgid "Image Sitemap"
-msgstr ""
-
-#: includes/class-admin-page.php:1391
-msgid "Your SEO plugin already lists images in its sitemap, so this is turned off."
-msgstr ""
-
-#: includes/class-admin-page.php:1393
-msgid "Adds the images of every published page to the WordPress sitemap (wp-sitemap.xml) so Google Images can find them."
-msgstr ""
-
-#: includes/class-admin-page.php:1402
-msgid "AI Suggestions on Upload"
-msgstr ""
-
-#: includes/class-admin-page.php:1411
-msgid "After an upload, send the image to your connected AI provider in the background and queue an alt text suggestion for review. Nothing is saved without your approval. Off by default because each image costs a few provider tokens."
-msgstr ""
-
-#: includes/class-admin-page.php:1434
-msgid "Performance & Serving"
-msgstr ""
-
-#: includes/class-admin-page.php:1440
-msgid "Serve WebP/AVIF to Browsers"
-msgstr ""
-
-#: includes/class-admin-page.php:1441
-msgid "Deliver the WebP/AVIF copies to browsers that support them; everyone else gets the original."
-msgstr ""
-
-#: includes/class-admin-page.php:1448
-msgid "PHP &lt;picture&gt; (all servers)"
-msgstr ""
-
-#: includes/class-admin-page.php:1452
-msgid ".htaccess rewrite (Apache only)"
-msgstr ""
-
-#: includes/class-admin-page.php:1471
-msgid "View Nginx configuration snippet"
-msgstr ""
-
-#: includes/class-admin-page.php:1481
-msgid "Smart Quality (Auto)"
-msgstr ""
-
-#: includes/class-admin-page.php:1482
-msgid "Automatically find the lowest quality that still looks good. Overrides the manual quality slider."
-msgstr ""
-
-#: includes/class-admin-page.php:1488
-msgid "Max Upload Size"
-msgstr ""
-
-#: includes/class-admin-page.php:1493
-msgid "New uploads wider or taller than this get a scaled-down copy that WordPress uses everywhere (the full-size original is kept). WordPress default: 2560."
-msgstr ""
-
-#: includes/class-admin-page.php:1504
-msgid "Delete quarantined images permanently after"
-msgstr ""
-
-#: includes/class-admin-page.php:1508
-msgid "days (0 = never, delete manually)"
-msgstr ""
-
-#: includes/class-admin-page.php:1515
-msgid "When the plugin is deleted"
-msgstr ""
-
-#: includes/class-admin-page.php:1518
-msgid "Your original images always stay. Settings and plugin data are removed."
-msgstr ""
-
-#: includes/class-admin-page.php:1521
-msgid "WebP/AVIF copies"
-msgstr ""
-
-#: includes/class-admin-page.php:1523
-msgid "Delete them (they are no longer served without the plugin)"
-msgstr ""
-
-#: includes/class-admin-page.php:1524
-msgid "Keep them (e.g. if your server or CDN serves them itself)"
-msgstr ""
-
-#: includes/class-admin-page.php:1528
-msgid "Images in Quarantine"
-msgstr ""
-
-#: includes/class-admin-page.php:1530
-msgid "Put them back into the media library"
-msgstr ""
-
-#: includes/class-admin-page.php:1531
-msgid "Delete them permanently"
-msgstr ""
-
-#: includes/class-admin-page.php:1538
-msgid "Background Queue"
-msgstr ""
-
-#: includes/class-admin-page.php:1541
-msgid "Start a bulk conversion in the background via WP-Cron. The browser tab can be closed while it runs."
-msgstr ""
-
-#: includes/class-admin-page.php:1574
+#: includes/class-admin-page.php:159
+#: includes/class-admin-page.php:958
 msgid "All images already have WebP/AVIF copies."
 msgstr ""
 
-#: includes/class-admin-page.php:1853
-msgid "Total Images"
+#: includes/class-admin-page.php:160
+msgid "All sizes and WebP/AVIF copies move with the file, links on the site are updated and old URLs redirect (301). You can undo this afterwards."
 msgstr ""
 
-#: includes/class-admin-page.php:1861
-msgid "Saved"
+#: includes/class-admin-page.php:161
+#: includes/class-admin-page.php:1328
+#: includes/views/detail.php:167
+#: includes/views/page.php:213
+msgid "Alt text"
 msgstr ""
 
-#: includes/class-admin-page.php:1865
-msgid "Open Image Optimizer"
+#: includes/class-admin-page.php:162
+msgid "Alt text from file names"
 msgstr ""
 
-#. translators: %s: human-readable time difference, e.g. "3 days"
-#: includes/class-admin-page.php:1896
+#: includes/class-admin-page.php:163
+msgid "Alt text is 40% of the score and what screen readers read aloud."
+msgstr ""
+
+#: includes/class-admin-page.php:164
+msgid "Apply"
+msgstr ""
+
+#. translators: %s: value filled in by the script (a number or a name)
+#: includes/class-admin-page.php:166
 #, php-format
-msgid "Quarantined %s ago"
+msgid "Apply %s"
 msgstr ""
 
-#: includes/class-admin-page.php:1898
-msgid "was in use"
+#: includes/class-admin-page.php:167
+msgid "Available when the usage index is ready."
 msgstr ""
 
-#: includes/class-admin-page.php:1901
+#: includes/class-admin-page.php:168
+msgid "Before and after"
+msgstr ""
+
+#. translators: placeholders are filled in by the script in this order (numbers or names)
+#: includes/class-admin-page.php:170
+#, php-format
+msgid "Building the usage index: %1$d / %2$d posts checked. Unused-image cleanup becomes available when it finishes."
+msgstr ""
+
+#: includes/class-admin-page.php:171
+msgid "Bulk actions you run here will show up in this list."
+msgstr ""
+
+#: includes/class-admin-page.php:172
+msgid "Camera name"
+msgstr ""
+
+#: includes/class-admin-page.php:173
+msgid "Camera-style file names"
+msgstr ""
+
+#: includes/class-admin-page.php:174
+msgid "Can get alt text from the name"
+msgstr ""
+
+#: includes/class-admin-page.php:175
+msgid "Cancel"
+msgstr ""
+
+#: includes/class-admin-page.php:176
+msgid "Checking…"
+msgstr ""
+
+#: includes/class-admin-page.php:177
+msgid "Clears the cached results and checks every image again. Nothing on your site changes."
+msgstr ""
+
+#: includes/class-admin-page.php:178
+#: includes/views/detail.php:43
+#: includes/views/detail.php:252
+msgid "Close"
+msgstr ""
+
+#: includes/class-admin-page.php:179
+msgid "Connect an AI provider to get suggestions."
+msgstr ""
+
+#: includes/class-admin-page.php:180
+#: includes/views/setup.php:59
+msgid "Continue"
+msgstr ""
+
+#: includes/class-admin-page.php:181
+#: includes/views/page.php:328
+msgid "Convert"
+msgstr ""
+
+#: includes/class-admin-page.php:182
+msgid "Convert in background"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:184
+#, php-format
+msgid "Converting %d image"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:186
+#, php-format
+msgid "Converting %d images"
+msgstr ""
+
+#: includes/class-admin-page.php:187
+msgid "Converting..."
+msgstr ""
+
+#: includes/class-admin-page.php:188
+msgid "Copies kept"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:190
+#, php-format
+msgid "Copies removed for %d image."
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:192
+#, php-format
+msgid "Copies removed for %d images."
+msgstr ""
+
+#: includes/class-admin-page.php:193
+msgid "Copies removed."
+msgstr ""
+
+#: includes/class-admin-page.php:194
+msgid "Copy created."
+msgstr ""
+
+#: includes/class-admin-page.php:195
+msgid "Could not delete the image"
+msgstr ""
+
+#: includes/class-admin-page.php:196
+msgid "Could not move the image"
+msgstr ""
+
+#: includes/class-admin-page.php:197
+msgid "Could not restore the image"
+msgstr ""
+
+#: includes/class-admin-page.php:198
+msgid "Could not undo"
+msgstr ""
+
+#. translators: placeholders are filled in by the script in this order (numbers or names)
+#: includes/class-admin-page.php:200
+#, php-format
+msgid "Create %1$s copies for %2$d image?"
+msgstr ""
+
+#. translators: placeholders are filled in by the script in this order (numbers or names)
+#: includes/class-admin-page.php:202
+#, php-format
+msgid "Create %1$s copies for %2$d images?"
+msgstr ""
+
+#: includes/class-admin-page.php:203
+#: includes/views/detail.php:135
+msgid "Create WebP/AVIF copy"
+msgstr ""
+
+#. translators: placeholders are filled in by the script in this order (numbers or names)
+#: includes/class-admin-page.php:205
+#, php-format
+msgid "Creating WebP/AVIF copies in the background: %1$d of %2$d"
+msgstr ""
+
+#: includes/class-admin-page.php:206
+msgid "Current"
+msgstr ""
+
+#: includes/class-admin-page.php:207
+msgid "Decorative image: alt stays empty on purpose."
+msgstr ""
+
+#: includes/class-admin-page.php:208
 msgid "Delete permanently"
 msgstr ""
 
-#: includes/class-admin-page.php:1943
+#: includes/class-admin-page.php:209
+msgid "Delete this image permanently?"
+msgstr ""
+
+#: includes/class-admin-page.php:210
+#: includes/class-admin-page.php:1358
+msgid "Dismiss"
+msgstr ""
+
+#: includes/class-admin-page.php:211
+msgid "Done"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:213
+#, php-format
+msgid "Done — %d image converted"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:215
+#, php-format
+msgid "Done — %d image moved to quarantine"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:217
+#, php-format
+msgid "Done — %d image renamed"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:219
+#, php-format
+msgid "Done — %d image updated"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:221
+#, php-format
+msgid "Done — %d images converted"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:223
+#, php-format
+msgid "Done — %d images moved to quarantine"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:225
+#, php-format
+msgid "Done — %d images renamed"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:227
+#, php-format
+msgid "Done — %d images updated"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:229
+#, php-format
+msgid "Done — %d suggestion ready for review"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:231
+#, php-format
+msgid "Done — %d suggestions ready for review"
+msgstr ""
+
+#: includes/class-admin-page.php:232
+msgid "Each image is checked again first: if it is used, or its file name still appears anywhere on the site, it is skipped. Images used only in theme files or on other websites cannot be detected."
+msgstr ""
+
+#: includes/class-admin-page.php:233
+msgid "Enter a size smaller than the current one."
+msgstr ""
+
+#: includes/class-admin-page.php:234
+msgid "Enter a width and a height."
+msgstr ""
+
+#: includes/class-admin-page.php:235
+msgid "Every published post has a featured image."
+msgstr ""
+
+#: includes/class-admin-page.php:236
+msgid "Failed"
+msgstr ""
+
+#: includes/class-admin-page.php:237
+msgid "Field"
+msgstr ""
+
+#: includes/class-admin-page.php:238
+#: includes/views/detail.php:194
+#: includes/views/page.php:169
+msgid "File name"
+msgstr ""
+
+#. translators: placeholders are filled in by the script in this order (numbers or names)
+#: includes/class-admin-page.php:240
+#, php-format
+msgid "Finding where each image is used: %1$d / %2$d posts checked."
+msgstr ""
+
+#: includes/class-admin-page.php:241
+msgid "Fix file names"
+msgstr ""
+
+#: includes/class-admin-page.php:242
+msgid "Fix file name…"
+msgstr ""
+
+#: includes/class-admin-page.php:243
+msgid "For better descriptions, use AI suggestions instead: they look at the image itself."
+msgstr ""
+
+#: includes/class-admin-page.php:244
+msgid "From file names"
+msgstr ""
+
+#: includes/class-admin-page.php:245
+msgid "Generate suggestions"
+msgstr ""
+
+#: includes/class-admin-page.php:246
+msgid "Generating suggestions"
+msgstr ""
+
+#: includes/class-admin-page.php:247
+msgid "Image health: fair"
+msgstr ""
+
+#: includes/class-admin-page.php:248
+msgid "Image health: good"
+msgstr ""
+
+#: includes/class-admin-page.php:249
+msgid "Image health: poor"
+msgstr ""
+
+#: includes/class-admin-page.php:250
+msgid "Images"
+msgstr ""
+
+#: includes/class-admin-page.php:251
+msgid "Images missing alt text"
+msgstr ""
+
+#: includes/class-admin-page.php:252
+msgid "Images with missing or weak alt text"
+msgstr ""
+
+#: includes/class-admin-page.php:253
+msgid "Images with weak alt text"
+msgstr ""
+
+#: includes/class-admin-page.php:254
+msgid "Images without a WebP/AVIF copy"
+msgstr ""
+
+#: includes/class-admin-page.php:255
+msgid "Images without alt text"
+msgstr ""
+
+#: includes/class-admin-page.php:256
+msgid "Images without alt text get one made from their file name, for example \"red-tulip-field.jpg\" becomes \"Red tulip field\". Camera-style names such as IMG_1234 are skipped."
+msgstr ""
+
+#: includes/class-admin-page.php:257
+msgid "It disappears from your site and media library, but nothing is deleted. You can restore it in one click from Cleanup → Quarantine."
+msgstr ""
+
+#: includes/class-admin-page.php:258
+msgid "Keyword"
+msgstr ""
+
+#: includes/class-admin-page.php:259
+msgid "Larger than 2560 px or heavier than 250 KB when served."
+msgstr ""
+
+#: includes/class-admin-page.php:260
+msgid "Links are updated and the old URL redirects (301)."
+msgstr ""
+
+#: includes/class-admin-page.php:261
+msgid "Loading..."
+msgstr ""
+
+#: includes/class-admin-page.php:262
+msgid "Looking at the image…"
+msgstr ""
+
+#: includes/class-admin-page.php:263
+msgid "Missing"
+msgstr ""
+
+#: includes/class-admin-page.php:264
+msgid "Missing or weak alt text"
+msgstr ""
+
+#: includes/class-admin-page.php:265
+msgid "Move"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:267
+#, php-format
+msgid "Move %d image to quarantine?"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:269
+#, php-format
+msgid "Move %d images to quarantine?"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:271
+#, php-format
+msgid "Move %d to quarantine…"
+msgstr ""
+
+#: includes/class-admin-page.php:272
+msgid "Move this image to quarantine?"
+msgstr ""
+
+#: includes/class-admin-page.php:273
+msgid "Move to quarantine"
+msgstr ""
+
+#: includes/class-admin-page.php:274
+#: includes/views/page.php:261
+msgid "Move to quarantine…"
+msgstr ""
+
+#: includes/class-admin-page.php:275
+msgid "Move unused images to quarantine"
+msgstr ""
+
+#: includes/class-admin-page.php:276
+#: includes/views/page.php:287
+msgid "Moved"
+msgstr ""
+
+#: includes/class-admin-page.php:277
+msgid "Moved to quarantine"
+msgstr ""
+
+#: includes/class-admin-page.php:278
+msgid "Moving images to quarantine"
+msgstr ""
+
+#: includes/class-admin-page.php:279
+msgid "Moving…"
+msgstr ""
+
+#: includes/class-admin-page.php:280
+msgid "New name"
+msgstr ""
+
+#: includes/class-admin-page.php:281
+msgid "No alt"
+msgstr ""
+
+#: includes/class-admin-page.php:282
+msgid "No images need suggestions right now."
+msgstr ""
+
+#: includes/class-admin-page.php:283
+msgid "No suggestions waiting for review"
+msgstr ""
+
+#: includes/class-admin-page.php:284
+msgid "No unused images found."
+msgstr ""
+
+#: includes/class-admin-page.php:285
+msgid "No WebP"
+msgstr ""
+
+#: includes/class-admin-page.php:286
+msgid "Not found in content, settings, widgets or terms."
+msgstr ""
+
+#: includes/class-admin-page.php:287
+msgid "Not indexable"
+msgstr ""
+
+#: includes/class-admin-page.php:288
+msgid "Nothing has changed yet."
+msgstr ""
+
+#: includes/class-admin-page.php:289
+msgid "Nothing is saved until you review it in the AI Suggestions tab."
+msgstr ""
+
+#: includes/class-admin-page.php:290
+msgid "Nothing to convert"
+msgstr ""
+
+#: includes/class-admin-page.php:291
+msgid "Nothing to fix right now. New uploads are checked automatically."
+msgstr ""
+
+#: includes/class-admin-page.php:292
+#: includes/class-admin-page.php:1294
+#: includes/views/settings.php:197
+msgid "Open Connectors"
+msgstr ""
+
+#: includes/class-admin-page.php:293
+msgid "Open details"
+msgstr ""
+
+#: includes/class-admin-page.php:294
+msgid "Open quarantine"
+msgstr ""
+
+#: includes/class-admin-page.php:295
+msgid "Original"
+msgstr ""
+
+#: includes/class-admin-page.php:296
+msgid "Original size restored."
+msgstr ""
+
+#: includes/class-admin-page.php:297
+msgid "Originals stay untouched; copies are kept only when they are smaller."
+msgstr ""
+
+#: includes/class-admin-page.php:298
+#: includes/views/page.php:159
+msgid "Oversized"
+msgstr ""
+
+#: includes/class-admin-page.php:299
+msgid "Oversized images"
+msgstr ""
+
+#: includes/class-admin-page.php:300
+msgid "Page focus keyword"
+msgstr ""
+
+#: includes/class-admin-page.php:301
+msgid "Pattern"
+msgstr ""
+
+#: includes/class-admin-page.php:302
+#: includes/views/page.php:190
+msgid "Posts without a featured image"
+msgstr ""
+
+#: includes/class-admin-page.php:303
+msgid "Preview"
+msgstr ""
+
+#: includes/class-admin-page.php:304
+msgid "Preview new names"
+msgstr ""
+
+#: includes/class-admin-page.php:305
+msgid "Quarantine…"
+msgstr ""
+
+#: includes/class-admin-page.php:306
+msgid "Ready for review"
+msgstr ""
+
+#: includes/class-admin-page.php:307
+msgid "Recalculate"
+msgstr ""
+
+#: includes/class-admin-page.php:308
+msgid "Recalculate all scores?"
+msgstr ""
+
+#: includes/class-admin-page.php:309
+#: includes/views/detail.php:138
+msgid "Remove copies"
+msgstr ""
+
+#: includes/class-admin-page.php:310
+msgid "Remove the WebP/AVIF copies?"
+msgstr ""
+
+#: includes/class-admin-page.php:311
+msgid "Rename"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:313
+#, php-format
+msgid "Rename %d image"
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:315
+#, php-format
+msgid "Rename %d images"
+msgstr ""
+
+#: includes/class-admin-page.php:316
+msgid "Renamed"
+msgstr ""
+
+#: includes/class-admin-page.php:317
+msgid "Renaming undone."
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:319
+#, php-format
+msgid "Renaming undone: %d image restored."
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:321
+#, php-format
+msgid "Renaming undone: %d images restored."
+msgstr ""
+
+#: includes/class-admin-page.php:322
+msgid "Renaming…"
+msgstr ""
+
+#: includes/class-admin-page.php:323
+msgid "Resized. The original is kept."
+msgstr ""
+
+#: includes/class-admin-page.php:324
+msgid "Resizing..."
+msgstr ""
+
+#: includes/class-admin-page.php:325
+msgid "Restore"
+msgstr ""
+
+#: includes/class-admin-page.php:326
+msgid "Review"
+msgstr ""
+
+#: includes/class-admin-page.php:327
+msgid "Review and quarantine"
+msgstr ""
+
+#: includes/class-admin-page.php:328
+msgid "Review suggestions"
+msgstr ""
+
+#: includes/class-admin-page.php:329
+msgid "Run in background"
+msgstr ""
+
+#: includes/class-admin-page.php:330
+msgid "Saved."
+msgstr ""
+
+#: includes/class-admin-page.php:331
+msgid "Saving..."
+msgstr ""
+
+#. translators: %d: number
+#: includes/class-admin-page.php:333
+#, php-format
+msgid "score %d"
+msgstr ""
+
+#: includes/class-admin-page.php:334
+msgid "Select image"
+msgstr ""
+
+#: includes/class-admin-page.php:335
+msgid "Served copy"
+msgstr ""
+
+#: includes/class-admin-page.php:336
+#: includes/class-admin-page.php:1286
 msgid "Set up AI suggestions"
 msgstr ""
 
-#: includes/class-admin-page.php:1947
+#. translators: %d: number
+#: includes/class-admin-page.php:338
+#, php-format
+msgid "Show more (%d left)"
+msgstr ""
+
+#: includes/class-admin-page.php:339
+msgid "Skipped"
+msgstr ""
+
+#: includes/class-admin-page.php:340
+msgid "Skipped (copy was larger)"
+msgstr ""
+
+#: includes/class-admin-page.php:341
+msgid "Skipped (still in use)"
+msgstr ""
+
+#: includes/class-admin-page.php:342
+msgid "Something went wrong. Please try again."
+msgstr ""
+
+#: includes/class-admin-page.php:343
+msgid "Space in the library"
+msgstr ""
+
+#: includes/class-admin-page.php:344
+msgid "Start converting"
+msgstr ""
+
+#: includes/class-admin-page.php:345
+msgid "Starting…"
+msgstr ""
+
+#: includes/class-admin-page.php:346
+msgid "Stop"
+msgstr ""
+
+#: includes/class-admin-page.php:347
+msgid "Suggest"
+msgstr ""
+
+#: includes/class-admin-page.php:348
+msgid "Suggest with AI"
+msgstr ""
+
+#: includes/class-admin-page.php:349
+msgid "Suggested"
+msgstr ""
+
+#: includes/class-admin-page.php:350
+msgid "Suggested alt text"
+msgstr ""
+
+#: includes/class-admin-page.php:351
+msgid "Suggested file name"
+msgstr ""
+
+#: includes/class-admin-page.php:352
+msgid "Suggested title"
+msgstr ""
+
+#: includes/class-admin-page.php:353
+msgid "Suggestion applied."
+msgstr ""
+
+#: includes/class-admin-page.php:354
+msgid "The conversion runs on the server. You can close this window or leave the page while it runs."
+msgstr ""
+
+#: includes/class-admin-page.php:355
+msgid "The image and all its sizes and copies are deleted from the server. This cannot be undone."
+msgstr ""
+
+#: includes/class-admin-page.php:356
+msgid "The original stays exactly as it is. You can create the copies again at any time."
+msgstr ""
+
+#: includes/class-admin-page.php:357
+msgid "They disappear from your site and media library, but nothing is deleted. You can restore any of them in one click from Cleanup → Quarantine."
+msgstr ""
+
+#: includes/class-admin-page.php:358
+msgid "This image was still used on your site. Restore it from Cleanup → Quarantine if a page looks broken."
+msgstr ""
+
+#: includes/class-admin-page.php:359
+#: includes/class-admin-page.php:1330
+#: includes/views/detail.php:213
+msgid "Title"
+msgstr ""
+
+#: includes/class-admin-page.php:360
+msgid "Tokens: {keyword} {n} {parent} {title} {original} {alt}. An empty keyword uses the focus keyword (Yoast, Rank Math, AIOSEO, SEOPress) or the title of the page the image is on."
+msgstr ""
+
+#: includes/class-admin-page.php:361
+#: includes/views/detail.php:207
+msgid "Undo"
+msgstr ""
+
+#: includes/class-admin-page.php:362
+msgid "Undo (remove copies)"
+msgstr ""
+
+#: includes/class-admin-page.php:363
+#: includes/views/settings.php:250
+msgid "Unsaved changes"
+msgstr ""
+
+#: includes/class-admin-page.php:364
+#: includes/views/page.php:202
+#: includes/views/page.php:234
+#: includes/views/page.php:241
+msgid "Unused"
+msgstr ""
+
+#: includes/class-admin-page.php:365
+#: includes/views/page.php:97
+#: includes/views/page.php:257
+msgid "Unused images"
+msgstr ""
+
+#: includes/class-admin-page.php:366
+#: includes/views/page.php:34
+msgid "Upload images"
+msgstr ""
+
+#: includes/class-admin-page.php:367
+msgid "Use these settings and scan"
+msgstr ""
+
+#: includes/class-admin-page.php:368
+msgid "Use “Suggest for more images” or the Suggest button in an image’s details to get suggestions."
+msgstr ""
+
+#. translators: %s: value filled in by the script (a number or a name)
+#: includes/class-admin-page.php:370
+#, php-format
+msgid "Was attached to \"%s\""
+msgstr ""
+
+#: includes/class-admin-page.php:371
+msgid "Was in use"
+msgstr ""
+
+#: includes/class-admin-page.php:372
+msgid "Weak alt"
+msgstr ""
+
+#: includes/class-admin-page.php:373
+msgid "Working…"
+msgstr ""
+
+#: includes/class-admin-page.php:374
+msgid "You can close this window or leave the page; conversion keeps running."
+msgstr ""
+
+#: includes/class-admin-page.php:375
+msgid "Your originals are not changed. A copy is kept only when it is smaller than the original, and browsers that cannot show it get the original."
+msgstr ""
+
+#: includes/class-admin-page.php:410
+msgid "Works · Imagick"
+msgstr ""
+
+#: includes/class-admin-page.php:413
+msgid "Works · GD"
+msgstr ""
+
+#: includes/class-admin-page.php:415
+#: includes/class-admin-page.php:1481
+msgid "Not available"
+msgstr ""
+
+#: includes/class-admin-page.php:421
+msgid "Off"
+msgstr ""
+
+#: includes/class-admin-page.php:423
+#: includes/views/settings.php:120
+msgid ".htaccess rewrite"
+msgstr ""
+
+#: includes/class-admin-page.php:425
+msgid "<picture> tags"
+msgstr ""
+
+#: includes/class-admin-page.php:433
+msgid "WebP encoding"
+msgstr ""
+
+#: includes/class-admin-page.php:434
+msgid "AVIF encoding"
+msgstr ""
+
+#: includes/class-admin-page.php:435
+#: includes/views/settings.php:22
+#: includes/views/settings.php:105
+msgid "Delivery"
+msgstr ""
+
+#: includes/class-admin-page.php:436
+msgid "Web server"
+msgstr ""
+
+#: includes/class-admin-page.php:437
+msgid "CDN"
+msgstr ""
+
+#: includes/class-admin-page.php:437
+msgid "None detected"
+msgstr ""
+
+#: includes/class-admin-page.php:438
+msgid "SEO plugin"
+msgstr ""
+
+#: includes/class-admin-page.php:438
+msgid "None"
+msgstr ""
+
+#: includes/class-admin-page.php:439
+#: includes/class-admin-page.php:1500
+#: includes/class-admin-page.php:1501
+msgid "AI provider"
+msgstr ""
+
+#: includes/class-admin-page.php:439
+#: includes/class-admin-page.php:1500
+msgid "Connected"
+msgstr ""
+
+#: includes/class-admin-page.php:439
+msgid "Not connected"
+msgstr ""
+
+#: includes/class-admin-page.php:455
+msgid "Unknown"
+msgstr ""
+
+#: includes/class-admin-page.php:674
+msgid "Missing image ID."
+msgstr ""
+
+#: includes/class-admin-page.php:680
+msgid "Image not found."
+msgstr ""
+
+#: includes/class-admin-page.php:698
+#: includes/class-admin-page.php:1008
+msgid "Invalid ID."
+msgstr ""
+
+#: includes/class-admin-page.php:715
+#: includes/class-admin-page.php:824
+msgid "Missing ID."
+msgstr ""
+
+#: includes/class-admin-page.php:726
+msgid "Animated GIF skipped: this server cannot keep the animation."
+msgstr ""
+
+#: includes/class-admin-page.php:727
+msgid "Image is already in a modern format."
+msgstr ""
+
+#: includes/class-admin-page.php:732
+msgid "The original is already smaller than a WebP/AVIF copy would be — nothing to gain."
+msgstr ""
+
+#: includes/class-admin-page.php:753
+msgid "The usage index is still being built. Please try again in a moment."
+msgstr ""
+
+#: includes/class-admin-page.php:1202
+#: includes/views/page.php:80
+msgid "Average SEO score"
+msgstr ""
+
+#: includes/class-admin-page.php:1206
+#: includes/views/page.php:86
+msgid "WebP / AVIF coverage"
+msgstr ""
+
+#: includes/class-admin-page.php:1210
+#: includes/views/page.php:92
+msgid "Saved for visitors"
+msgstr ""
+
+#: includes/class-admin-page.php:1213
+msgid "Open Image Optimizer"
+msgstr ""
+
+#: includes/class-admin-page.php:1290
 msgid "Open Settings > Connectors and install the provider (Anthropic, Google or OpenAI)."
 msgstr ""
 
-#: includes/class-admin-page.php:1948
+#: includes/class-admin-page.php:1291
 msgid "Paste your own API key there. Erdo never stores it."
 msgstr ""
 
-#: includes/class-admin-page.php:1949
+#: includes/class-admin-page.php:1292
 msgid "Come back here: suggestions become available right away."
 msgstr ""
 
-#: includes/class-admin-page.php:1965
+#: includes/class-admin-page.php:1308
 msgid "Set up"
 msgstr ""
 
-#: includes/class-admin-page.php:1972
-msgid "Suggest alt text, filename and title with AI"
+#: includes/class-admin-page.php:1316
+msgid "Suggest alt text, file name and title with AI"
 msgstr ""
 
-#: includes/class-admin-page.php:1984
+#: includes/class-admin-page.php:1329
 #: includes/class-auditor.php:316
 msgid "Filename"
 msgstr ""
 
-#: includes/class-admin-page.php:1985
-msgid "Title"
-msgstr ""
-
-#: includes/class-admin-page.php:1986
+#: includes/class-admin-page.php:1331
 msgid "Caption"
 msgstr ""
 
-#: includes/class-admin-page.php:1990
+#: includes/class-admin-page.php:1335
 msgid "AI suggestion — review before saving"
 msgstr ""
 
-#: includes/class-admin-page.php:2005
+#: includes/class-admin-page.php:1350
 msgid "Decorative image: alt will be left empty on purpose."
 msgstr ""
 
-#: includes/class-admin-page.php:2012
+#: includes/class-admin-page.php:1357
 msgid "Accept selected"
 msgstr ""
 
-#: includes/class-admin-page.php:2014
+#: includes/class-admin-page.php:1359
 msgid "Try again"
 msgstr ""
 
-#: includes/class-admin-page.php:2121
+#: includes/class-admin-page.php:1480
+msgid "Works"
+msgstr ""
+
+#. translators: 1: GD or Imagick, 2: milliseconds
+#: includes/class-admin-page.php:1485
+#, php-format
+msgid "Test images encoded with %1$s (%2$d ms in total)."
+msgstr ""
+
+#: includes/class-admin-page.php:1486
+msgid "This server cannot create WebP files. Ask your host for GD or Imagick with WebP support. SEO features still work."
+msgstr ""
+
+#. translators: %s: GD or Imagick
+#: includes/class-admin-page.php:1489
+#, php-format
+msgid "AVIF works with %s. Browsers that support it get even smaller files."
+msgstr ""
+
+#: includes/class-admin-page.php:1490
+msgid "Not available on this server. WebP alone already saves most of the weight."
+msgstr ""
+
+#. translators: %s: CDN name, e.g. Cloudflare
+#: includes/class-admin-page.php:1493
+#, php-format
+msgid "%s in front of the site"
+msgstr ""
+
+#. translators: %s: CDN name, e.g. Cloudflare
+#: includes/class-admin-page.php:1493
+msgid "Server rewrites would be cached for every browser, so &lt;picture&gt; tags are used (CDN-safe)."
+msgstr ""
+
+#. translators: %s: CDN name, e.g. Cloudflare
+#: includes/class-admin-page.php:1493
+msgid "Handled"
+msgstr ""
+
+#. translators: %s: SEO plugin name
+#: includes/class-admin-page.php:1497
+#, php-format
+msgid "%s is active"
+msgstr ""
+
+#. translators: %s: SEO plugin name
+#: includes/class-admin-page.php:1497
+msgid "It already lists images in its sitemap, so ours stays off. Its focus keywords are used for scoring and renaming."
+msgstr ""
+
+#. translators: %s: SEO plugin name
+#: includes/class-admin-page.php:1497
+msgid "Detected"
+msgstr ""
+
+#: includes/class-admin-page.php:1500
+msgid "Connected through Settings > Connectors. Suggestions are only made when you ask for them."
+msgstr ""
+
+#: includes/class-admin-page.php:1501
+msgid "Optional"
+msgstr ""
+
+#: includes/class-admin-page.php:1515
+msgid "Create AVIF and WebP copies at quality 80, for new uploads too"
+msgstr ""
+
+#: includes/class-admin-page.php:1516
+msgid "Create WebP copies at quality 80, for new uploads too"
+msgstr ""
+
+#: includes/class-admin-page.php:1517
+msgid "Serve them with &lt;picture&gt; tags (works with every CDN and cache)"
+msgstr ""
+
+#: includes/class-admin-page.php:1519
+msgid "Clean file names on upload; camera data (EXIF) is kept"
+msgstr ""
+
+#. translators: %s: SEO plugin name
+#: includes/class-admin-page.php:1522
+#, php-format
+msgid "Leave the image sitemap to %s"
+msgstr ""
+
+#: includes/class-admin-page.php:1523
+msgid "Add images to the WordPress sitemap"
+msgstr ""
+
+#: includes/class-admin-page.php:1524
+msgid "Quarantined images are kept until you delete them"
+msgstr ""
+
+#: includes/class-admin-page.php:1573
 msgid "Erdo Image Optimizer 3.0 needs to repair some images."
 msgstr ""
 
 #. translators: %d: number of images
-#: includes/class-admin-page.php:2125
+#: includes/class-admin-page.php:1577
 #, php-format
 msgid "%d image was converted by an older version that replaced the original file. Pages that still link to the old file may show a broken image."
 msgid_plural "%d images were converted by an older version that replaced the original file. Pages that still link to the old files may show broken images."
 msgstr[0] ""
 msgstr[1] ""
 
-#: includes/class-admin-page.php:2134
+#: includes/class-admin-page.php:1586
 msgid "Until the repair runs, the plugin redirects those links on the fly so visitors see the image."
 msgstr ""
 
-#: includes/class-admin-page.php:2138
+#: includes/class-admin-page.php:1590
 msgid "Repair now"
 msgstr ""
 
-#: includes/class-admin-page.php:2158
+#: includes/class-admin-page.php:1608
+#: includes/class-admin-page.php:1613
+msgid "Error"
+msgstr ""
+
+#: includes/class-admin-page.php:1610
 msgid "Repaired:"
 msgstr ""
 
-#: includes/class-admin-page.php:2158
+#: includes/class-admin-page.php:1610
 msgid "remaining:"
 msgstr ""
 
-#: includes/class-admin-page.php:2186
+#: includes/class-admin-page.php:1638
 msgid "Erdo Image Optimizer 3.0: what changed"
 msgstr ""
 
-#: includes/class-admin-page.php:2188
+#: includes/class-admin-page.php:1640
 msgid "Your original images are never modified or deleted any more. WebP/AVIF copies are saved next to them and served automatically."
 msgstr ""
 
-#: includes/class-admin-page.php:2189
+#: includes/class-admin-page.php:1641
 msgid "\"Delete\" now moves images to a Quarantine you can restore from, and unused-image detection uses a full index of where every image is used."
 msgstr ""
 
-#: includes/class-admin-page.php:2190
+#: includes/class-admin-page.php:1642
 msgid "New: 0–100 image SEO score, safe renaming with redirects, image sitemap and optional AI suggestions with your own provider key."
 msgstr ""
 
-#: includes/class-admin-page.php:2192
+#: includes/class-admin-page.php:1644
 msgid "SVG uploads were removed. If you still need them, install a dedicated plugin such as Safe SVG."
 msgstr ""
 
-#: includes/class-admin-page.php:2195
+#: includes/class-admin-page.php:1647
 msgid "The BunnyCDN upload was removed. Use a BunnyCDN pull zone (or your CDN plugin) instead: it picks up the WebP/AVIF copies on its own."
 msgstr ""
 
-#: includes/class-admin-page.php:2197
+#: includes/class-admin-page.php:1649
 msgid "Lazy loading and resizing on upload are now left to WordPress itself, which handles them better (including the largest image above the fold)."
 msgstr ""
 
-#: includes/class-ai.php:43
+#: includes/class-ai.php:45
 msgid "AI suggestions need WordPress 7.0 or newer."
 msgstr ""
 
-#: includes/class-ai.php:45
+#: includes/class-ai.php:47
 msgid "AI features are turned off on this site."
 msgstr ""
 
-#: includes/class-ai.php:60
+#: includes/class-ai.php:62
 msgid "Connect an AI provider that can read images (Anthropic, Google or OpenAI) under Settings > Connectors."
 msgstr ""
 
-#: includes/class-ai.php:92
+#: includes/class-ai.php:94
 msgid "Not an image."
 msgstr ""
 
-#: includes/class-ai.php:172
+#: includes/class-ai.php:183
 msgid "The AI provider is busy (rate limit). Waiting and retrying…"
 msgstr ""
 
-#: includes/class-ai.php:235
+#: includes/class-ai.php:246
 msgid "The AI answer could not be read. Please try again."
 msgstr ""
 
-#: includes/class-ai.php:240
+#: includes/class-ai.php:251
 msgid "The AI answer had no alt text. Please try again."
 msgstr ""
 
-#: includes/class-ai.php:271
+#: includes/class-ai.php:282
 #: includes/class-renamer.php:92
 msgid "File not found."
 msgstr ""
 
-#: includes/class-ai.php:301
+#: includes/class-ai.php:312
 msgid "This image format cannot be read on this server."
 msgstr ""
 
-#: includes/class-ai.php:415
+#: includes/class-ai.php:430
 msgid "There is no suggestion for this image."
 msgstr ""
 
@@ -1269,6 +1458,7 @@ msgid "Alt Text"
 msgstr ""
 
 #: includes/class-auditor.php:328
+#: includes/views/settings.php:66
 msgid "Format"
 msgstr ""
 
@@ -1398,15 +1588,15 @@ msgstr ""
 msgid "Imagick could not encode the image."
 msgstr ""
 
-#: includes/class-migration.php:188
+#: includes/class-migration.php:189
 msgid "The backup file is missing or outside the uploads folder."
 msgstr ""
 
-#: includes/class-migration.php:196
+#: includes/class-migration.php:197
 msgid "Could not copy the backup back into place."
 msgstr ""
 
-#: includes/class-migration.php:229
+#: includes/class-migration.php:230
 msgid "Converted file is missing."
 msgstr ""
 
@@ -1435,28 +1625,28 @@ msgstr ""
 msgid "The file name appears somewhere on the site, so the image may still be in use."
 msgstr ""
 
-#: includes/class-quarantine.php:80
+#: includes/class-quarantine.php:82
 msgid "Could not create the quarantine folder."
 msgstr ""
 
 #. translators: %s: file name
-#: includes/class-quarantine.php:91
+#: includes/class-quarantine.php:93
 #, php-format
 msgid "Could not move %s."
 msgstr ""
 
-#: includes/class-quarantine.php:115
-#: includes/class-quarantine.php:150
+#: includes/class-quarantine.php:118
+#: includes/class-quarantine.php:157
 msgid "This image is not in quarantine."
 msgstr ""
 
 #. translators: %s: comma-separated file names
-#: includes/class-quarantine.php:132
+#: includes/class-quarantine.php:138
 #, php-format
 msgid "Could not restore: %s"
 msgstr ""
 
-#: includes/class-quarantine.php:161
+#: includes/class-quarantine.php:172
 msgid "Delete failed."
 msgstr ""
 
@@ -1472,24 +1662,24 @@ msgstr ""
 msgid "Only files inside the uploads folder can be renamed."
 msgstr ""
 
-#: includes/class-renamer.php:104
+#: includes/class-renamer.php:113
 msgid "The new filename is empty after removing unsupported characters."
 msgstr ""
 
-#: includes/class-renamer.php:111
+#: includes/class-renamer.php:120
 msgid "Filename already clean."
 msgstr ""
 
-#: includes/class-renamer.php:128
+#: includes/class-renamer.php:137
 msgid "Could not find a free filename."
 msgstr ""
 
-#: includes/class-renamer.php:238
+#: includes/class-renamer.php:247
 msgid "Could not rename the file on disk."
 msgstr ""
 
-#: includes/class-renamer.php:431
-#: includes/class-renamer.php:449
+#: includes/class-renamer.php:446
+#: includes/class-renamer.php:464
 msgid "Nothing to undo."
 msgstr ""
 
@@ -1579,4 +1769,770 @@ msgstr ""
 
 #: includes/class-usage.php:814
 msgid "Setting"
+msgstr ""
+
+#: includes/views/detail.php:39
+msgid "SEO score (0–100)"
+msgstr ""
+
+#: includes/views/detail.php:41
+msgid "Previous image"
+msgstr ""
+
+#: includes/views/detail.php:42
+msgid "Next image"
+msgstr ""
+
+#: includes/views/detail.php:59
+msgid "Compare"
+msgstr ""
+
+#: includes/views/detail.php:64
+msgid "Files"
+msgstr ""
+
+#. translators: 1: file format (JPEG, PNG…), 2: width, 3: height
+#: includes/views/detail.php:71
+#, php-format
+msgid "Original %1$s · %2$d×%3$d"
+msgstr ""
+
+#. translators: %s: WEBP or AVIF
+#: includes/views/detail.php:85
+#, php-format
+msgid "%s copy (served)"
+msgstr ""
+
+#: includes/views/detail.php:99
+msgid "Generated sizes"
+msgstr ""
+
+#: includes/views/detail.php:106
+msgid "Used on"
+msgstr ""
+
+#: includes/views/detail.php:108
+msgid "Not referenced anywhere on the site."
+msgstr ""
+
+#. translators: %d: number of further places
+#: includes/views/detail.php:124
+#, php-format
+msgid "…and %d more"
+msgstr ""
+
+#: includes/views/detail.php:132
+#: includes/views/page.php:288
+msgid "Actions"
+msgstr ""
+
+#: includes/views/detail.php:140
+#: includes/views/page.php:235
+#: includes/views/page.php:271
+#: includes/views/page.php:329
+msgid "Quarantine"
+msgstr ""
+
+#: includes/views/detail.php:143
+#: includes/views/detail.php:150
+msgid "Resize"
+msgstr ""
+
+#: includes/views/detail.php:145
+msgid "Width"
+msgstr ""
+
+#: includes/views/detail.php:148
+msgid "Height"
+msgstr ""
+
+#: includes/views/detail.php:152
+msgid "Only makes the image smaller. The original is kept so you can undo it."
+msgstr ""
+
+#. translators: 1: original width, 2: original height (pixels)
+#: includes/views/detail.php:157
+#, php-format
+msgid "Restore original size (%1$d×%2$d)"
+msgstr ""
+
+#: includes/views/detail.php:168
+msgid "Describe the image for people who can’t see it"
+msgstr ""
+
+#: includes/views/detail.php:171
+msgid "Use page title"
+msgstr ""
+
+#: includes/views/detail.php:173
+#: includes/views/detail.php:216
+msgid "From file name"
+msgstr ""
+
+#. translators: %s: focus keyword from the SEO plugin
+#: includes/views/detail.php:182
+#, php-format
+msgid "Page focus keyword: \"%s\". Use it only if it describes the image."
+msgstr ""
+
+#: includes/views/detail.php:189
+msgid "Decorative image (adds nothing to the content, empty alt is correct)"
+msgstr ""
+
+#: includes/views/detail.php:199
+msgid "Will be saved as:"
+msgstr ""
+
+#: includes/views/detail.php:200
+msgid "Renaming moves every size and copy, updates links on the site and redirects the old URL (301)."
+msgstr ""
+
+#. translators: %s: previous file name (without extension)
+#: includes/views/detail.php:205
+#, php-format
+msgid "Renamed from \"%s\"."
+msgstr ""
+
+#: includes/views/detail.php:218
+msgid "Shown in the media library and as a tooltip. Not used for ranking."
+msgstr ""
+
+#. translators: %d: SEO score 0–100
+#: includes/views/detail.php:224
+#, php-format
+msgid "SEO score · %d / 100"
+msgstr ""
+
+#: includes/views/detail.php:253
+msgid "Save"
+msgstr ""
+
+#: includes/views/page.php:16
+msgid "Overview"
+msgstr ""
+
+#: includes/views/page.php:17
+msgid "Library"
+msgstr ""
+
+#: includes/views/page.php:18
+#: includes/views/settings.php:26
+#: includes/views/settings.php:205
+msgid "Cleanup"
+msgstr ""
+
+#: includes/views/page.php:19
+msgid "AI Suggestions"
+msgstr ""
+
+#: includes/views/page.php:41
+msgid "Building the usage index (where each image is used). Unused-image cleanup becomes available when it finishes. You can keep working."
+msgstr ""
+
+#: includes/views/page.php:47
+msgid "Details"
+msgstr ""
+
+#: includes/views/page.php:50
+msgid "Erdo Image Optimizer sections"
+msgstr ""
+
+#: includes/views/page.php:72
+msgid "of 100"
+msgstr ""
+
+#: includes/views/page.php:74
+msgid "Image health"
+msgstr ""
+
+#: includes/views/page.php:75
+msgid "Average of the SEO score and the share of images with a WebP/AVIF copy."
+msgstr ""
+
+#: includes/views/page.php:94
+msgid "Originals stay untouched"
+msgstr ""
+
+#. translators: %s: number of images in quarantine
+#: includes/views/page.php:102
+#, php-format
+msgid "%s in quarantine"
+msgstr ""
+
+#: includes/views/page.php:112
+msgid "Fix next"
+msgstr ""
+
+#: includes/views/page.php:113
+msgid "Sorted by SEO impact"
+msgstr ""
+
+#: includes/views/page.php:116
+msgid "Checking your library…"
+msgstr ""
+
+#: includes/views/page.php:123
+msgid "This server"
+msgstr ""
+
+#: includes/views/page.php:124
+msgid "Run setup again"
+msgstr ""
+
+#: includes/views/page.php:136
+msgid "Recent activity"
+msgstr ""
+
+#: includes/views/page.php:148
+msgid "Search images"
+msgstr ""
+
+#: includes/views/page.php:149
+msgid "Search file name, title or alt text"
+msgstr ""
+
+#: includes/views/page.php:152
+msgid "Issue"
+msgstr ""
+
+#: includes/views/page.php:154
+msgid "All issues"
+msgstr ""
+
+#: includes/views/page.php:155
+msgid "Missing alt text"
+msgstr ""
+
+#: includes/views/page.php:156
+msgid "Weak alt text"
+msgstr ""
+
+#: includes/views/page.php:157
+msgid "Camera-style file name"
+msgstr ""
+
+#: includes/views/page.php:158
+msgid "No WebP/AVIF copy"
+msgstr ""
+
+#: includes/views/page.php:160
+msgid "Not on an indexable page"
+msgstr ""
+
+#: includes/views/page.php:164
+msgid "Sort"
+msgstr ""
+
+#: includes/views/page.php:166
+msgid "Lowest score first"
+msgstr ""
+
+#: includes/views/page.php:167
+msgid "Newest first"
+msgstr ""
+
+#: includes/views/page.php:168
+msgid "Largest file first"
+msgstr ""
+
+#: includes/views/page.php:173
+msgid "View"
+msgstr ""
+
+#: includes/views/page.php:174
+msgid "Grid"
+msgstr ""
+
+#: includes/views/page.php:175
+msgid "List"
+msgstr ""
+
+#: includes/views/page.php:177
+msgid "Card size"
+msgstr ""
+
+#: includes/views/page.php:178
+msgid "Small"
+msgstr ""
+
+#: includes/views/page.php:179
+msgid "Medium"
+msgstr ""
+
+#: includes/views/page.php:180
+msgid "Large"
+msgstr ""
+
+#: includes/views/page.php:184
+msgid "More"
+msgstr ""
+
+#: includes/views/page.php:188
+msgid "Alt text from file names…"
+msgstr ""
+
+#: includes/views/page.php:189
+msgid "Export SEO report (CSV)"
+msgstr ""
+
+#: includes/views/page.php:192
+msgid "Recalculate all scores"
+msgstr ""
+
+#: includes/views/page.php:197
+msgid "Score filter"
+msgstr ""
+
+#: includes/views/page.php:198
+msgid "All"
+msgstr ""
+
+#: includes/views/page.php:199
+msgid "Poor"
+msgstr ""
+
+#: includes/views/page.php:200
+msgid "Needs work"
+msgstr ""
+
+#: includes/views/page.php:201
+msgid "Good"
+msgstr ""
+
+#: includes/views/page.php:205
+msgid "Loading library..."
+msgstr ""
+
+#: includes/views/page.php:210
+msgid "Select"
+msgstr ""
+
+#: includes/views/page.php:211
+msgid "Image"
+msgstr ""
+
+#: includes/views/page.php:212
+#: includes/views/page.php:286
+msgid "File"
+msgstr ""
+
+#: includes/views/page.php:214
+msgid "Score"
+msgstr ""
+
+#: includes/views/page.php:215
+msgid "Served as"
+msgstr ""
+
+#: includes/views/page.php:216
+msgid "Size"
+msgstr ""
+
+#: includes/views/page.php:221
+msgid "No images match these filters."
+msgstr ""
+
+#: includes/views/page.php:223
+msgid "Show more"
+msgstr ""
+
+#: includes/views/page.php:226
+msgid "Loading was interrupted."
+msgstr ""
+
+#: includes/views/page.php:227
+msgid "Continue loading"
+msgstr ""
+
+#: includes/views/page.php:243
+msgid "Not referenced in posts, pages, page builders, custom fields, theme settings, widgets or terms."
+msgstr ""
+
+#: includes/views/page.php:246
+msgid "Safety check"
+msgstr ""
+
+#: includes/views/page.php:247
+msgid "Checked again before moving"
+msgstr ""
+
+#: includes/views/page.php:248
+msgid "If an image’s file name still appears anywhere (for example in CSS or a builder setting), it is skipped."
+msgstr ""
+
+#: includes/views/page.php:251
+msgid "What cannot be checked"
+msgstr ""
+
+#: includes/views/page.php:252
+msgid "Theme files and other sites"
+msgstr ""
+
+#: includes/views/page.php:253
+msgid "Images hard-coded in PHP templates or linked from other domains. Check those before deleting anything permanently."
+msgstr ""
+
+#: includes/views/page.php:265
+msgid "No unused images found in your library."
+msgstr ""
+
+#. translators: %d: number of days
+#: includes/views/page.php:277
+#, php-format
+msgid "Hidden from the site and media library. Deleted permanently after %d day."
+msgid_plural "Hidden from the site and media library. Deleted permanently after %d days."
+msgstr[0] ""
+msgstr[1] ""
+
+#: includes/views/page.php:278
+msgid "Hidden from the site and media library. Nothing is deleted until you do it here."
+msgstr ""
+
+#: includes/views/page.php:281
+msgid "Restore all"
+msgstr ""
+
+#: includes/views/page.php:293
+msgid "Quarantine is empty."
+msgstr ""
+
+#: includes/views/page.php:303
+msgid "Suggestions waiting for review"
+msgstr ""
+
+#: includes/views/page.php:304
+msgid "Nothing is saved until you accept it. Check each suggestion against the image and edit it if needed."
+msgstr ""
+
+#: includes/views/page.php:309
+msgid "Suggest for more images…"
+msgstr ""
+
+#: includes/views/page.php:313
+msgid "Accept checked"
+msgstr ""
+
+#: includes/views/page.php:324
+msgid "Selected images"
+msgstr ""
+
+#: includes/views/page.php:327
+msgid "Rename…"
+msgstr ""
+
+#: includes/views/page.php:331
+msgid "Clear"
+msgstr ""
+
+#: includes/views/page.php:336
+msgid "Image details"
+msgstr ""
+
+#: includes/views/settings.php:21
+#: includes/views/settings.php:58
+msgid "Conversion"
+msgstr ""
+
+#: includes/views/settings.php:23
+#: includes/views/settings.php:150
+msgid "Uploads"
+msgstr ""
+
+#: includes/views/settings.php:24
+#: includes/views/settings.php:167
+msgid "SEO"
+msgstr ""
+
+#: includes/views/settings.php:25
+#: includes/views/settings.php:183
+msgid "AI"
+msgstr ""
+
+#: includes/views/settings.php:27
+msgid "Uninstall"
+msgstr ""
+
+#: includes/views/settings.php:48
+msgid "Settings sections"
+msgstr ""
+
+#: includes/views/settings.php:59
+msgid "Originals are never changed — WebP/AVIF copies are saved next to them."
+msgstr ""
+
+#: includes/views/settings.php:62
+msgid "This server cannot create WebP files (GD or Imagick with WebP support is required)."
+msgstr ""
+
+#: includes/views/settings.php:67
+msgid "Which modern copies to create."
+msgstr ""
+
+#: includes/views/settings.php:72
+#: includes/views/settings.php:115
+msgid "Recommended"
+msgstr ""
+
+#: includes/views/settings.php:73
+msgid "Supported by every current browser. Fast to create."
+msgstr ""
+
+#: includes/views/settings.php:78
+msgid "Smallest files, slower to create."
+msgstr ""
+
+#: includes/views/settings.php:78
+msgid "Smallest files. Not available on this server."
+msgstr ""
+
+#: includes/views/settings.php:83
+msgid "Browsers get the best format they support. Needs AVIF."
+msgstr ""
+
+#: includes/views/settings.php:89
+msgid "Quality"
+msgstr ""
+
+#: includes/views/settings.php:90
+msgid "80 is a good balance between file size and sharpness. Ignored in lossless and smart quality mode."
+msgstr ""
+
+#: includes/views/settings.php:98
+msgid "Smart quality"
+msgstr ""
+
+#: includes/views/settings.php:98
+msgid "Find the lowest quality that still looks the same, per image. Replaces the quality slider."
+msgstr ""
+
+#: includes/views/settings.php:99
+msgid "Lossless WebP"
+msgstr ""
+
+#: includes/views/settings.php:99
+msgid "Pixel-identical copies. Usually larger; copies bigger than the original are not kept."
+msgstr ""
+
+#: includes/views/settings.php:100
+msgid "Convert new uploads"
+msgstr ""
+
+#: includes/views/settings.php:100
+msgid "Create the copies automatically right after an image is uploaded."
+msgstr ""
+
+#: includes/views/settings.php:106
+msgid "Serve WebP/AVIF to browsers"
+msgstr ""
+
+#: includes/views/settings.php:106
+msgid "Browsers that support them get the copies; everyone else gets the original."
+msgstr ""
+
+#: includes/views/settings.php:109
+msgid "Method"
+msgstr ""
+
+#: includes/views/settings.php:110
+msgid "How the copies reach the browser."
+msgstr ""
+
+#: includes/views/settings.php:115
+msgid "&lt;picture&gt; tags"
+msgstr ""
+
+#: includes/views/settings.php:116
+msgid "Works on every server and behind any CDN or page cache."
+msgstr ""
+
+#: includes/views/settings.php:124
+msgid "Apache only — not available on this server."
+msgstr ""
+
+#: includes/views/settings.php:126
+msgid "Apache only. The rules are active in the uploads folder."
+msgstr ""
+
+#: includes/views/settings.php:128
+msgid "Apache only. Same image URLs; a CDN must respect \"Vary: Accept\". The rules are written when you save."
+msgstr ""
+
+#: includes/views/settings.php:138
+msgid "nginx"
+msgstr ""
+
+#: includes/views/settings.php:139
+msgid "Optional: with this snippet nginx serves the copies itself, so you can turn the &lt;picture&gt; tags off."
+msgstr ""
+
+#: includes/views/settings.php:142
+msgid "Show the nginx configuration"
+msgstr ""
+
+#: includes/views/settings.php:152
+msgid "Clean file names"
+msgstr ""
+
+#: includes/views/settings.php:152
+msgid "Replace spaces, underscores and special characters with hyphens when an image is uploaded."
+msgstr ""
+
+#: includes/views/settings.php:153
+msgid "Remove camera data (EXIF)"
+msgstr ""
+
+#: includes/views/settings.php:153
+msgid "Strip camera details and GPS location from new uploads. This rewrites the uploaded original once."
+msgstr ""
+
+#: includes/views/settings.php:157
+msgid "Maximum image size"
+msgstr ""
+
+#: includes/views/settings.php:158
+msgid "Larger uploads get a scaled-down copy that WordPress uses everywhere; the full-size original is kept. WordPress default: 2560. 0 = WordPress default."
+msgstr ""
+
+#: includes/views/settings.php:171
+msgid "Image sitemap"
+msgstr ""
+
+#: includes/views/settings.php:173
+msgid "Your SEO plugin already lists images in its sitemap, so this stays off."
+msgstr ""
+
+#: includes/views/settings.php:174
+msgid "List the images of every published page in the WordPress sitemap (wp-sitemap.xml) so Google Images can find them."
+msgstr ""
+
+#: includes/views/settings.php:178
+msgid "Keep the old name when renaming"
+msgstr ""
+
+#: includes/views/settings.php:178
+msgid "In the image panel, add the original file name as a suffix (e.g. \"istanbul-img-1234\") to avoid collisions."
+msgstr ""
+
+#: includes/views/settings.php:186
+msgid "Provider"
+msgstr ""
+
+#: includes/views/settings.php:190
+msgid "Connected. Your API key is kept by WordPress under Settings > Connectors, never by this plugin."
+msgstr ""
+
+#: includes/views/settings.php:201
+msgid "Suggest on upload"
+msgstr ""
+
+#: includes/views/settings.php:201
+msgid "After each upload, ask your AI provider for an alt text suggestion in the background. Nothing is saved without your approval; each image costs a few provider tokens."
+msgstr ""
+
+#: includes/views/settings.php:208
+msgid "Empty quarantine automatically"
+msgstr ""
+
+#: includes/views/settings.php:209
+msgid "Delete quarantined images permanently after this many days. 0 = never; you delete them yourself."
+msgstr ""
+
+#: includes/views/settings.php:213
+msgid "days"
+msgstr ""
+
+#: includes/views/settings.php:220
+msgid "When the plugin is deleted"
+msgstr ""
+
+#: includes/views/settings.php:221
+msgid "Your original images always stay. Settings and plugin data are removed."
+msgstr ""
+
+#: includes/views/settings.php:225
+msgid "WebP/AVIF copies"
+msgstr ""
+
+#: includes/views/settings.php:226
+msgid "Keep them only if your server or CDN serves them on its own."
+msgstr ""
+
+#: includes/views/settings.php:230
+msgid "Delete them"
+msgstr ""
+
+#: includes/views/settings.php:231
+msgid "Keep them"
+msgstr ""
+
+#: includes/views/settings.php:237
+msgid "Images in quarantine"
+msgstr ""
+
+#: includes/views/settings.php:238
+msgid "By default they go back into the media library."
+msgstr ""
+
+#: includes/views/settings.php:242
+msgid "Put them back"
+msgstr ""
+
+#: includes/views/settings.php:243
+msgid "Delete them permanently"
+msgstr ""
+
+#: includes/views/settings.php:251
+msgid "Discard"
+msgstr ""
+
+#: includes/views/settings.php:252
+msgid "Save changes"
+msgstr ""
+
+#: includes/views/setup.php:23
+msgid "Check this server"
+msgstr ""
+
+#: includes/views/setup.php:24
+msgid "Recommended settings"
+msgstr ""
+
+#: includes/views/setup.php:25
+msgid "First scan"
+msgstr ""
+
+#: includes/views/setup.php:30
+msgid "Testing what this server can do"
+msgstr ""
+
+#: includes/views/setup.php:33
+msgid "Encoding a test image…"
+msgstr ""
+
+#: includes/views/setup.php:39
+msgid "Recommended for this site"
+msgstr ""
+
+#: includes/views/setup.php:41
+msgid "You can change any of these later under Settings."
+msgstr ""
+
+#: includes/views/setup.php:47
+msgid "Scanning your library"
+msgstr ""
+
+#: includes/views/setup.php:49
+msgid "Finding where each image is used…"
+msgstr ""
+
+#: includes/views/setup.php:51
+msgid "Nothing is changed during the scan. You can leave this page; it continues in the background."
+msgstr ""
+
+#: includes/views/setup.php:56
+msgid "Skip, I’ll configure it myself"
+msgstr ""
+
+#: includes/views/setup.php:58
+msgid "Back"
 msgstr ""

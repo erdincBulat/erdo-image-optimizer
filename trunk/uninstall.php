@@ -40,6 +40,19 @@ $erdo_move = function ( $from, $to ) {
     return false;
 };
 
+/**
+ * Kayıttaki karantina yolu; 3.0 öncesi Windows kayıtlarında ters eğik çizgiler silinmiş
+ * olabilir ("C:Users…"), o zaman dosya görselin karantina klasöründe adıyla aranır.
+ */
+$erdo_qdir   = wp_normalize_path( trailingslashit( wp_upload_dir()['basedir'] ) . '_erdo_quarantine/' );
+$erdo_locate = function ( $path, $id ) use ( $erdo_qdir ) {
+    if ( file_exists( $path ) ) {
+        return $path;
+    }
+    $found = glob( $erdo_qdir . (int) $id . '-*/' . wp_basename( wp_normalize_path( (string) $path ) ) );
+    return $found ? $found[0] : $path;
+};
+
 // Karantina: eklenti olmadan özel durum tanınmaz, görseller medya kütüphanesinde
 // görünmez kalırdı — ya geri konur ya da (açıkça seçildiyse) kalıcı silinir.
 // phpcs:ignore WordPress.DB.DirectDatabaseQuery.DirectQuery, WordPress.DB.DirectDatabaseQuery.NoCaching
@@ -49,6 +62,7 @@ foreach ( $erdo_quarantined as $erdo_q ) {
     $erdo_id   = (int) $erdo_q->post_id;
     if ( 'delete' === $erdo_quarantine_choice ) {
         foreach ( (array) ( $erdo_data['files'] ?? array() ) as $erdo_path ) {
+            $erdo_path = $erdo_locate( $erdo_path, $erdo_id );
             if ( file_exists( $erdo_path ) && $erdo_in_uploads( $erdo_path ) ) {
                 wp_delete_file( $erdo_path );
             }
@@ -60,6 +74,7 @@ foreach ( $erdo_quarantined as $erdo_q ) {
         continue;
     }
     foreach ( (array) ( $erdo_data['files'] ?? array() ) as $erdo_orig => $erdo_path ) {
+        $erdo_path = $erdo_locate( $erdo_path, $erdo_id );
         if ( file_exists( $erdo_path ) && ! file_exists( $erdo_orig ) && $erdo_in_uploads( $erdo_path ) && $erdo_in_uploads( $erdo_orig ) ) {
             $erdo_move( $erdo_path, $erdo_orig );
         }

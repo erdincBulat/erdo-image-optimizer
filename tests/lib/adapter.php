@@ -84,6 +84,20 @@ function et_purge( $id ) {
     return ERDO_Quarantine::purge( $id );
 }
 
+/** The stored quarantine record: array( time, dir, files => orig => quarantined, status, in_use ). */
+function et_quarantine_record( $id ) {
+    return get_post_meta( $id, ERDO_Quarantine::META, true );
+}
+
+function et_set_quarantine_record( $id, $record ) {
+    update_post_meta( $id, ERDO_Quarantine::META, $record );
+}
+
+/** Every file of an attachment on disk (main, sizes, copies…). */
+function et_quarantine_files( $id ) {
+    return ERDO_Quarantine::files_of( $id );
+}
+
 /** IDs currently in quarantine. */
 function et_quarantined_ids() {
     return ERDO_Quarantine::ids();

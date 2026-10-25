@@ -55,6 +55,8 @@ class ERDO_Queue {
         update_option( 'erdo_queue_skipped', 0,          false );
         update_option( 'erdo_queue_status',  'running',  false );
         update_option( 'erdo_queue_started', time(),     false );
+        // "Geri al" için: yalnızca dönüştürme kuyruğunun kimlikleri saklanır.
+        update_option( 'erdo_queue_undo_ids', 'convert' === $action ? array_map( 'intval', $ids ) : array(), false );
 
         if ( ! wp_next_scheduled( self::HOOK ) ) {
             wp_schedule_event( time(), self::INTERVAL, self::HOOK );
@@ -80,7 +82,26 @@ class ERDO_Queue {
        BATCH İŞLE (Cron hook'u tarafından tetiklenir)
     ------------------------------------------------------------------ */
 
-    public static function process_batch() {
+    /**
+     * Bir parti işler. Cron ve (pencere açıkken) tarayıcı aynı anda çağırabilir;
+     * kilit aynı görsellerin iki kez işlenmesini önler. Takılı kalan kilit 5 dk sonra düşer.
+     */
+    public static function process_batch( $size = self::BATCH_SIZE ) {
+        if ( ! add_option( 'erdo_queue_lock', time(), '', false ) ) {
+            if ( time() - (int) get_option( 'erdo_queue_lock', 0 ) < 300 ) {
+                return;
+            }
+            update_option( 'erdo_queue_lock', time(), false );
+        }
+        try {
+            // Cron, argümansız do_action ile boş dize geçirir: varsayılana düş.
+            self::run_batch( (int) $size > 0 ? (int) $size : self::BATCH_SIZE );
+        } finally {
+            delete_option( 'erdo_queue_lock' );
+        }
+    }
+
+    private static function run_batch( $size ) {
         if ( get_option( 'erdo_queue_status' ) !== 'running' ) {
             wp_clear_scheduled_hook( self::HOOK );
             return;
@@ -97,7 +118,7 @@ class ERDO_Queue {
             return;
         }
 
-        $batch = array_splice( $ids, 0, self::BATCH_SIZE );
+        $batch = array_splice( $ids, 0, $size );
 
         foreach ( $batch as $id ) {
             $id = (int) $id;
@@ -145,6 +166,11 @@ class ERDO_Queue {
         update_option( 'erdo_queue_status', 'done' );
         delete_option( 'erdo_queue_ids' );
 
+        if ( 'convert' === get_option( 'erdo_queue_action' ) ) {
+            $made = (int) get_option( 'erdo_queue_done', 0 ) - (int) get_option( 'erdo_queue_skipped', 0 ) - count( (array) get_option( 'erdo_queue_errors', array() ) );
+            ERDO_Activity::log( 'convert', $made, array( 'queue' => (int) get_option( 'erdo_queue_started', 0 ) ) );
+        }
+
         // İstatistikleri güncelle
         ERDO_Auditor::clear_all_cache();
     }
@@ -173,6 +199,30 @@ class ERDO_Queue {
             'action'   => get_option( 'erdo_queue_action', 'convert' ),
             'started'  => (int) get_option( 'erdo_queue_started', 0 ),
         );
+    }
+
+    /** Son dönüştürme kuyruğu (başlangıç zamanıyla tanınır) hâlâ geri alınabilir mi? */
+    public static function can_undo( $started = 0 ) {
+        return ! self::is_running()
+            && get_option( 'erdo_queue_undo_ids' )
+            && ( ! $started || (int) get_option( 'erdo_queue_started', 0 ) === $started );
+    }
+
+    /**
+     * Son dönüştürme kuyruğunu geri alır: o kuyruktaki görsellerin WebP/AVIF
+     * kopyaları silinir (orijinaller zaten hiç değişmedi). Döner: geri alınan sayı.
+     */
+    public static function undo() {
+        if ( ! self::can_undo() ) {
+            return 0;
+        }
+        $ids = array_map( 'intval', (array) get_option( 'erdo_queue_undo_ids', array() ) );
+        foreach ( $ids as $id ) {
+            ERDO_Converter::revert( $id );
+        }
+        delete_option( 'erdo_queue_undo_ids' );
+        ERDO_Auditor::clear_all_cache();
+        return count( $ids );
     }
 
     public static function is_running() {

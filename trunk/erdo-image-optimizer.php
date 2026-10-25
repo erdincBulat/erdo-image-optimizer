@@ -17,6 +17,7 @@ define( 'ERDO_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'ERDO_URL',     plugin_dir_url( __FILE__ ) );
 define( 'ERDO_VERSION', '2.2.2' );
 
+require_once ERDO_PATH . 'includes/class-activity.php';
 require_once ERDO_PATH . 'includes/class-auditor.php';
 require_once ERDO_PATH . 'includes/class-encoder.php';
 require_once ERDO_PATH . 'includes/class-converter.php';

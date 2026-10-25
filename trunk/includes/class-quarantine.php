@@ -75,7 +75,9 @@ class ERDO_Quarantine {
             return new WP_Error( 'maybe_in_use', __( 'The file name appears somewhere on the site, so the image may still be in use.', 'erdo-image-optimizer' ) );
         }
 
-        $dest_dir = self::dir() . $attachment_id . '-' . strtolower( wp_generate_password( 16, false ) ) . '/';
+        // Yollar ileri eğik çizgiyle saklanır: update_post_meta() ters eğik çizgileri siler
+        // (wp_unslash); Windows'ta "C:\Users…" "C:Users…" olur ve geri yükleme dosyayı bulamaz.
+        $dest_dir = wp_normalize_path( self::dir() . $attachment_id . '-' . strtolower( wp_generate_password( 16, false ) ) . '/' );
         if ( ! wp_mkdir_p( $dest_dir ) ) {
             return new WP_Error( 'mkdir', __( 'Could not create the quarantine folder.', 'erdo-image-optimizer' ) );
         }
@@ -90,7 +92,7 @@ class ERDO_Quarantine {
                 /* translators: %s: file name */
                 return new WP_Error( 'move_failed', sprintf( __( 'Could not move %s.', 'erdo-image-optimizer' ), basename( $src ) ) );
             }
-            $moved[ $src ] = $dest;
+            $moved[ wp_normalize_path( $src ) ] = $dest;
         }
 
         update_post_meta( $attachment_id, self::META, array(
@@ -101,6 +103,7 @@ class ERDO_Quarantine {
             'in_use' => $in_use,
         ) );
         self::set_status( $attachment_id, self::STATUS );
+        ERDO_Activity::log( 'quarantine' );
 
         return array( 'in_use' => $in_use );
     }
@@ -115,12 +118,15 @@ class ERDO_Quarantine {
             return new WP_Error( 'not_quarantined', __( 'This image is not in quarantine.', 'erdo-image-optimizer' ) );
         }
         $failed = array();
+        $dirs   = array();
         foreach ( (array) $data['files'] as $orig => $q ) {
+            $q = self::locate( $q, $attachment_id );
             if ( ! self::in_quarantine( $q ) || ! ERDO_References::in_uploads( $orig ) ) {
                 $failed[] = basename( $orig );
                 continue;
             }
             if ( file_exists( $q ) ) {
+                $dirs[] = dirname( $q );
                 wp_mkdir_p( dirname( $orig ) );
                 if ( ! @rename( $q, $orig ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
                     $failed[] = basename( $orig );
@@ -131,11 +137,12 @@ class ERDO_Quarantine {
             /* translators: %s: comma-separated file names */
             return new WP_Error( 'move_failed', sprintf( __( 'Could not restore: %s', 'erdo-image-optimizer' ), implode( ', ', $failed ) ) );
         }
-        if ( ! empty( $data['dir'] ) ) {
-            @rmdir( $data['dir'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
+        foreach ( array_unique( $dirs ) as $d ) {
+            @rmdir( $d ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
         }
         delete_post_meta( $attachment_id, self::META );
         self::set_status( $attachment_id, ! empty( $data['status'] ) && self::STATUS !== $data['status'] ? $data['status'] : 'inherit' );
+        ERDO_Activity::log( 'restore' );
         return true;
     }
 
@@ -149,16 +156,23 @@ class ERDO_Quarantine {
         if ( ! is_array( $data ) ) {
             return new WP_Error( 'not_quarantined', __( 'This image is not in quarantine.', 'erdo-image-optimizer' ) );
         }
+        $dirs = array();
         foreach ( (array) $data['files'] as $q ) {
+            $q = self::locate( $q, $attachment_id );
             if ( file_exists( $q ) && self::in_quarantine( $q ) ) {
+                $dirs[] = dirname( $q );
                 wp_delete_file( $q );
             }
         }
-        if ( ! empty( $data['dir'] ) ) {
-            @rmdir( $data['dir'] ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
+        foreach ( array_unique( $dirs ) as $d ) {
+            @rmdir( $d ); // phpcs:ignore WordPress.WP.AlternativeFunctions, WordPress.PHP.NoSilencedErrors
         }
         delete_post_meta( $attachment_id, self::META );
-        return wp_delete_attachment( $attachment_id, true ) ? true : new WP_Error( 'delete_failed', __( 'Delete failed.', 'erdo-image-optimizer' ) );
+        if ( ! wp_delete_attachment( $attachment_id, true ) ) {
+            return new WP_Error( 'delete_failed', __( 'Delete failed.', 'erdo-image-optimizer' ) );
+        }
+        ERDO_Activity::log( 'purge' );
+        return true;
     }
 
     /** "N gün sonra kalıcı sil" ayarı (varsayılan kapalı). */
@@ -201,7 +215,18 @@ class ERDO_Quarantine {
         return $dir;
     }
 
-    /** Görsele ait diskteki tüm dosyalar. */
+    /**
+     * Kayıttaki karantina yolu. 3.0 öncesi Windows kayıtlarında ters eğik çizgiler
+     * silinmiş olabilir; dosya orada yoksa görselin karantina klasöründe adıyla aranır.
+     */
+    private static function locate( $path, $attachment_id ) {
+        if ( file_exists( $path ) ) {
+            return $path;
+        }
+        $found = glob( wp_normalize_path( self::dir() ) . (int) $attachment_id . '-*/' . wp_basename( wp_normalize_path( (string) $path ) ) );
+        return $found ? $found[0] : $path;
+    }
+
     /** Yol karantina klasörünün içinde mi (geri yükleme ve kalıcı silme yalnızca buradan yapılır). */
     private static function in_quarantine( $path ) {
         $q   = realpath( self::dir() );
@@ -209,6 +234,7 @@ class ERDO_Quarantine {
         return $q && $dir && 0 === strpos( trailingslashit( wp_normalize_path( $dir ) ), trailingslashit( wp_normalize_path( $q ) ) );
     }
 
+    /** Görsele ait diskteki tüm dosyalar. */
     public static function files_of( $attachment_id ) {
         $file = get_attached_file( $attachment_id );
         if ( ! $file ) {
