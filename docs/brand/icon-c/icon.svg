@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<title>Erdo Image Optimizer</title>
+<style>
+.line{transform-box:fill-box;transform-origin:0 50%}
+#alt1{animation:alt1 6s cubic-bezier(.4,0,.2,1) infinite}
+#alt2{animation:alt2 6s cubic-bezier(.4,0,.2,1) infinite}
+#caret{opacity:0;animation:caret 6s cubic-bezier(.4,0,.2,1) infinite}
+#score{stroke-dasharray:151;stroke-dashoffset:12;animation:score 6s cubic-bezier(.4,0,.2,1) infinite}
+#up{animation:up 6s cubic-bezier(.3,0,.2,1) infinite}
+@keyframes alt1{0%{transform:scaleX(1);fill-opacity:1}4%,9%{transform:scaleX(.3);fill-opacity:.45}20%,100%{transform:scaleX(1);fill-opacity:1}}
+@keyframes alt2{0%{transform:scaleX(1)}4%,20%{transform:scaleX(0)}31%,100%{transform:scaleX(1)}}
+@keyframes caret{0%,3%{opacity:0;transform:translate(78px,164px)}5%,9%{opacity:1;transform:translate(78px,164px)}20%{opacity:1;transform:translate(158px,164px)}20.01%{transform:translate(46px,196px)}31%{opacity:1;transform:translate(126px,196px)}33%{opacity:.3;transform:translate(126px,196px)}35%{opacity:1;transform:translate(126px,196px)}38%,100%{opacity:0;transform:translate(126px,196px)}}
+@keyframes score{0%{stroke-dashoffset:12;stroke:#1FC46B}4%,9%{stroke-dashoffset:121;stroke:#FFB020}20%{stroke-dashoffset:75;stroke:#FFB020}38%,100%{stroke-dashoffset:12;stroke:#1FC46B}}
+@keyframes up{0%{opacity:1;transform:none}4%,36%{opacity:0;transform:translateY(6px)}44%,100%{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<defs><clipPath id="frame"><rect x="40" y="40" width="176" height="104" rx="12"/></clipPath></defs>
+<rect width="256" height="256" rx="52" fill="#2856E8"/>
+<rect x="32" y="32" width="192" height="120" rx="18" fill="#fff"/>
+<g id="photo" clip-path="url(#frame)">
+<rect x="40" y="40" width="176" height="104" fill="#9ED4FF"/>
+<circle cx="100" cy="78" r="18" fill="#FFB020"/>
+<path d="M40 102C88 74 140 78 216 110V144H40z" fill="#2856E8"/>
+<path d="M40 130C100 102 160 106 216 124V144H40z" fill="#1FC46B"/>
+</g>
+<rect id="alt1" class="line" x="40" y="168" width="112" height="16" rx="4" fill="#fff"/>
+<rect id="alt2" class="line" x="40" y="200" width="80" height="16" rx="4" fill="#fff"/>
+<rect id="caret" width="4" height="24" rx="1" fill="#FFB020"/>
+<g id="badge">
+<circle cx="192" cy="152" r="40" fill="#fff" stroke="#2856E8" stroke-width="8"/>
+<circle cx="192" cy="152" r="24" fill="none" stroke="#E3E7EC" stroke-width="12"/>
+<circle id="score" cx="192" cy="152" r="24" fill="none" stroke="#1FC46B" stroke-width="12" stroke-linecap="round" transform="rotate(-90 192 152)"/>
+<path id="up" d="M184 157l8-8 8 8" fill="none" stroke="#1FC46B" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+</svg>

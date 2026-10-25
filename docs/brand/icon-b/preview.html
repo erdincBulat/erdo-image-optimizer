@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Icon B preview</title>
+<style>
+  body { margin: 0; font: 14px/1.4 system-ui, sans-serif; color: #1d2327; background: #fff; }
+  h2 { font-size: 14px; margin: 16px; }
+  .row { display: flex; align-items: flex-end; gap: 24px; padding: 24px 16px; flex-wrap: wrap; }
+  .white { background: #fff; } .grey { background: #f0f0f1; } .dark { background: #1d2327; color: #f0f0f1; }
+  .row span { font-size: 11px; opacity: .6; display: block; text-align: center; }
+  .static svg *, .static svg { animation: none !important; }
+</style>
+</head>
+<body>
+<h2>Animated (via &lt;img&gt;)</h2>
+<div class="row white"><div><img src="icon.svg" width="256" height="256" alt=""><span>256</span></div><div><img src="icon.svg" width="128" height="128" alt=""><span>128</span></div><div><img src="icon.svg" width="64" height="64" alt=""><span>64</span></div><div><img src="icon.svg" width="32" height="32" alt=""><span>32</span></div></div>
+<div class="row grey"><div><img src="icon.svg" width="256" height="256" alt=""></div><div><img src="icon.svg" width="128" height="128" alt=""></div><div><img src="icon.svg" width="64" height="64" alt=""></div><div><img src="icon.svg" width="32" height="32" alt=""></div></div>
+<div class="row dark"><div><img src="icon.svg" width="256" height="256" alt=""></div><div><img src="icon.svg" width="128" height="128" alt=""></div><div><img src="icon.svg" width="64" height="64" alt=""></div><div><img src="icon.svg" width="32" height="32" alt=""></div></div>
+
+<h2>Static rest state (inline copy, animation disabled)</h2>
+<div class="row dark static" id="static"></div>
+<template id="mark">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256">
+  <rect width="256" height="256" rx="56" fill="#0f5257"/>
+  <path d="M192 136V104A40 40 0 0 0 152 64H104A40 40 0 0 0 64 104V152A40 40 0 0 0 104 192H176" fill="none" stroke="#fff" stroke-width="24" stroke-linejoin="round"/>
+  <path d="M76 120V104A28 28 0 0 1 104 76H152A28 28 0 0 1 180 104V120Z" fill="#1a6a6e"/>
+  <path d="M76 128H180" fill="none" stroke="#f0b429" stroke-width="16"/>
+</svg>
+</template>
+<div class="row white static" id="static2"></div>
+<script>
+  // Builds the static row from one inline copy (preview page only; icon.svg itself has no JS).
+  [['static',[256,128,64,32]],['static2',[256,128,64,32]]].forEach(function (r) {
+    var host = document.getElementById(r[0]);
+    r[1].forEach(function (s) {
+      var d = document.createElement('div');
+      d.appendChild(document.getElementById('mark').content.cloneNode(true));
+      var svg = d.querySelector('svg'); svg.setAttribute('width', s); svg.setAttribute('height', s);
+      host.appendChild(d);
+    });
+  });
+</script>
+</body>
+</html>

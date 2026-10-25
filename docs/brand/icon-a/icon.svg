@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+<title>Erdo Image Optimizer</title>
+<style>
+.crop{fill:none;stroke:#fff;stroke-width:16;stroke-linejoin:miter}
+.ink{fill:#0f5e57}.tile{fill:#f3b23a}.fold{fill:#d9822b}
+.c,#img{animation:6s infinite both}
+#tl{animation-name:tl}#tr{animation-name:tr}#br{animation-name:br}#bl{animation-name:bl}
+#img{animation-name:img;transform-origin:128px 128px}
+#fold{animation:6s infinite both fold;transform-origin:192px 192px}
+@keyframes tl{0%{transform:translate(-24px,-24px);animation-timing-function:cubic-bezier(.6,0,.2,1)}22%{transform:translate(2px,2px);animation-timing-function:ease-out}30%,86%{transform:none;animation-timing-function:cubic-bezier(.5,0,.5,1)}100%{transform:translate(-24px,-24px)}}
+@keyframes tr{0%{transform:translate(24px,-24px);animation-timing-function:cubic-bezier(.6,0,.2,1)}22%{transform:translate(-2px,2px);animation-timing-function:ease-out}30%,86%{transform:none;animation-timing-function:cubic-bezier(.5,0,.5,1)}100%{transform:translate(24px,-24px)}}
+@keyframes br{0%{transform:translate(24px,24px);animation-timing-function:cubic-bezier(.6,0,.2,1)}22%{transform:translate(-2px,-2px);animation-timing-function:ease-out}30%,86%{transform:none;animation-timing-function:cubic-bezier(.5,0,.5,1)}100%{transform:translate(24px,24px)}}
+@keyframes bl{0%{transform:translate(-24px,24px);animation-timing-function:cubic-bezier(.6,0,.2,1)}22%{transform:translate(2px,-2px);animation-timing-function:ease-out}30%,86%{transform:none;animation-timing-function:cubic-bezier(.5,0,.5,1)}100%{transform:translate(-24px,24px)}}
+@keyframes img{0%,4%{transform:scale(1.25);animation-timing-function:cubic-bezier(.6,0,.2,1)}28%,86%{transform:none;animation-timing-function:cubic-bezier(.5,0,.5,1)}100%{transform:scale(1.25)}}
+@keyframes fold{0%,8%{transform:scale(1.5);animation-timing-function:cubic-bezier(.6,0,.2,1)}32%,86%{transform:none;animation-timing-function:cubic-bezier(.5,0,.5,1)}100%{transform:scale(1.5)}}
+@media (prefers-reduced-motion:reduce){*{animation:none!important}}
+</style>
+<rect class="ink" width="256" height="256"/>
+<g id="img">
+<rect class="tile" x="64" y="64" width="128" height="128"/>
+<path id="fold" class="fold" d="M192 128V192H128Z"/>
+</g>
+<path id="tl" class="crop c" d="M40 96V40H96"/>
+<path id="tr" class="crop c" d="M160 40H216V96"/>
+<path id="br" class="crop c" d="M216 160V216H160"/>
+<path id="bl" class="crop c" d="M96 216H40V160"/>
+</svg>

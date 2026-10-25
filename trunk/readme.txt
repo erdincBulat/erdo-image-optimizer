@@ -1,169 +1,199 @@
-=== Erdo Image Optimizer: Compress & Convert to WebP/AVIF (SEO Audit, Alt Text, Lazy Load) ===
+=== Erdo Image Optimizer – Image SEO, AI Alt Text, Media Cleanup, WebP & AVIF ===
 Contributors: erdincbulat
-Tags: image optimizer, webp, avif, image compression, alt text
+Tags: image seo, alt text, webp, avif, unused images
 Requires at least: 6.5
 Tested up to: 7.1
+Requires PHP: 7.4
 Stable tag: 2.2.2
 License: GPLv2 or later
-License URI: http://www.gnu.org/licenses/gpl-2.0.html
+License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-Compress & convert images to WebP/AVIF. SEO-audit every image, bulk-fix alt text, filenames & unused media. Lazy loading & BunnyCDN.
+Score every image for SEO, get AI alt text with your own provider key, quarantine unused media safely and serve WebP/AVIF without touching originals.
 
 == Description ==
 
-**Erdo Image Optimizer** is not just another image compression plugin. It is a complete **Image SEO & Performance Suite** that covers WebP/AVIF conversion, bulk alt text management, filename sanitization, lazy loading, unused media cleanup, and a 6-point SEO audit — all in a single, modern dashboard.
+Erdo Image Optimizer helps you get your media library ready for search, one image at a time or all at once. It scores every image from 0 to 100, tells you what to fix, and gives you safe tools to fix it: alt text (written by you, taken from the file name, or suggested by AI), renaming with automatic redirects, a reversible cleanup for images nobody uses, and WebP/AVIF copies that sit next to your originals.
 
-Most image optimization plugins stop at compression. Erdo goes further: every image in your media library receives a **professional SEO health score (0 out of 6)**. You will know exactly which images are hurting your Google rankings and how to fix them, in bulk, in minutes.
+Nothing is changed without a preview, and almost everything can be undone.
 
-= Why Erdo Image Optimizer? =
+= Image SEO score =
 
-* **Image SEO Audit (6 Points):** Every image gets a score from 0 to 6 based on alt text, filename quality, title, contextual relevance, dimensions, and format. Fix failing criteria with one click — no guesswork.
-* **WebP & AVIF Converter:** One-click conversion from JPEG, PNG, GIF, and HEIC/HEIF to WebP or AVIF. Smart Quality mode automatically finds the smallest file size that still looks great.
-* **Bulk Alt Text Generation:** Automatically generate descriptive alt text from filenames for every image missing it. Fix hundreds of images in seconds — critical for accessibility and image SEO.
-* **Filename Sanitizer:** Transforms messy uploads like `IMG_1234 (copy).JPG` into SEO-friendly `professional-web-design.webp` at upload time. Bulk-rename existing images with automatic database reference updates.
-* **Unused Media Cleanup:** Scans your entire library to find images that appear nowhere on your site. Free up disk space and stop confusing search crawlers with orphaned files.
-* **Lazy Loading & WebP Serving:** Inject `loading="lazy"` into content images automatically. Serve WebP to compatible browsers via `.htaccess` rewrite (Apache) or PHP `<picture>` fallback (all servers).
-* **Background Queue & WP-CLI:** Bulk-convert thousands of images via WP-Cron — close the browser tab and let it run. Full CLI support: `wp erdo convert`, `audit`, `restore`, `stats`, `clean-cache`.
-* **BunnyCDN & REST API:** Upload converted images directly to BunnyCDN storage. Headless access via `/wp-json/erdo/v1/stats` and `/wp-json/erdo/v1/audit` REST endpoints.
+* Every image gets a score from 0 to 100: alt text (40 points), file name (20), format (10), file size (10), dimensions (5) and context (15).
+* Alt text is checked for quality, not just presence: file-name-like text, "image of…" phrases, keyword lists and overly long text lose points. Decorative images can be marked as such and pass with an empty alt.
+* Camera-style and generic file names (IMG_1234, DSC_0042, Screenshot, WhatsApp Image, hashes) are flagged.
+* Context checks whether the image appears on a published, indexable page. Noindex settings from Yoast SEO and Rank Math are respected.
+* Filter the library by issue (missing alt, weak alt, camera-style name, no WebP/AVIF copy, oversized, not on an indexable page) and export the report as CSV.
+* Focus keywords from Yoast SEO, Rank Math, SEOPress and All in One SEO are used as hints.
 
-= Full Feature List =
+= AI alt text with your own key (WordPress 7.0+) =
 
-**Compression & Conversion**
+* Uses the AI Client built into WordPress 7.0. You connect Anthropic, Google or OpenAI under Settings > Connectors; the plugin never stores or sees your API key.
+* One request per image returns alt text, a file name, a title and a caption, decides whether the image is decorative, and checks whether the current alt text fits the image.
+* The model sees the image together with the page it appears on, the text around it and the focus keyword, so suggestions describe the image in context.
+* Review first: suggestions wait in the "AI Suggestions" tab until you accept, edit or reject them, field by field or in bulk.
+* Bulk runs show an estimated provider cost before they start and can be stopped at any time.
 
-* One-click WebP and AVIF conversion with original backup and one-click restore
-* HEIC/HEIF (iPhone photos) conversion to WebP/AVIF via Imagick
-* Smart Quality mode — automatically finds the smallest file size that still looks great
-* Lossless mode for zero-quality-loss compression
-* Max Upload Width — automatically resize oversized images before conversion
-* EXIF metadata stripper — reduce file weight and protect photographer privacy
-* GIF, JPEG, PNG, HEIC → WebP/AVIF in one click
+= Safe renaming =
 
-**Image SEO & Alt Text**
+* Rename a single image, fix camera-style names across the library, or use patterns such as `{keyword}-{n}`, `{parent}`, `{title}`, `{original}` and `{alt}`.
+* Every size, the original before scaling, edit backups and WebP/AVIF copies move together. Links in posts, page builder data, custom fields and options are updated, including serialized and JSON data.
+* Old image URLs redirect (301) to the new ones, so backlinks and Google Images traffic keep working.
+* Every rename shows a preview first and can be undone per image or per batch.
 
-* Image SEO Auditor with 6-point health score for every image in your library
-* Bulk Alt Text — generate alt text from filenames for all images missing it
-* Automatic filename sanitization on upload (removes spaces, special chars, uppercase)
-* Bulk rename all existing filenames with automatic database reference update
-* SEO Audit CSV export — download a full spreadsheet for reporting
-* Missing Alt Text filter — focus the dashboard on images that need fixing
+= Unused media cleanup with quarantine =
 
-**Performance & Delivery**
+* A usage index records where each image is used: post content, featured images, galleries, page builder data, custom fields (including ACF), WooCommerce product galleries, theme settings such as the logo and site icon, widgets and term images.
+* The detail panel shows every place an image is used, with links.
+* Unused images go to a quarantine instead of being deleted. Their files move to a folder with an unguessable name inside uploads, and the image disappears from the media library until you restore it with one click.
+* Before an image is moved in bulk, the plugin checks again whether its file name still appears anywhere on the site and skips it if it does.
+* Permanent deletion is a separate, explicit step. Automatic emptying of the quarantine is off by default.
 
-* Lazy loading (`loading="lazy"`) injected into content, thumbnails, and gallery images
-* WebP serving via `.htaccess` rewrite (Apache) or PHP `<picture>` element rewriter
-* BunnyCDN integration — upload converted images directly to CDN storage
-* Background Queue — bulk convert via WP-Cron, browser tab can be closed
+= WebP and AVIF without touching originals =
 
-**Developer & Dashboard**
+* WebP and AVIF copies are saved next to each image and each generated size (`photo.jpg.webp`, `photo.jpg.avif`). The original file is never modified or deleted.
+* A copy is kept only if it is smaller than the original.
+* Delivery through `<picture>` tags (works behind any CDN or page cache), or an Apache `.htaccess` rewrite. A ready-made nginx snippet is included.
+* Convert new uploads automatically, or convert the existing library in the background. Remove the copies of any image with one click.
+* WebP and AVIF support is measured with a real test encode on your server. Lossless WebP, smart quality and animated GIFs (with Imagick) are supported.
 
-* REST API: `/wp-json/erdo/v1/stats` and `/wp-json/erdo/v1/audit` endpoints
-* WP-CLI commands: `wp erdo convert`, `audit`, `restore`, `stats`, `clean-cache`
-* Dashboard widget — key stats visible from wp-admin home
-* Before/After comparison slider — drag to compare original vs optimized
-* Right-click context menu on every image card
-* Grid size selector (Small / Medium / Large) with localStorage persistence
-* SVG upload support with automatic XSS sanitization for administrators
-* Multisite / network admin support
-* Modern, clean dashboard with format badge and SEO score on every card
+= Also included =
 
-== Screenshots ==
+* A first-run setup that tests your server, detects a CDN, an SEO plugin and an AI provider, and recommends settings.
+* An overview with an image health score, a "fix next" list sorted by impact and an activity log with undo.
+* Image sitemap inside the WordPress core sitemap (turned off automatically when Yoast SEO, Rank Math, All in One SEO or SEOPress handles image sitemaps).
+* Clean file names on upload, optional removal of camera data (EXIF/GPS), and a maximum image size that uses the WordPress "big image" threshold (the full-size original is kept).
+* Resize oversized images in the detail panel; the original is kept so you can undo it.
+* WP-CLI commands, REST endpoints for statistics, audit results and AI suggestions, and a dashboard widget.
+* A repair tool for images that were converted by version 2.x of this plugin.
 
-1. Main dashboard — every image in your media library displayed with its WebP/AVIF format badge and 6-point SEO health score at a glance.
-2. Image detail panel showing a poor SEO audit report — failing criteria highlighted with clear reasons and one-click fix options.
-3. Image detail panel showing a fully optimized image — perfect 6/6 SEO score, WebP format, alt text and filename all confirmed healthy.
-4. Settings page — configure output format (WebP/AVIF), compression quality, lazy loading, WebP serving, BunnyCDN integration, and more.
-5. Unused media cleanup — bulk-delete orphaned images that appear nowhere on your site, with a confirmation prompt to prevent accidental deletion.
+= What it does not do =
+
+* It does not compress or overwrite your original files. Savings come from the WebP/AVIF copies.
+* It does not lazy-load images. WordPress already does this, including the right handling of the largest image above the fold.
+* It does not offer a CDN or a cloud compression service, and it has no server of its own.
+* AI features need WordPress 7.0 or newer and your own account with an AI provider. Without them, every other feature works.
+* The usage index cannot see images that are hard-coded in theme or plugin files, used only in CSS files, or linked from other websites. Check those before deleting anything permanently.
 
 == Installation ==
 
-1. Upload the `erdo-image-optimizer` folder to the `/wp-content/plugins/` directory, or install directly from the WordPress Plugin Directory.
-2. Activate the plugin through the **Plugins** menu in WordPress.
-3. Click **Image Optimizer** in your sidebar to run your first SEO audit.
+1. Install the plugin from Plugins > Add New, or upload the `erdo-image-optimizer` folder to `/wp-content/plugins/`.
+2. Activate it.
+3. Open **Image Optimizer** in the admin menu. The first-run setup tests your server, recommends settings and builds the usage index.
+4. Optional: to use AI suggestions on WordPress 7.0 or newer, connect Anthropic, Google or OpenAI under **Settings > Connectors**.
 
 == Frequently Asked Questions ==
 
-= Is this just another image compression plugin? =
+= Are my original images changed? =
 
-No. Compression is only one part of what we do. The core feature is the **Image SEO Auditor**, which grades every image in your media library on 6 SEO criteria: filename quality, alt text presence, title quality, contextual relevance, missing dimensions, and usage status. Most plugins never touch any of this.
+No. WebP and AVIF copies are saved next to the originals, and "Remove copies" simply deletes them. Three features do write files, and only when you use them: renaming moves files to the new name (and can be undone), resizing in the detail panel creates a smaller version and keeps the original for undo, and the optional "Remove camera data (EXIF)" setting rewrites each new upload once.
 
-= How do I reduce image file size in WordPress without losing quality? =
+= What does quarantine mean, and how do I restore an image? =
 
-Use Erdo's Smart Quality mode. It automatically finds the lowest compression level where visual quality is still preserved, then converts your image to WebP or AVIF — both of which deliver 30-80% smaller file sizes compared to JPEG or PNG. You can also enable lossless mode for zero quality loss.
+Quarantine replaces deletion. The image's files (all sizes and copies) are moved to a folder with an unguessable name inside your uploads directory and the image is hidden from the media library. Nothing is lost: open the Cleanup tab and click Restore on one image, or "Restore all". Images are deleted permanently only when you choose to, or after a number of days if you turn on automatic emptying (off by default).
 
-= What is the difference between WebP and AVIF? =
+= How does the plugin know an image is unused, and what can it miss? =
 
-Both are modern image formats far smaller than JPEG or PNG. WebP offers broad browser support (all major browsers since 2020) and fast encoding. AVIF is newer and typically 20-30% smaller than WebP at the same visual quality, but requires PHP's GD library compiled with libavif support. Erdo supports both — pick the one that fits your server and audience.
+It keeps an index of every place an image is referenced: post and page content (by ID and by URL, including resized, `-scaled` and WebP/AVIF URLs), featured images, galleries, custom fields and page builder data, theme settings, widgets, site logo and icon, term images and WooCommerce galleries. Drafts and trashed posts count as used. An image that is only attached to a post but not shown in it counts as unused.
 
-= How do I add alt text to all my WordPress images at once? =
+It cannot see images hard-coded in theme or plugin PHP files, images used only in CSS files, images stored in custom database tables, or images linked from other websites. That is why unused images go to quarantine first.
 
-Use the **Bulk Alt Text** feature in the dashboard. Erdo scans every image missing alt text and automatically generates descriptive alt text from its filename. You can review and edit before saving. For images with meaningful filenames like `blue-running-shoes.jpg`, the generated alt text is immediately usable.
+= Does it work with Cloudflare and other CDNs? =
 
-= How do I convert all images to WebP in WordPress? =
+Yes. The default delivery method writes `<picture>` tags into the HTML, so every browser gets a URL it can use and caches do not mix formats up. The `.htaccess` method serves different files under the same URL; use it only if your CDN respects the `Vary: Accept` header. The setup detects Cloudflare and recommends `<picture>` tags.
 
-Go to Erdo's dashboard, click **Bulk Convert**, choose WebP as the target format, and start the queue. Conversion runs in the background via WP-Cron — you can close the browser tab and let it finish. For large libraries (1,000+ images), the WP-CLI command `wp erdo convert` is the fastest option.
+= Which AI providers can I use, and what does it cost? =
 
-= What makes the SEO Auditor different from other plugins? =
+Anthropic (Claude), Google (Gemini) or OpenAI, connected under Settings > Connectors in WordPress 7.0 or newer. You pay your provider directly, with your own key. The plugin prefers small, inexpensive vision models; its own estimate is roughly $0.15 to $0.40 per 1,000 images, shown before every bulk run. Actual prices depend on your provider and model.
 
-Most "SEO" image plugins only check for missing alt text. Erdo's auditor checks 6 distinct criteria and gives each image a score from 0 to 6 with specific reasons for any deductions. You get an actionable list, not a vague percentage.
+= What is sent to the AI provider, and is anything saved automatically? =
 
-= How do I serve WebP images in WordPress? =
+For each image: the image itself (at most 1024 px on the long side) plus short text context, namely the title of the page it appears on, up to 500 characters of text around it, the focus keyword, the current alt text and title, the content language, and the product name and categories for WooCommerce products. No user names, e-mail addresses or other personal data are sent. Requests happen only when you ask for a suggestion, or after an upload if you turn on "Suggest on upload". Nothing is written to your images until you accept a suggestion. See "External services" below for details.
 
-Erdo handles WebP delivery automatically. On Apache servers, it writes `.htaccess` rewrite rules that transparently serve WebP versions to compatible browsers with zero code changes. On NGINX or other servers, it falls back to a PHP `<picture>` element rewriter that wraps your images with WebP source tags — no server configuration needed.
+= Which WP-CLI commands are available? =
 
-= Will my original images be lost after conversion? =
+* `wp erdo convert [--id=<id>] [--year=<year>] [--limit=<n>] [--dry-run]` creates WebP/AVIF copies.
+* `wp erdo restore --id=<id>` removes the copies of one image.
+* `wp erdo audit [--format=table|csv|json] [--limit=<n>] [--status=red|orange|green|gray]` prints SEO scores and issues.
+* `wp erdo stats` shows library and encoder statistics.
+* `wp erdo index [--status]` builds the usage index or shows its status.
+* `wp erdo unused [--format=table|csv|json|ids]` lists unused images.
+* `wp erdo quarantine list|add|restore|purge|add-unused [--id=<id>] [--yes]` manages the quarantine.
+* `wp erdo rename [<id>...] [--all] [--name=<name>] [--pattern=<pattern>] [--keyword=<keyword>] [--dry-run] [--undo=<batch>]` renames images safely.
+* `wp erdo migrate [--dry-run] [--batch=<n>]` repairs images converted by version 2.x.
+* `wp erdo clean-cache` clears the audit cache.
 
-Never. Every original is automatically backed up to an `_erdo_backup/` subfolder before conversion. You can restore any image to its original with a single click from the dashboard.
+= What happens when I delete the plugin? =
 
-= Does it work with all hosting providers? =
+Your original images stay. Settings, the usage index, scores, rename history and the `.htaccess` rules are removed; old-URL redirects stop working at that point. Under Settings > Uninstall you choose whether the WebP/AVIF copies are deleted (default) or kept, and whether quarantined images are put back into the media library (default) or deleted permanently. Deactivating the plugin only removes the `.htaccess` rules and scheduled tasks.
 
-Yes. WebP delivery works via `.htaccess` rewrite rules on Apache hosts. For NGINX or other servers, the plugin automatically falls back to a PHP-based `<picture>` element rewriter — no server configuration required.
+= I used version 2.x. What changes, and what is the repair tool? =
 
-= Can I convert my entire existing media library? =
+Version 2.x replaced originals with WebP files and did not update the image links in your content, which could leave broken images. Version 3.0 never does this. After updating, if the plugin finds images converted by 2.x, a notice offers "Repair now" (or run `wp erdo migrate`). If a 2.x backup exists, the original is put back and a WebP copy is created next to it. If there is no backup, links to the old JPEG/PNG files are pointed to the existing WebP file, safely for serialized data. Until the repair runs, a fallback keeps such images visible on your pages.
 
-Yes. Use the Bulk Convert feature from the dashboard. Processing runs in the background via WP-Cron, so you can close the browser tab and let it finish. For large libraries, the WP-CLI command `wp erdo convert` is recommended.
+SVG uploads, the BunnyCDN integration, the lazy-loading filter and the network settings page were removed in 3.0. For SVG, use a dedicated plugin such as Safe SVG; for BunnyCDN, use a pull zone.
 
-= How do I find unused images in WordPress and delete them? =
+= Does it support HEIC or SVG? =
 
-Open the **Unused Media** tab in Erdo's dashboard. The plugin scans every image in your media library against all posts, pages, and ACF fields. Any image that appears nowhere on your site is flagged as unused. You can review the list and delete in bulk — freeing disk space and removing orphaned files that confuse search crawlers.
-
-= Does the filename sanitizer affect images I have already uploaded? =
-
-The automatic sanitizer applies to new uploads only. For existing images with messy filenames like `IMG_1234 (copy).JPG`, use the **Bulk Rename** feature in the dashboard — it renames files on disk, updates all database references, and prevents broken links automatically.
-
-= Does it support AVIF? =
-
-Yes. AVIF conversion is available in addition to WebP. AVIF typically produces 20-30% smaller files than WebP at the same visual quality. AVIF encoding requires PHP's GD library compiled with libavif support, which most modern hosts provide.
-
-= Does it support HEIC and HEIF images from iPhones? =
-
-Yes. Erdo can convert HEIC/HEIF photos (the default format on newer iPhones) to WebP or AVIF via PHP's Imagick extension. This requires Imagick to be installed on your server — most managed WordPress hosts include it by default.
-
-= Is it compatible with WordPress Multisite? =
-
-Yes. A dedicated Network Admin settings page lets you define default quality and format across all sites in the network.
-
-= Does it have a REST API? =
-
-Yes. Erdo exposes two REST endpoints: `/wp-json/erdo/v1/stats` returns optimization statistics (total images, conversion rate, space saved) and `/wp-json/erdo/v1/audit` returns the full SEO audit results. Both are useful for headless WordPress setups or custom reporting dashboards.
-
-= Does it integrate with a CDN? =
-
-Yes. Erdo includes a BunnyCDN integration that automatically uploads converted images to your BunnyCDN storage zone. Configure your Storage Zone name, API key, and hostname in the Settings tab to enable it.
+No. Copies are created from JPEG, PNG and GIF images. Images that are already WebP or AVIF are scored but not converted.
 
 == External services ==
 
-**AI suggestions (optional, off until you set it up).** On WordPress 7.0 and newer, Erdo can ask an AI provider for alt text, filename, title and caption suggestions. It uses WordPress' built-in AI Client and the provider you connect under Settings > Connectors with your own API key; Erdo does not store or see the key and has no server of its own.
+This plugin connects to an external AI service only for the optional AI suggestions feature, on WordPress 7.0 or newer. It uses the WordPress AI Client and the provider you connect under Settings > Connectors with your own API key. The plugin does not store or see the key and has no server of its own; requests go from your site directly to your provider.
 
-* When: only when you click "Suggest with AI", run "AI Suggestions…" from the Tools menu, or turn on "AI Suggestions on Upload" (off by default).
-* What is sent: the image, resized to at most 1024 px, plus the title of the page it appears on, up to 500 characters of text around it, the page's SEO focus keyword, the current alt text and image title, and the site language. No user names, e-mail addresses or other personal data are sent.
-* Where: to the provider you connected, under its own terms:
-  * Anthropic (Claude): [Terms](https://www.anthropic.com/legal/commercial-terms), [Privacy](https://www.anthropic.com/legal/privacy)
-  * Google (Gemini): [Terms](https://ai.google.dev/gemini-api/terms), [Privacy](https://policies.google.com/privacy)
-  * OpenAI: [Terms](https://openai.com/policies/business-terms/), [Privacy](https://openai.com/policies/privacy-policy/)
+What the feature does: it asks the provider for alt text, a file name, a title and a caption for an image, whether the image is decorative, and whether the current alt text fits it.
 
-Suggestions are never saved automatically: each one waits for your review in the "AI Suggestions" tab.
+When data is sent: only when a user clicks "Suggest with AI" for an image, starts a bulk run from the "AI Suggestions" tab, calls the plugin's REST endpoint for a suggestion, or after an image upload if the "Suggest on upload" setting is turned on (off by default; it then runs once in the background for new images without alt text).
+
+What is sent with each request:
+
+* The image, at most 1024 px on the long side. The file stored on your site is sent if it is already small enough (JPEG, PNG or WebP), otherwise a generated size between 512 and 1024 px, otherwise a temporary JPEG copy. Files sent as stored keep any embedded camera data unless "Remove camera data (EXIF)" was on when they were uploaded.
+* The title of the page the image appears on, the page's SEO focus keyword, and up to 500 characters of text around the image on that page.
+* The image's current alt text and title, and the content language.
+* For WooCommerce products: the product name and its categories.
+* Instructions that describe the expected answer.
+
+No user names, e-mail addresses, IP addresses or other personal data are added by the plugin.
+
+Providers and their terms:
+
+* Anthropic (Claude): [Commercial Terms](https://www.anthropic.com/legal/commercial-terms), [Privacy Policy](https://www.anthropic.com/legal/privacy)
+* Google (Gemini API): [Terms of Service](https://ai.google.dev/gemini-api/terms), [Privacy Policy](https://policies.google.com/privacy)
+* OpenAI: [Business Terms](https://openai.com/policies/business-terms/), [Privacy Policy](https://openai.com/policies/privacy-policy/)
+
+Suggestions are stored on your site and never applied automatically. Each one waits for your review.
+
+== Screenshots ==
+
+1. Overview: image health score, key numbers, a "fix next" list sorted by SEO impact and recent activity with undo.
+2. Library: every image with its score, filterable by issue, in grid or list view.
+3. Image detail panel: score breakdown, where the image is used, file sizes, WebP/AVIF copies and editable alt text, file name and title.
+4. AI suggestions: current and suggested values side by side, accepted field by field.
+5. Cleanup: unused images and the quarantine, with one-click restore.
+6. Bulk rename: preview of the new file names before anything is changed.
+7. Settings: each option with a one-sentence explanation.
+8. First-run setup: server test and recommended settings.
 
 == Changelog ==
+
+= 3.0.0 =
+This release rebuilds the plugin around safety and image SEO.
+
+* NEW: Non-destructive WebP/AVIF. Copies are saved next to every image and size (`photo.jpg.webp`); originals are never modified or deleted, and a copy is kept only if it is smaller.
+* NEW: Correct `<picture>` delivery with `srcset` and `sizes`, a fixed `.htaccess` rewrite with `Vary: Accept`, and an nginx snippet.
+* NEW: WebP/AVIF support is measured with a real test encode. True lossless WebP; animated GIFs are kept animated with Imagick or skipped, never flattened.
+* NEW: Usage index that records where every image is used, including theme settings, widgets, page builders, ACF and WooCommerce galleries.
+* NEW: Quarantine instead of deletion, with restore, explicit permanent deletion and optional automatic emptying.
+* NEW: SEO score from 0 to 100 with alt text quality checks, camera-style name detection, decorative images and indexable-page context.
+* NEW: Safe renaming that moves every size and copy, updates serialized and JSON data, redirects old URLs (301) and can be undone per image or per batch. Pattern renaming with `{keyword}`, `{n}`, `{parent}`, `{title}`, `{original}` and `{alt}`.
+* NEW: AI suggestions for alt text, file name, title and caption through the WordPress 7.0 AI Client, reviewed before anything is saved.
+* NEW: Image sitemap in the WordPress core sitemap.
+* NEW: Redesigned admin with Overview, Library, Cleanup, AI Suggestions and Settings tabs, a detail panel, a first-run setup and an activity log.
+* NEW: WP-CLI commands `index`, `unused`, `quarantine`, `rename` and `migrate`.
+* NEW: Repair tool for images converted by 2.x, plus a fallback that keeps them visible until repaired.
+* CHANGED: Resizing on upload now uses the WordPress "big image" threshold, which keeps the full-size original.
+* CHANGED: Requires WordPress 6.5 or newer.
+* REMOVED: SVG uploads (use Safe SVG), BunnyCDN integration (use a pull zone), the lazy-loading filter (WordPress handles it), the network settings page and the `_erdo_backup` folder workflow.
+* SECURITY: Every file operation is restricted to the uploads folder; all strings are translatable.
 
 = 2.2.2 =
 * FIXED: Disk-space waste — when "Keep Original Backup" was enabled, the original file was left in place after conversion in addition to the backup copy, storing every converted image 3x instead of 2x.
@@ -232,3 +262,8 @@ Suggestions are never saved automatically: each one waits for your review in the
 * Added EXIF metadata removal option.
 * Improved AJAX loading and database query performance.
 * Security updates for official Plugin Check compatibility.
+
+== Upgrade Notice ==
+
+= 3.0.0 =
+Major rebuild: originals are never changed again, unused images go to a reversible quarantine, and there is a new 0-100 SEO score and AI alt text. If 2.x converted your images, use the "Repair now" notice after updating.
