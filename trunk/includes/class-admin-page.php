@@ -169,8 +169,8 @@ class ERDO_Admin_Page {
             /* translators: placeholders are filled in by the script in this order (numbers or names) */
             'Building the usage index: %1$d / %2$d posts checked. Unused-image cleanup becomes available when it finishes.' => __( 'Building the usage index: %1$d / %2$d posts checked. Unused-image cleanup becomes available when it finishes.', 'erdo-image-optimizer' ),
             'Bulk actions you run here will show up in this list.' => __( 'Bulk actions you run here will show up in this list.', 'erdo-image-optimizer' ),
-            'Camera name' => __( 'Camera name', 'erdo-image-optimizer' ),
-            'Camera-style file names' => __( 'Camera-style file names', 'erdo-image-optimizer' ),
+            'Weak file name' => __( 'Weak file name', 'erdo-image-optimizer' ),
+            'File names to improve' => __( 'File names to improve', 'erdo-image-optimizer' ),
             'Can get alt text from the name' => __( 'Can get alt text from the name', 'erdo-image-optimizer' ),
             'Cancel' => __( 'Cancel', 'erdo-image-optimizer' ),
             'Checking…' => __( 'Checking…', 'erdo-image-optimizer' ),
@@ -1326,7 +1326,7 @@ class ERDO_Admin_Page {
         }
         $rows = array(
             'alt'      => array( __( 'Alt text', 'erdo-image-optimizer' ), true ),
-            'filename' => array( __( 'Filename', 'erdo-image-optimizer' ), ! empty( $weak['filename'] ) ),
+            'filename' => array( __( 'File name', 'erdo-image-optimizer' ), ! empty( $weak['filename'] ) ),
             'title'    => array( __( 'Title', 'erdo-image-optimizer' ), ! empty( $weak['title'] ) ),
             'caption'  => array( __( 'Caption', 'erdo-image-optimizer' ), '' === (string) get_post_field( 'post_excerpt', $id ) ),
         );

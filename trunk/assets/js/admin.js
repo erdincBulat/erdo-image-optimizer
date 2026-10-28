@@ -214,7 +214,7 @@ jQuery(function($) {
     var filter = { cat: '', issue: '', q: '', sort: 'score' };
     var shown = PAGE_SIZE, selected = {}, drawerList = [], drawerId = 0;
     var ISSUE_LABELS = {
-        alt: t('No alt'), weakalt: t('Weak alt'), filename: t('Camera name'),
+        alt: t('No alt'), weakalt: t('Weak alt'), filename: t('Weak file name'),
         format: t('No WebP'), oversized: t('Oversized'), context: t('Not indexable')
     };
 
@@ -502,7 +502,7 @@ jQuery(function($) {
             tasks.push({ n: altAll.length, tone: 'red', title: weak.length && ! alt.length ? t('Images with weak alt text') : ( weak.length ? t('Images with missing or weak alt text') : t('Images missing alt text') ),
                 text: t('Alt text is 40% of the score and what screen readers read aloud.'), actions: altActs });
         }
-        if ( names.length ) tasks.push({ n: names.length, tone: 'orange', title: t('Camera-style file names'), text: $.map(names.slice(0, 3), function(it) { return it.file; }).join(', ') + ( names.length > 3 ? ', …' : '' ),
+        if ( names.length ) tasks.push({ n: names.length, tone: 'orange', title: t('File names to improve'), text: $.map(names.slice(0, 3), function(it) { return it.file; }).join(', ') + ( names.length > 3 ? ', …' : '' ),
             actions: [ { label: t('Preview new names'), primary: true, run: function() { flowRename(ids(names), 'fix'); } } ] });
         if ( conv.length ) tasks.push({ n: conv.length, tone: 'blue', title: t('Images without a WebP/AVIF copy'), text: t('Originals stay untouched; copies are kept only when they are smaller.'),
             actions: [ { label: t('Convert in background'), primary: true, run: function() { flowConvert(ids(conv)); } } ] });

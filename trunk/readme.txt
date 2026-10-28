@@ -22,7 +22,7 @@ Nothing is changed without a preview, and almost everything can be undone.
 * Alt text is checked for quality, not just presence: file-name-like text, "image of…" phrases, keyword lists and overly long text lose points. Decorative images can be marked as such and pass with an empty alt.
 * Camera-style and generic file names (IMG_1234, DSC_0042, Screenshot, WhatsApp Image, hashes) are flagged.
 * Context checks whether the image appears on a published, indexable page. Noindex settings from Yoast SEO and Rank Math are respected.
-* Filter the library by issue (missing alt, weak alt, camera-style name, no WebP/AVIF copy, oversized, not on an indexable page) and export the report as CSV.
+* Filter the library by issue (missing alt, weak alt, weak file name, no WebP/AVIF copy, oversized, not on an indexable page) and export the report as CSV.
 * Focus keywords from Yoast SEO, Rank Math, SEOPress and All in One SEO are used as hints.
 
 = AI alt text with your own key (WordPress 7.0+) =
@@ -35,7 +35,7 @@ Nothing is changed without a preview, and almost everything can be undone.
 
 = Safe renaming =
 
-* Rename a single image, fix camera-style names across the library, or use patterns such as `{keyword}-{n}`, `{parent}`, `{title}`, `{original}` and `{alt}`.
+* Rename a single image, fix weak names across the library (a camera name gets a new one from the AI suggestion, the alt text or the page the image is on), or use patterns such as `{keyword}-{n}`, `{parent}`, `{title}`, `{original}` and `{alt}`.
 * Every size, the original before scaling, edit backups and WebP/AVIF copies move together. Links in posts, page builder data, custom fields and options are updated, including serialized and JSON data.
 * Old image URLs redirect (301) to the new ones, so backlinks and Google Images traffic keep working.
 * Every rename shows a preview first and can be undone per image or per batch.

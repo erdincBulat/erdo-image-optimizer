@@ -9,7 +9,7 @@ msgstr ""
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
-"POT-Creation-Date: 2026-10-25T10:15:48+00:00\n"
+"POT-Creation-Date: 2026-10-28T10:34:05+00:00\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "X-Generator: WP-CLI 2.12.0\n"
 "X-Domain: erdo-image-optimizer\n"
@@ -253,6 +253,7 @@ msgstr ""
 
 #: includes/class-admin-page.php:161
 #: includes/class-admin-page.php:1328
+#: includes/class-auditor.php:306
 #: includes/views/detail.php:167
 #: includes/views/page.php:213
 msgid "Alt text"
@@ -295,11 +296,12 @@ msgid "Bulk actions you run here will show up in this list."
 msgstr ""
 
 #: includes/class-admin-page.php:172
-msgid "Camera name"
+#: includes/views/page.php:157
+msgid "Weak file name"
 msgstr ""
 
 #: includes/class-admin-page.php:173
-msgid "Camera-style file names"
+msgid "File names to improve"
 msgstr ""
 
 #: includes/class-admin-page.php:174
@@ -531,6 +533,8 @@ msgid "Field"
 msgstr ""
 
 #: includes/class-admin-page.php:238
+#: includes/class-admin-page.php:1329
+#: includes/class-auditor.php:316
 #: includes/views/detail.php:194
 #: includes/views/page.php:169
 msgid "File name"
@@ -1232,11 +1236,6 @@ msgstr ""
 msgid "Suggest alt text, file name and title with AI"
 msgstr ""
 
-#: includes/class-admin-page.php:1329
-#: includes/class-auditor.php:316
-msgid "Filename"
-msgstr ""
-
 #: includes/class-admin-page.php:1331
 msgid "Caption"
 msgstr ""
@@ -1453,10 +1452,6 @@ msgstr ""
 msgid "There is no suggestion for this image."
 msgstr ""
 
-#: includes/class-auditor.php:306
-msgid "Alt Text"
-msgstr ""
-
 #: includes/class-auditor.php:328
 #: includes/views/settings.php:66
 msgid "Format"
@@ -1473,7 +1468,7 @@ msgid "Current format is %s. Create a WebP or AVIF version for faster loading."
 msgstr ""
 
 #: includes/class-auditor.php:347
-msgid "File Size"
+msgid "File size"
 msgstr ""
 
 #. translators: %s: dosya boyutu KB cinsinden.
@@ -1521,7 +1516,7 @@ msgid "Usage"
 msgstr ""
 
 #: includes/class-auditor.php:400
-msgid "Image Title"
+msgid "Image title"
 msgstr ""
 
 #: includes/class-auditor.php:405
@@ -2005,10 +2000,6 @@ msgstr ""
 
 #: includes/views/page.php:156
 msgid "Weak alt text"
-msgstr ""
-
-#: includes/views/page.php:157
-msgid "Camera-style file name"
 msgstr ""
 
 #: includes/views/page.php:158

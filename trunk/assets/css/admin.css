@@ -34,6 +34,7 @@
 }
 
 .erdo-app [hidden],
+.erdo-app .hidden,
 .erdo-overlay[hidden],
 .erdo-drawer [hidden],
 .erdo-dialog [hidden] { display: none !important; }
@@ -67,7 +68,7 @@ body.erdo-modal-open { overflow: hidden; }
 /* ---------------------------------------------------------------- header */
 .erdo-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; padding: 8px 0 12px; }
 .erdo-title { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0; font-size: 23px; font-weight: 400; line-height: 1.3; }
-.erdo-logo { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; background: var(--e-accent); color: #fff; font-size: 15px; font-weight: 700; }
+.erdo-logo { display: block; width: 28px; height: 28px; flex: none; }
 .erdo-ver { padding: 1px 8px; border: 1px solid var(--e-border); border-radius: 20px; background: #fff; color: var(--e-muted); font-size: 11px; }
 .erdo-app .wp-header-end { margin: 0; border: 0; }
 

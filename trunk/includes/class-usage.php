@@ -757,6 +757,30 @@ class ERDO_Usage {
     }
 
     /**
+     * Görseli en iyi anlatan sayfa: yayımlanmış üst yazı, yoksa indeksteki ilk yayımlanmış
+     * ve görüntülenebilir yazı (önce içerik, sonra öne çıkan görsel, sonra meta). İndeks
+     * hazır değilse üst yazı (yayımlanmamış olabilir) ya da null. AI bağlamı ve ad önerisi kullanır.
+     */
+    public static function primary_page( $attachment_id ) {
+        $post = get_post( $attachment_id );
+        $page = $post && $post->post_parent ? get_post( $post->post_parent ) : null;
+        if ( ( ! $page || 'publish' !== $page->post_status ) && self::is_ready() ) {
+            $rank    = array( 'content' => 0, 'featured' => 1 );
+            $sources = self::sources( $attachment_id );
+            usort( $sources, function ( $a, $b ) use ( $rank ) {
+                return ( $rank[ $a['key'] ] ?? 2 ) <=> ( $rank[ $b['key'] ] ?? 2 );
+            } );
+            foreach ( $sources as $src ) {
+                $p = 'post' === $src['type'] ? get_post( $src['id'] ) : null;
+                if ( $p && 'publish' === $p->post_status && is_post_type_viewable( $p->post_type ) ) {
+                    return $p;
+                }
+            }
+        }
+        return $page ?: null;
+    }
+
+    /**
      * Kullanım haritası: array( array( 'type', 'id', 'key', 'label', 'url' ) )
      * Detay panelinde "nerede kullanılıyor" listesi için.
      */

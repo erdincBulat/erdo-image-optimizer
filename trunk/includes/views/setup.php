@@ -11,7 +11,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 <div class="wrap erdo-app" id="erdo-app" data-tab="setup">
     <div class="erdo-head">
         <h1 class="erdo-title">
-            <span class="erdo-logo" aria-hidden="true">e</span>
+            <?php include __DIR__ . '/logo.php'; ?>
             <?php esc_html_e( 'Erdo Image Optimizer', 'erdo-image-optimizer' ); ?>
             <span class="erdo-ver">v<?php echo esc_html( ERDO_VERSION ); ?></span>
         </h1>

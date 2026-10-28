@@ -330,22 +330,7 @@ class ERDO_AI {
      */
     public static function context( $id ) {
         $post   = get_post( $id );
-        $page   = $post && $post->post_parent ? get_post( $post->post_parent ) : null;
-        if ( ( ! $page || 'publish' !== $page->post_status ) && ERDO_Usage::is_ready() ) {
-            // Görselin yazı içinde göründüğü sayfa en iyi bağlamdır; sonra öne çıkan görsel, sonra meta (galeri, builder).
-            $rank    = array( 'content' => 0, 'featured' => 1 );
-            $sources = ERDO_Usage::sources( $id );
-            usort( $sources, function ( $a, $b ) use ( $rank ) {
-                return ( $rank[ $a['key'] ] ?? 2 ) <=> ( $rank[ $b['key'] ] ?? 2 );
-            } );
-            foreach ( $sources as $src ) {
-                $p = 'post' === $src['type'] ? get_post( $src['id'] ) : null;
-                if ( $p && 'publish' === $p->post_status && is_post_type_viewable( $p->post_type ) ) {
-                    $page = $p;
-                    break;
-                }
-            }
-        }
+        $page   = ERDO_Usage::primary_page( $id );
 
         $ctx = array(
             'page_title'    => $page ? wp_strip_all_tags( $page->post_title ) : '',

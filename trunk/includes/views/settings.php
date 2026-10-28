@@ -69,7 +69,7 @@ $erdo_switch = function ( $name, $title, $desc, $checked, $disabled = false ) {
                 <div class="erdo-radios">
                     <label>
                         <input type="radio" name="erdo_convert_format" value="webp" <?php checked( $erdo_fmt, 'webp' ); ?>>
-                        <span><b>WebP</b> <span class="erdo-pill is-green"><?php esc_html_e( 'Recommended', 'erdo-image-optimizer' ); ?></span>
+                        <span><b>WebP</b><?php if ( ! $erdo_avif ) : ?> <span class="erdo-pill is-green"><?php esc_html_e( 'Recommended', 'erdo-image-optimizer' ); ?></span><?php endif; ?>
                         <small><?php esc_html_e( 'Supported by every current browser. Fast to create.', 'erdo-image-optimizer' ); ?></small></span>
                     </label>
                     <label class="<?php echo $erdo_avif ? '' : 'is-disabled'; ?>">
@@ -79,7 +79,7 @@ $erdo_switch = function ( $name, $title, $desc, $checked, $disabled = false ) {
                     </label>
                     <label class="<?php echo $erdo_avif ? '' : 'is-disabled'; ?>">
                         <input type="radio" name="erdo_convert_format" value="both" <?php checked( $erdo_fmt, 'both' ); ?> <?php disabled( ! $erdo_avif ); ?>>
-                        <span><b>AVIF + WebP</b>
+                        <span><b>AVIF + WebP</b><?php if ( $erdo_avif ) : ?> <span class="erdo-pill is-green"><?php esc_html_e( 'Recommended', 'erdo-image-optimizer' ); ?></span><?php endif; ?>
                         <small><?php esc_html_e( 'Browsers get the best format they support. Needs AVIF.', 'erdo-image-optimizer' ); ?></small></span>
                     </label>
                 </div>

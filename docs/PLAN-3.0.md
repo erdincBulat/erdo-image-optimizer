@@ -319,7 +319,21 @@ Plandaki maddeler (referans):
 - WordPress admin görsel diliyle uyumlu, WCAG AA, klavye erişimi, dar ekran desteği. Karanlık admin temasıyla çakışmaz.
 - **Süreç:** `ui-ux-pro-max` / `frontend-design` ile tasarım sistemi → Stitch maketleri → **kullanıcı onayı** → kodlama. Mevcut kalıplar (dropdown dışarı tıklayınca kapanır, önce/sonra kaydırıcısında container sürükleme) korunur.
 
-### Faz 8 — Görsel kimlik ve wp.org vitrini
+### Faz 8 — Görsel kimlik ve wp.org vitrini ✅ (2026-10-28)
+**Teslim edildi:**
+- İkon C1 (kobalt): `assets/icon.svg` (animasyonlu) + 128/256 PNG (dinlenme karesi). Kaynaklar ve notlar `docs/brand/`.
+- Banner 772x250 + 1544x500, kaynağı `docs/brand/banner/banner.html` (önce 31 → sonra 94 hikâyesi).
+- Admin başlığındaki "e" yerine yeni işaret (`includes/views/logo.php`, satır içi SVG).
+- 8 ekran görüntüsü (1440x900, demo sitesinden), sıra readme'deki başlıklarla aynı.
+- Live Preview blueprint'i (`assets/blueprints/`), readme 3.0, GitHub README 3.0.
+
+**Ekran görüntüsü alırken bulunan sorunlar (düzeltildi):**
+- Kütüphanede "Loading library..." yazısı hiç kaybolmuyordu (bileşenin `display` kuralı core `.hidden`'ı eziyordu).
+- "Kamera adı" etiketi alt çizgili adlarda da çıkıyordu → "Zayıf dosya adı".
+- "Dosya adlarını düzelt" kamera adlarını yalnızca temizliyordu (`IMG_4821` → `img-4821`, yine anlamsız). Artık AI önerisi, geçerli alt metin, başlık ya da görselin kullanıldığı sayfanın odak kelimesi/başlığından ad öneriliyor (testli).
+- Ayarlar'daki "Önerilen" rozeti sihirbazın önerisiyle çelişiyordu; artık aynı kural.
+
+Plandaki maddeler (referans):
 - Yeni ikon (`icon.svg` + 128/256 PNG) ve banner (772x250 + 1544x500). Önce 2–3 yön sunulur, onaydan sonra üretilir.
 - 6–8 ekran görüntüsü: Studio'da gerçekçi demo içerikle, yeni arayüzden (genel bakış, kütüphane, AI önerileri, temizlik/kullanım haritası, yeniden adlandırma önizleme, ayarlar).
 - Playground **Live Preview** blueprint'i (`assets/blueprints/blueprint.json`) + demo içerik.

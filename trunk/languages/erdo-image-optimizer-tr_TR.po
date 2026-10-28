@@ -13,10 +13,6 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Erdo Make-Translation Script\n"
 
-#: includes/class-auditor.php:306
-msgid "Alt Text"
-msgstr "Alt Metin"
-
 #: includes/class-admin-page.php:175
 msgid "Cancel"
 msgstr "İptal"
@@ -39,10 +35,6 @@ msgstr "Boyutlar"
 msgid "Erdo Image Optimizer"
 msgstr "Erdo Görsel Optimizörü"
 
-#: includes/class-auditor.php:347
-msgid "File Size"
-msgstr "Dosya Boyutu"
-
 #. translators: %s: dosya boyutu KB cinsinden.
 #: includes/class-auditor.php:354
 #, php-format
@@ -53,11 +45,6 @@ msgstr "Dosya boyutu %s KB. 250 KB altını hedefleyin."
 msgid "File size unknown. Re-save or regenerate thumbnails to detect it."
 msgstr "Dosya boyutu bilinmiyor. Tespit için yeniden kaydedin veya küçük resimleri oluşturun."
 
-#: includes/class-admin-page.php:1329
-#: includes/class-auditor.php:316
-msgid "Filename"
-msgstr "Dosya Adı"
-
 #: includes/class-auditor.php:328
 #: includes/views/settings.php:66
 msgid "Format"
@@ -67,10 +54,6 @@ msgstr "Format"
 #: includes/class-admin-page.php:1184
 msgid "Image Optimizer"
 msgstr "Görsel Optimizörü"
-
-#: includes/class-auditor.php:400
-msgid "Image Title"
-msgstr "Görsel Başlığı"
 
 #: includes/class-auditor.php:379
 msgid "Image dimensions could not be detected. This may resolve after re-saving."
@@ -215,6 +198,7 @@ msgstr "%d görsel"
 
 #: includes/class-admin-page.php:161
 #: includes/class-admin-page.php:1328
+#: includes/class-auditor.php:306
 #: includes/views/detail.php:167
 #: includes/views/page.php:213
 msgid "Alt text"
@@ -1052,12 +1036,13 @@ msgid "Bulk actions you run here will show up in this list."
 msgstr "Burada çalıştırdığınız toplu işlemler bu listede görünür."
 
 #: includes/class-admin-page.php:172
-msgid "Camera name"
-msgstr "Kamera adı"
+#: includes/views/page.php:157
+msgid "Weak file name"
+msgstr "Zayıf dosya adı"
 
 #: includes/class-admin-page.php:173
-msgid "Camera-style file names"
-msgstr "Kamera tarzı dosya adları"
+msgid "File names to improve"
+msgstr "İyileştirilecek dosya adları"
 
 #: includes/class-admin-page.php:174
 msgid "Can get alt text from the name"
@@ -1252,6 +1237,8 @@ msgid "Field"
 msgstr "Alan"
 
 #: includes/class-admin-page.php:238
+#: includes/class-admin-page.php:1329
+#: includes/class-auditor.php:316
 #: includes/views/detail.php:194
 #: includes/views/page.php:169
 msgid "File name"
@@ -2070,10 +2057,6 @@ msgstr "Alt metni eksik"
 msgid "Weak alt text"
 msgstr "Alt metni zayıf"
 
-#: includes/views/page.php:157
-msgid "Camera-style file name"
-msgstr "Kamera tarzı dosya adı"
-
 #: includes/views/page.php:158
 msgid "No WebP/AVIF copy"
 msgstr "WebP/AVIF kopyası yok"
@@ -2535,3 +2518,11 @@ msgstr "Atla, kendim ayarlayacağım"
 #: includes/views/setup.php:58
 msgid "Back"
 msgstr "Geri"
+
+#: includes/class-auditor.php:347
+msgid "File size"
+msgstr "Dosya boyutu"
+
+#: includes/class-auditor.php:400
+msgid "Image title"
+msgstr "Görsel başlığı"

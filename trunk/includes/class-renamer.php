@@ -69,6 +69,48 @@ class ERDO_Renamer {
         return self::sanitize_stem( $out );
     }
 
+    /**
+     * "Fix Filename" önerisi. Anlamsız bir ad (IMG_1234) temizlenince yine anlamsız kalır
+     * (img-1234); bu yüzden sırayla bekleyen AI önerisi, geçerli alt metin, başlık ve
+     * görselin kullanıldığı sayfanın odak kelimesi / başlığı denenir. Ad zaten anlamlıysa
+     * ya da hiçbir aday yoksa null döner (mevcut ad yalnızca temizlenir).
+     */
+    public static function suggest_stem( $id ) {
+        $id   = (int) $id;
+        $file = (string) get_attached_file( $id );
+        $root = self::root_stem( $file );
+        if ( '' === $file || ! ERDO_SEO::is_meaningless_name( $root ) ) {
+            return null;
+        }
+
+        $candidates = array();
+        $ai         = class_exists( 'ERDO_AI' ) ? ERDO_AI::get( $id ) : null;
+        if ( $ai ) {
+            $candidates[] = (string) ( $ai['filename'] ?? '' );
+        }
+        $alt = trim( (string) get_post_meta( $id, '_wp_attachment_image_alt', true ) );
+        if ( '' !== $alt && ERDO_SEO::check_alt( $alt, $root )['pass'] ) {
+            $candidates[] = wp_trim_words( $alt, 6, '' );
+        }
+        $post = get_post( $id );
+        if ( $post ) {
+            $candidates[] = $post->post_title;
+        }
+        $page = ERDO_Usage::primary_page( $id );
+        if ( $page ) {
+            $candidates[] = ERDO_SEO::focus_keyword( $page->ID );
+            $candidates[] = $page->post_title;
+        }
+
+        foreach ( $candidates as $c ) {
+            $stem = self::sanitize_stem( (string) $c );
+            if ( '' !== $stem && ! ERDO_SEO::is_meaningless_name( $stem ) ) {
+                return $stem;
+            }
+        }
+        return null;
+    }
+
     /* ------------------------------------------------------------------
        PLAN (dry-run) — hiçbir şeyi değiştirmez
     ------------------------------------------------------------------ */
@@ -375,7 +417,7 @@ class ERDO_Renamer {
         $n        = 0;
         foreach ( array_map( 'intval', $ids ) as $id ) {
             $n++;
-            $name = null === $pattern ? null : self::pattern_stem( $id, $pattern, $n, $vars );
+            $name = null === $pattern ? self::suggest_stem( $id ) : self::pattern_stem( $id, $pattern, $n, $vars );
             $plan = self::plan( $id, $name, array(), $reserved );
             $file = (string) get_attached_file( $id );
             if ( is_wp_error( $plan ) ) {

@@ -91,6 +91,19 @@ et_test( 'rename: plain URL in post meta is updated', function () use ( $m ) {
 } );
 
 /* --- Camera names / custom names ----------------------------------- */
+et_test( 'fix preview: camera names get a name from the page they are on, unique within the batch', function () use ( $m ) {
+    $rows = et_rename_preview( array( $m['img']['camera'], $m['img']['dscalt'] ) );
+    et_eq( 'fx-misc.jpg', $rows[0]['new'] ?? '' );
+    et_eq( 'fx-misc-2.jpg', $rows[1]['new'] ?? '' );
+} );
+
+et_test( 'fix preview: a good alt text wins over the page title', function () use ( $m ) {
+    update_post_meta( $m['img']['camera'], '_wp_attachment_image_alt', 'Red kayak on a calm mountain lake at dawn' );
+    $rows = et_rename_preview( array( $m['img']['camera'] ) );
+    delete_post_meta( $m['img']['camera'], '_wp_attachment_image_alt' );
+    et_eq( 'red-kayak-on-a-calm-mountain.jpg', $rows[0]['new'] ?? '' );
+} );
+
 et_test( 'fix filename: IMG_1234.JPG becomes img-1234.jpg', function () use ( $m ) {
     et_not_error( et_rename( $m['img']['camera'] ) );
     et_eq( 'img-1234.jpg', strtolower( basename( get_attached_file( $m['img']['camera'] ) ) ) );

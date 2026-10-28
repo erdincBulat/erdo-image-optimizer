@@ -1,0 +1,79 @@
+<!doctype html>
+<!--
+  Source of assets/banner-772x250.png and banner-1544x500.png.
+  Laid out at 772x250 CSS px; render with headless Chrome at device scale 1 and 2
+  (see docs/brand/banner/README.md). Palette = icon C1.
+-->
+<html>
+<head>
+<meta charset="utf-8">
+<style>
+  :root { --cobalt:#2856E8; --deep:#1E45C4; --sky:#9ED4FF; --amber:#FFB020; --green:#1FC46B; --track:#E3E7EC; --ink:#1d2327; }
+  * { box-sizing:border-box; margin:0; }
+  html, body { width:772px; height:250px; overflow:hidden; background:var(--cobalt); }
+  body { position:relative; font-family:"Segoe UI Variable Display","Segoe UI",system-ui,sans-serif; color:#fff; }
+
+  .hill { position:absolute; inset:auto 0 0 0; }
+  .copy { position:absolute; left:44px; top:50px; width:360px; }
+  .copy h1 { font-size:33px; line-height:1.08; font-weight:700; letter-spacing:-.5px; }
+  .copy p { margin-top:10px; font-size:15px; line-height:1.4; color:#E2EAFF; }
+  .chips { display:flex; gap:6px; margin-top:16px; flex-wrap:wrap; }
+  .chips span { font-size:11.5px; font-weight:600; padding:4px 9px; border-radius:99px; background:rgba(255,255,255,.14); color:#fff; }
+
+  .card { position:absolute; width:162px; padding:7px 7px 10px; background:#fff; border-radius:12px; color:var(--ink); box-shadow:0 10px 24px rgba(10,30,110,.28); }
+  .card svg.photo { display:block; width:148px; height:86px; border-radius:7px; }
+  .card .name { margin:9px 2px 0; font:600 11px/1.2 Consolas,"Cascadia Mono",monospace; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card .alt { margin:4px 2px 0; font-size:11.5px; line-height:1.25; color:#50575e; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+  .card .alt.none { color:#a7aaad; font-style:italic; }
+  .card .meta { display:flex; gap:5px; margin:8px 2px 0; }
+  .card .meta b { font-size:10px; font-weight:700; padding:2px 6px; border-radius:4px; background:#f0f0f1; color:#50575e; }
+  .card .meta b.good { background:#E3F8EC; color:#0E7A3E; }
+
+  .before { left:420px; top:52px; transform:rotate(-4deg); }
+  .after  { left:596px; top:40px; transform:rotate(3deg); }
+
+  .badge { position:absolute; width:54px; height:54px; right:-16px; top:-16px; border-radius:50%; background:#fff; box-shadow:0 0 0 5px var(--cobalt); display:grid; place-items:center; }
+  .badge svg { position:absolute; inset:0; }
+  .badge strong { position:relative; font-size:16px; font-weight:700; }
+</style>
+</head>
+<body>
+  <svg class="hill" width="772" height="250" viewBox="0 0 772 250" aria-hidden="true">
+    <path d="M0 214C210 168 470 176 772 222V250H0z" fill="#1E45C4"/>
+  </svg>
+
+  <div class="copy">
+    <h1>Erdo Image<br>Optimizer</h1>
+    <p>Image SEO with AI alt text, safe cleanup and WebP/AVIF that never touches your originals.</p>
+    <div class="chips"><span>SEO score</span><span>AI alt text</span><span>WebP · AVIF</span><span>Safe rename</span></div>
+  </div>
+
+  <div class="card before">
+    <svg class="photo" viewBox="0 0 182 104" aria-hidden="true">
+      <rect width="182" height="104" fill="#9ED4FF"/><circle cx="58" cy="36" r="16" fill="#FFB020"/>
+      <path d="M0 62C50 36 104 40 182 70V104H0z" fill="#2856E8"/><path d="M0 90C62 62 124 66 182 84V104H0z" fill="#1FC46B"/>
+    </svg>
+    <div class="name">DSC_0193.JPG</div>
+    <div class="alt none">No alt text</div>
+    <div class="meta"><b>JPEG</b><b>2.4 MB</b></div>
+    <div class="badge">
+      <svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="21" fill="none" stroke="#E3E7EC" stroke-width="5"/><circle cx="27" cy="27" r="21" fill="none" stroke="#FFB020" stroke-width="5" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="91" transform="rotate(-90 27 27)"/></svg>
+      <strong>31</strong>
+    </div>
+  </div>
+
+  <div class="card after">
+    <svg class="photo" viewBox="0 0 182 104" aria-hidden="true">
+      <rect width="182" height="104" fill="#9ED4FF"/><circle cx="58" cy="36" r="16" fill="#FFB020"/>
+      <path d="M0 62C50 36 104 40 182 70V104H0z" fill="#2856E8"/><path d="M0 90C62 62 124 66 182 84V104H0z" fill="#1FC46B"/>
+    </svg>
+    <div class="name">hills-at-sunrise.jpg</div>
+    <div class="alt">Green hills at sunrise</div>
+    <div class="meta"><b class="good">AVIF −68%</b><b>760 KB</b></div>
+    <div class="badge">
+      <svg viewBox="0 0 54 54"><circle cx="27" cy="27" r="21" fill="none" stroke="#E3E7EC" stroke-width="5"/><circle cx="27" cy="27" r="21" fill="none" stroke="#1FC46B" stroke-width="5" stroke-linecap="round" stroke-dasharray="132" stroke-dashoffset="9" transform="rotate(-90 27 27)"/></svg>
+      <strong>94</strong>
+    </div>
+  </div>
+</body>
+</html>

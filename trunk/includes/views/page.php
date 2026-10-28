@@ -24,7 +24,7 @@ $erdo_tabs     = array(
 
     <div class="erdo-head">
         <h1 class="erdo-title">
-            <span class="erdo-logo" aria-hidden="true">e</span>
+            <?php include __DIR__ . '/logo.php'; ?>
             <?php esc_html_e( 'Erdo Image Optimizer', 'erdo-image-optimizer' ); ?>
             <span class="erdo-ver">v<?php echo esc_html( ERDO_VERSION ); ?></span>
         </h1>
@@ -154,7 +154,7 @@ $erdo_tabs     = array(
                     <option value=""><?php esc_html_e( 'All issues', 'erdo-image-optimizer' ); ?></option>
                     <option value="alt"><?php esc_html_e( 'Missing alt text', 'erdo-image-optimizer' ); ?></option>
                     <option value="weakalt"><?php esc_html_e( 'Weak alt text', 'erdo-image-optimizer' ); ?></option>
-                    <option value="filename"><?php esc_html_e( 'Camera-style file name', 'erdo-image-optimizer' ); ?></option>
+                    <option value="filename"><?php esc_html_e( 'Weak file name', 'erdo-image-optimizer' ); ?></option>
                     <option value="format"><?php esc_html_e( 'No WebP/AVIF copy', 'erdo-image-optimizer' ); ?></option>
                     <option value="oversized"><?php esc_html_e( 'Oversized', 'erdo-image-optimizer' ); ?></option>
                     <option value="context"><?php esc_html_e( 'Not on an indexable page', 'erdo-image-optimizer' ); ?></option>

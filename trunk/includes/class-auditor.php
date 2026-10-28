@@ -303,7 +303,7 @@ class ERDO_Auditor {
             $c           = ERDO_SEO::check_alt( $alt, $name, $decorative );
             $checklist[] = array_merge( $c, array(
                 'key'        => 'alt',
-                'label'      => __( 'Alt Text', 'erdo-image-optimizer' ),
+                'label'      => __( 'Alt text', 'erdo-image-optimizer' ),
                 'weight'     => $w['alt'],
                 'value'      => $alt,
                 'decorative' => $decorative,
@@ -313,7 +313,7 @@ class ERDO_Auditor {
             $c           = ERDO_SEO::check_filename( $name );
             $checklist[] = array_merge( $c, array(
                 'key'    => 'filename',
-                'label'  => __( 'Filename', 'erdo-image-optimizer' ),
+                'label'  => __( 'File name', 'erdo-image-optimizer' ),
                 'weight' => $w['filename'],
                 'value'  => $name,
             ) );
@@ -344,7 +344,7 @@ class ERDO_Auditor {
             $size_pass    = ! $has_filesize || $served_size < ERDO_SEO::MAX_BYTES;
             $checklist[]  = array(
                 'key'    => 'filesize',
-                'label'  => __( 'File Size', 'erdo-image-optimizer' ),
+                'label'  => __( 'File size', 'erdo-image-optimizer' ),
                 'pass'   => $size_pass,
                 'points' => $size_pass ? $w['filesize'] : ( $served_size < 2 * ERDO_SEO::MAX_BYTES ? (int) round( $w['filesize'] / 2 ) : 0 ),
                 'weight' => $w['filesize'],
@@ -397,7 +397,7 @@ class ERDO_Auditor {
             // --- Başlık: bilgi amaçlı, puana katılmaz (title niteliğinin SEO karşılığı yok) ---
             $checklist[] = array(
                 'key'    => 'title',
-                'label'  => __( 'Image Title', 'erdo-image-optimizer' ),
+                'label'  => __( 'Image title', 'erdo-image-optimizer' ),
                 'pass'   => '' !== trim( (string) $title ) && false === strpos( $title, '_' ),
                 'points' => 0,
                 'weight' => 0,
