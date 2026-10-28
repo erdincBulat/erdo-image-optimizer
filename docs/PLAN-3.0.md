@@ -343,7 +343,21 @@ Plandaki maddeler (referans):
   - Uzun başlık kararı (bilinen uyarı) korunur ama anahtar kelime doldurma azaltılır.
 - GitHub README güncellenir.
 
-### Faz 9 — Doğrulama matrisi ve 3.0.0 yayını
+### Faz 9 — Doğrulama matrisi ve 3.0.0 yayını ✅ yerel kısım (2026-10-28)
+**Teslim edildi:**
+- Docker matrisi (`tests/docker/`): PHP 7.4 / 8.1 / 8.3; WP 6.5 / 6.9 / 7.1; yalnızca GD / Imagick; Apache `.htaccess` / nginx (eklentinin kendi snippet'i) / multisite. Tüm paketler her ortamda yeşil (yalnızca ortamın desteklemediği AVIF gibi testler atlanıyor).
+- Gerçek 2.2.2 → 3.0 yükseltmesi (`upgrade.ps1`): 2.2.2 görselleri gerçekten bozucu biçimde çevirir, 3.0 ilk yüklemede sayar, onarımdan önce sayfalar kırık görünmez, `wp erdo migrate` sonrası yedekli görsel JPEG'e döner, diğerlerinin bağlantıları düzelir.
+- 5.000 görselde performans (Studio): indeks 6,2 sn, soğuk tarama 6,2 ms/görsel, ızgara 1 ms.
+- WP 7.1 tarayıcıda görsel işleme (Chromium, blok editör): create → boyut başına sideload → finalize; her boyutun WebP kopyası oluştu.
+- Plugin Check temiz (bilinen `mismatched_plugin_name` hariç). Sürüm 3 yerde 3.0.0, changelog, `tags/3.0.0`, kurulum zip'i (Linux izinleriyle) test edildi.
+
+**Matriste bulunan sorunlar (düzeltildi, testli):**
+- nginx snippet'i hiç çalışmıyordu: `location` içindeki `if`, `try_files`'ı devre dışı bırakıyordu. `set`/`if` sunucu düzeyine alındı, eksik dosya WordPress'e düşüyor (eski URL'ler 301 alır), AVIF türü açıkça veriliyor.
+- Multisite + Apache'de yeniden adlandırılmış görsellerin eski URL'leri 404 veriyordu (core'un multisite kuralları eksik dosyayı WordPress'e göndermiyor). Uploads `.htaccess`'ine ayrı bir "Erdo Redirects" bloğu yazılıyor.
+
+**Kalan (kullanıcı onayıyla):** GitHub'a merge/push, SVN trunk kopyası + TortoiseSVN commit/tag, LiteSpeed/gerçek hosting kontrolü (SSH staging), 4 yüzey doğrulaması.
+
+Plandaki maddeler (referans):
 - **Matris:**
   - PHP 7.4 / 8.1 / 8.3; WP 6.5 / 6.9 / 7.1.
   - Yalnızca GD / Imagick.

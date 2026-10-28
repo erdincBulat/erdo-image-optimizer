@@ -2,7 +2,7 @@
 /**
  * Plugin Name:       Erdo Image Optimizer
  * Description:       Image SEO audit, safe renaming, AI alt text (your own key), unused-image cleanup and non-destructive WebP/AVIF.
- * Version:           2.2.2
+ * Version:           3.0.0
  * Requires at least: 6.5
  * Requires PHP:      7.4
  * Author:            Erdinc Bulat
@@ -15,7 +15,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 
 define( 'ERDO_PATH',    plugin_dir_path( __FILE__ ) );
 define( 'ERDO_URL',     plugin_dir_url( __FILE__ ) );
-define( 'ERDO_VERSION', '2.2.2' );
+define( 'ERDO_VERSION', '3.0.0' );
 
 require_once ERDO_PATH . 'includes/class-activity.php';
 require_once ERDO_PATH . 'includes/class-auditor.php';

@@ -8,10 +8,7 @@
 
 $m = et_fixtures();
 
-$sub_id = username_exists( 'et_subscriber' );
-if ( ! $sub_id ) {
-    $sub_id = wp_insert_user( array( 'user_login' => 'et_subscriber', 'user_pass' => wp_generate_password( 32 ), 'role' => 'subscriber', 'user_email' => 'et_subscriber@example.test' ) );
-}
+$sub_id = et_temp_user( 'et_subscriber', 'subscriber' );
 $admin_id = get_current_user_id();
 
 /** Builds auth cookies + an erdo_nonce for a user, the way a browser session would have them. */
@@ -135,5 +132,4 @@ et_test( 'admin page is not reachable for a subscriber', function () use ( $sub 
 if ( class_exists( 'ERDO_Queue' ) ) {
     ERDO_Queue::cancel();
 }
-require_once ABSPATH . 'wp-admin/includes/user.php';
-wp_delete_user( $sub_id );
+et_delete_temp_user( $sub_id );

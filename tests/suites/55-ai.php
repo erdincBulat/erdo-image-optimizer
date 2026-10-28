@@ -206,7 +206,7 @@ et_test( 'bulk candidates: images missing alt, minus decorative and already-sugg
 
 /* --- Permissions (REST, per attachment) ------------------------------ */
 et_test( 'REST: a subscriber cannot ask for or accept suggestions', function () use ( $m ) {
-    $sub = wp_insert_user( array( 'user_login' => 'et_ai_sub', 'user_pass' => wp_generate_password( 24 ), 'role' => 'subscriber', 'user_email' => 'et_ai_sub@example.test' ) );
+    $sub = et_temp_user( 'et_ai_sub', 'subscriber' );
     $me  = get_current_user_id();
     wp_set_current_user( $sub );
     foreach ( array( 'suggest', 'accept', 'reject' ) as $action ) {
@@ -214,8 +214,7 @@ et_test( 'REST: a subscriber cannot ask for or accept suggestions', function () 
         et_assert( in_array( $res->get_status(), array( 401, 403 ), true ), "$action answered " . $res->get_status() );
     }
     wp_set_current_user( $me );
-    require_once ABSPATH . 'wp-admin/includes/user.php';
-    wp_delete_user( $sub );
+    et_delete_temp_user( $sub );
 } );
 
 et_test( 'REST: an editor of the image gets a suggestion', function () use ( $m ) {

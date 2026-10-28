@@ -267,3 +267,18 @@ et_test( 'undo restores the exact old name, even one that is not "clean" (IMG_12
     et_eq( 'IMG_1234', pathinfo( get_attached_file( $m['img']['camera'] ), PATHINFO_FILENAME ) );
     et_assert_page_ok( $m['post']['misc'], '', array( 'broken' ) );
 } );
+
+et_test( 'multisite: renames write an uploads fallback so old URLs reach WordPress; switching delivery off keeps it', function () {
+    if ( ! is_multisite() ) {
+        et_skip( 'single site: the core rules already send missing uploads to index.php' );
+    }
+    $file = trailingslashit( wp_upload_dir()['basedir'] ) . '.htaccess';
+    $read = function () use ( $file ) {
+        return file_exists( $file ) ? (string) file_get_contents( $file ) : ''; // phpcs:ignore
+    };
+    et_assert( false !== strpos( $read(), '# BEGIN ' . ERDO_WebP_Server::REDIRECT_MARKER ), 'no redirect block after the renames above' );
+    ERDO_WebP_Server::write_htaccess_rules();
+    ERDO_WebP_Server::remove_webp_rules();
+    et_assert( false === strpos( $read(), '# BEGIN ' . ERDO_WebP_Server::HTACCESS_MARKER ), 'WebP block left behind' );
+    et_assert( false !== strpos( $read(), '# BEGIN ' . ERDO_WebP_Server::REDIRECT_MARKER ), 'turning WebP delivery off removed the redirect block' );
+} );

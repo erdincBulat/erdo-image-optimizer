@@ -552,6 +552,7 @@ class ERDO_Renamer {
         foreach ( array_unique( array_map( 'strtolower', array_keys( $map ) ) ) as $old ) {
             add_post_meta( $id, self::OLD_REL_META, $old );
         }
+        ERDO_WebP_Server::ensure_redirect_fallback();
     }
 
     /** Yeniden adlandırılmış bir görselin eski URL'si istenirse 301 ile yenisine gönder. */

@@ -253,7 +253,8 @@ function et_fixtures() {
     update_option( 'widget_block', array( 4 => array( 'content' => et_block_image( $img['widget_block'] ) ), '_multiwidget' => 1 ) );
 
     $m = array( 'img' => $img, 'post' => $post, 'dir' => $dir );
-    file_put_contents( dirname( __DIR__ ) . '/.last-manifest.json', wp_json_encode( $m, JSON_PRETTY_PRINT ) ); // phpcs:ignore
+    $where = is_writable( dirname( __DIR__ ) ) ? dirname( __DIR__ ) : untrailingslashit( get_temp_dir() ); // read-only mount in tests/docker
+    file_put_contents( $where . '/.last-manifest.json', wp_json_encode( $m, JSON_PRETTY_PRINT ) ); // phpcs:ignore
     return $m;
 }
 
@@ -378,4 +379,34 @@ function et_attachment_urls( $id ) {
         $urls[] = $base . rawurlencode( basename( $f ) );
     }
     return $urls;
+}
+
+/**
+ * A throw-away user with $role on this site. Reuses one left over from an
+ * aborted run (on multisite wp_delete_user() only removes the site membership,
+ * so the login stays taken network-wide) and makes sure it is a member here.
+ */
+function et_temp_user( $login, $role ) {
+    $id = username_exists( $login );
+    if ( ! $id ) {
+        $id = wp_insert_user( array( 'user_login' => $login, 'user_pass' => wp_generate_password( 32 ), 'role' => $role, 'user_email' => $login . '@example.test' ) );
+        if ( is_wp_error( $id ) ) {
+            throw new ET_Fail( 'could not create ' . $login . ': ' . $id->get_error_message() );
+        }
+    }
+    if ( is_multisite() ) {
+        add_user_to_blog( get_current_blog_id(), $id, $role );
+    }
+    ( new WP_User( $id ) )->set_role( $role );
+    return (int) $id;
+}
+
+function et_delete_temp_user( $id ) {
+    if ( is_multisite() ) {
+        require_once ABSPATH . 'wp-admin/includes/ms.php';
+        wpmu_delete_user( $id );
+    } else {
+        require_once ABSPATH . 'wp-admin/includes/user.php';
+        wp_delete_user( $id );
+    }
 }

@@ -34,13 +34,14 @@ et_test( 'picture mode: <source> offers the WebP via srcset', function () use ( 
 }, 'F2' );
 
 et_test( 'picture mode: responsive srcset is preserved for every width', function () use ( $tags ) {
+    // Compare the first <source> with the <img> of the same <picture> (the next
+    // img after it); an earlier img, e.g. the theme's site logo, is not wrapped.
     $img_w = $src_w = 0;
     foreach ( $tags as $t ) {
-        if ( 'img' === $t['tag'] && ! $img_w ) {
-            $img_w = count( et_srcset_urls( $t['srcset'] ?? '' ) );
-        }
         if ( 'source' === $t['tag'] && ! $src_w ) {
             $src_w = count( et_srcset_urls( $t['srcset'] ?? '' ) );
+        } elseif ( 'img' === $t['tag'] && $src_w && ! $img_w ) {
+            $img_w = count( et_srcset_urls( $t['srcset'] ?? '' ) );
         }
     }
     et_assert( $img_w > 1, 'img lost its srcset' );
@@ -73,6 +74,35 @@ et_test( '.htaccess rule looks for the file name the converter actually writes',
 
 et_test( '.htaccess rules send Vary: Accept', function () {
     et_assert( false !== stripos( et_htaccess_rules(), 'Vary Accept' ), 'no Vary header' );
+} );
+
+/* --- Server rewrites over real HTTP: Apache/LiteSpeed with the plugin's
+   .htaccess block, nginx with get_nginx_config() (tests/docker installs it).
+   The Studio PHP server has no rewrite layer, so this skips there. ------- */
+et_test( 'server rewrite: the .jpg URL serves the WebP to browsers that accept it, the JPEG to others', function () use ( $m ) {
+    $server = strtolower( (string) wp_remote_retrieve_header( wp_remote_head( home_url( '/' ) ), 'server' ) );
+    $apache = false !== strpos( $server, 'apache' ) || false !== strpos( $server, 'litespeed' );
+    if ( ! $apache && false === strpos( $server, 'nginx' ) ) {
+        et_skip( 'server "' . $server . '" has no rewrite layer' );
+    }
+    $file = trailingslashit( wp_upload_dir()['basedir'] ) . '.htaccess';
+    $had  = file_exists( $file ) ? file_get_contents( $file ) : null; // phpcs:ignore
+    if ( $apache ) {
+        ERDO_WebP_Server::write_htaccess_rules();
+    }
+    try {
+        $url  = wp_get_attachment_url( $m['img']['good'] );
+        $webp = et_status( $url, 'image/avif,image/webp,*/*' ); // no AVIF copy: falls through to WebP
+        $jpeg = et_status( $url, 'image/png,*/*' );
+        et_eq( 200, $webp ? $webp['code'] : 0, 'webp request' );
+        et_assert( false !== strpos( $webp['type'], 'image/webp' ), 'webp request got ' . $webp['type'] );
+        et_assert( false !== stripos( $webp['vary'], 'accept' ), 'no Vary: Accept (' . $webp['vary'] . ')' );
+        et_assert( false !== strpos( $jpeg['type'], 'image/jpeg' ), 'plain request got ' . $jpeg['type'] );
+    } finally {
+        if ( $apache ) {
+            null === $had ? wp_delete_file( $file ) : file_put_contents( $file, $had ); // phpcs:ignore
+        }
+    }
 } );
 
 /* --- 3.0 safety net for 2.x-damaged libraries ---------------------- */

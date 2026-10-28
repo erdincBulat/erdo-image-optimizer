@@ -31,6 +31,7 @@ function et_status( $url, $accept = 'image/avif,image/webp,image/*,*/*' ) {
             'code'     => (int) wp_remote_retrieve_response_code( $r ),
             'location' => (string) wp_remote_retrieve_header( $r, 'location' ),
             'type'     => (string) wp_remote_retrieve_header( $r, 'content-type' ),
+            'vary'     => (string) wp_remote_retrieve_header( $r, 'vary' ),
         );
     }
     return $cache[ $key ];

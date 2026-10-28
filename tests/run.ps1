@@ -8,6 +8,7 @@
   .\tests\run.ps1 -Perf              # include the slow performance suite
   .\tests\run.ps1 -Lint              # php -l + Plugin Check first
   .\tests\run.ps1 -Keep              # keep fixtures of the last suite for inspection
+  .\tests\run.ps1 -Docker erdo-m-a   # run inside a tests/docker matrix container
 
   Exit code 0 = no failures outside the "expected gap" phases listed in -AllowPhase.
 #>
@@ -20,15 +21,21 @@ param(
     [switch]$Keep,
     [string[]]$AllowPhase = @(),
     [string]$Report = '',
-    [string[]]$SuiteArgs = @()   # key=value pairs passed to suites, e.g. n=5000
+    [string[]]$SuiteArgs = @(),  # key=value pairs passed to suites, e.g. n=5000
+    [string]$Docker = ''         # container from tests/docker/matrix.ps1 instead of Studio
 )
 
 $ErrorActionPreference = 'Continue'
 $testsDir  = $PSScriptRoot
 $trunk     = Join-Path (Split-Path $testsDir -Parent) 'trunk'
 $bootstrap = Join-Path $testsDir 'bootstrap.php'
+if ($Docker) { $bootstrap = '/erdo-tests/bootstrap.php' }
 
 function Invoke-Studio([string[]]$wpArgs) {
+    if ($Docker) {
+        # Tests are mounted at /erdo-tests, the plugin at wp-content/plugins/erdo-image-optimizer.
+        return & docker exec -u www-data -e HOME=/tmp $Docker wp --path=/var/www/html @($wpArgs | ForEach-Object { $_.Trim('"') }) 2>&1
+    }
     Push-Location $Site
     try { & cmd /c "`"$Studio`" wp $($wpArgs -join ' ') 2>&1" } finally { Pop-Location }
 }

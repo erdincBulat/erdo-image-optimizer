@@ -4,7 +4,7 @@ Tags: image seo, alt text, webp, avif, unused images
 Requires at least: 6.5
 Tested up to: 7.1
 Requires PHP: 7.4
-Stable tag: 2.2.2
+Stable tag: 3.0.0
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
@@ -179,12 +179,12 @@ Suggestions are stored on your site and never applied automatically. Each one wa
 This release rebuilds the plugin around safety and image SEO.
 
 * NEW: Non-destructive WebP/AVIF. Copies are saved next to every image and size (`photo.jpg.webp`); originals are never modified or deleted, and a copy is kept only if it is smaller.
-* NEW: Correct `<picture>` delivery with `srcset` and `sizes`, a fixed `.htaccess` rewrite with `Vary: Accept`, and an nginx snippet.
+* NEW: Correct `<picture>` delivery with `srcset` and `sizes`, a fixed `.htaccess` rewrite with `Vary: Accept`, and an nginx snippet that works (the 2.x one never served the copies) and sends AVIF with the right content type on older nginx versions.
 * NEW: WebP/AVIF support is measured with a real test encode. True lossless WebP; animated GIFs are kept animated with Imagick or skipped, never flattened.
 * NEW: Usage index that records where every image is used, including theme settings, widgets, page builders, ACF and WooCommerce galleries.
 * NEW: Quarantine instead of deletion, with restore, explicit permanent deletion and optional automatic emptying.
 * NEW: SEO score from 0 to 100 with alt text quality checks, camera-style name detection, decorative images and indexable-page context.
-* NEW: Safe renaming that moves every size and copy, updates serialized and JSON data, redirects old URLs (301) and can be undone per image or per batch. Pattern renaming with `{keyword}`, `{n}`, `{parent}`, `{title}`, `{original}` and `{alt}`.
+* NEW: Safe renaming that moves every size and copy, updates serialized and JSON data, redirects old URLs (301, also on multisite and nginx) and can be undone per image or per batch. "Fix file names" gives camera names (IMG_1234) a descriptive name from the AI suggestion, the alt text or the page the image is on. Pattern renaming with `{keyword}`, `{n}`, `{parent}`, `{title}`, `{original}` and `{alt}`.
 * NEW: AI suggestions for alt text, file name, title and caption through the WordPress 7.0 AI Client, reviewed before anything is saved.
 * NEW: Image sitemap in the WordPress core sitemap.
 * NEW: Redesigned admin with Overview, Library, Cleanup, AI Suggestions and Settings tabs, a detail panel, a first-run setup and an activity log.

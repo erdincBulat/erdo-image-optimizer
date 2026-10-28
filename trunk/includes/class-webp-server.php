@@ -18,6 +18,7 @@ if ( ! defined( 'ABSPATH' ) ) { exit; }
 class ERDO_WebP_Server {
 
     const HTACCESS_MARKER = 'Erdo WebP';
+    const REDIRECT_MARKER = 'Erdo Redirects';
     const DONE_ATTR       = 'data-erdo-picture';
 
     public static function init() {
@@ -271,30 +272,77 @@ class ERDO_WebP_Server {
         return trailingslashit( wp_upload_dir()['basedir'] ) . '.htaccess';
     }
 
-    private static function strip_block( $content ) {
-        $pattern = '/\n?# BEGIN ' . preg_quote( self::HTACCESS_MARKER, '/' ) . '.*?# END ' . preg_quote( self::HTACCESS_MARKER, '/' ) . '\n?/s';
+    private static function strip_block( $content, $marker = self::HTACCESS_MARKER ) {
+        $pattern = '/\n?# BEGIN ' . preg_quote( $marker, '/' ) . '.*?# END ' . preg_quote( $marker, '/' ) . '\n?/s';
         return preg_replace( $pattern, "\n", $content );
     }
 
-    public static function write_htaccess_rules() {
+    private static function write_block( $marker, $rules ) {
         $file     = self::htaccess_path();
         $existing = file_exists( $file ) ? file_get_contents( $file ) : ''; // phpcs:ignore WordPress.WP.AlternativeFunctions
-        $content  = rtrim( self::strip_block( $existing ) );
-        $content  = ( '' === $content ? '' : $content . "\n\n" ) . self::htaccess_rules();
+        $content  = rtrim( self::strip_block( $existing, $marker ) );
+        $content  = ( '' === $content ? '' : $content . "\n\n" ) . $rules;
         return false !== file_put_contents( $file, $content ); // phpcs:ignore WordPress.WP.AlternativeFunctions
     }
 
-    public static function remove_htaccess_rules() {
+    private static function remove_block( $marker ) {
         $file = self::htaccess_path();
         if ( ! file_exists( $file ) ) {
             return;
         }
-        $content = trim( self::strip_block( file_get_contents( $file ) ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions
+        $content = trim( self::strip_block( file_get_contents( $file ), $marker ) ); // phpcs:ignore WordPress.WP.AlternativeFunctions
         if ( '' === $content ) {
             wp_delete_file( $file );
         } else {
             file_put_contents( $file, $content . "\n" ); // phpcs:ignore WordPress.WP.AlternativeFunctions
         }
+    }
+
+    public static function write_htaccess_rules() {
+        return self::write_block( self::HTACCESS_MARKER, self::htaccess_rules() );
+    }
+
+    /** Yalnızca WebP/AVIF bloğu (teslim yöntemi değişince). */
+    public static function remove_webp_rules() {
+        self::remove_block( self::HTACCESS_MARKER );
+    }
+
+    /** WebP bloğu ve (varsa) yönlendirme bloğu: devre dışı bırakma / kaldırma. */
+    public static function remove_htaccess_rules() {
+        self::remove_block( self::HTACCESS_MARKER );
+        self::remove_block( self::REDIRECT_MARKER );
+    }
+
+    /* ------------------------------------------------------------------
+       ESKİ URL YÖNLENDİRMESİ İÇİN .HTACCESS (multisite)
+       Standart multisite kuralları wp-content/... isteklerini dosya yoksa da
+       Apache'ye bırakır; yeniden adlandırılmış görselin eski URL'si WordPress'e
+       hiç ulaşmaz ve 301 yerine 404 döner. Tek sitenin kuralları zaten
+       index.php'ye düşer. nginx .htaccess okumaz (snippet try_files ile düşer).
+    ------------------------------------------------------------------ */
+
+    public static function redirect_fallback_rules() {
+        $index = trailingslashit( (string) wp_parse_url( network_site_url( '/' ), PHP_URL_PATH ) ) . 'index.php';
+        return "# BEGIN " . self::REDIRECT_MARKER . "\n"
+            . "<IfModule mod_rewrite.c>\n"
+            . "  RewriteEngine On\n"
+            . "  RewriteOptions Inherit\n"
+            . "  RewriteCond %{REQUEST_FILENAME} !-f\n"
+            . "  RewriteRule \\.(jpe?g|png|gif|webp|avif)$ " . $index . " [NC,L]\n"
+            . "</IfModule>\n"
+            . "# END " . self::REDIRECT_MARKER . "\n";
+    }
+
+    /** Yönlendirme kaydedildiğinde çağrılır; yalnızca multisite'ta ve blok yoksa yazar. */
+    public static function ensure_redirect_fallback() {
+        if ( ! is_multisite() ) {
+            return;
+        }
+        $file = self::htaccess_path();
+        if ( file_exists( $file ) && false !== strpos( (string) file_get_contents( $file ), '# BEGIN ' . self::REDIRECT_MARKER ) ) { // phpcs:ignore WordPress.WP.AlternativeFunctions
+            return;
+        }
+        self::write_block( self::REDIRECT_MARKER, self::redirect_fallback_rules() );
     }
 
     public static function htaccess_has_rules() {
@@ -308,15 +356,20 @@ class ERDO_WebP_Server {
 
     public static function get_nginx_config() {
         $upload_path = untrailingslashit( ERDO_References::uploads_path() );
-        return "# Add inside your site's server { } block, then reload nginx:\n"
+        // set/if server düzeyinde: location içindeki "if" kendi örtük location'ını açar ve
+        // try_files orada çalışmaz (nginx "if is evil") — kardeş hiç servis edilmiyordu.
+        // Boş sonek "$uri"yu ilk sıraya alıp kardeşi atlatır; bu yüzden var olmayan bir sonek.
+        return "# Add inside your site's server { } block (not inside a location), then reload nginx:\n"
+            . "set \$erdo_avif \".no-avif\";\n"
+            . "set \$erdo_webp \".no-webp\";\n"
+            . "if (\$http_accept ~* \"image/avif\") { set \$erdo_avif \".avif\"; }\n"
+            . "if (\$http_accept ~* \"image/webp\") { set \$erdo_webp \".webp\"; }\n"
             . "location ~* ^" . $upload_path . "/.+\\.(jpe?g|png|gif)$ {\n"
             . "    add_header Vary Accept;\n"
-            // Boş sonek "$uri"yu ilk sıraya alıp kardeşi atlatır; bu yüzden var olmayan bir sonek.
-            . "    set \$erdo_avif \".no-avif\";\n"
-            . "    set \$erdo_webp \".no-webp\";\n"
-            . "    if (\$http_accept ~* \"image/avif\") { set \$erdo_avif \".avif\"; }\n"
-            . "    if (\$http_accept ~* \"image/webp\") { set \$erdo_webp \".webp\"; }\n"
-            . "    try_files \$uri\$erdo_avif \$uri\$erdo_webp \$uri =404;\n"
+            // Eski nginx mime.types dosyalarında avif yok; türler burada açıkça verilir.
+            . "    types { image/jpeg jpg jpeg; image/png png; image/gif gif; image/webp webp; image/avif avif; }\n"
+            // Dosya yoksa WordPress'e düşer: yeniden adlandırılmış görselin eski URL'si 301 alır.
+            . "    try_files \$uri\$erdo_avif \$uri\$erdo_webp \$uri /index.php?\$args;\n"
             . "}";
     }
 }

@@ -936,7 +936,7 @@ class ERDO_Admin_Page {
         if ( get_option( 'erdo_serve_webp' ) && 'htaccess' === get_option( 'erdo_webp_serve_method' ) && ERDO_WebP_Server::is_apache() ) {
             ERDO_WebP_Server::write_htaccess_rules();
         } elseif ( ERDO_WebP_Server::htaccess_has_rules() ) {
-            ERDO_WebP_Server::remove_htaccess_rules();
+            ERDO_WebP_Server::remove_webp_rules();
         }
         ERDO_Auditor::clear_all_cache();
 
@@ -1538,7 +1538,7 @@ class ERDO_Admin_Page {
                 update_option( $key, $value );
             }
             if ( ERDO_WebP_Server::htaccess_has_rules() && 'htaccess' !== get_option( 'erdo_webp_serve_method' ) ) {
-                ERDO_WebP_Server::remove_htaccess_rules();
+                ERDO_WebP_Server::remove_webp_rules();
             }
             delete_transient( 'erdo_setup_rec' );
             ERDO_Auditor::clear_all_cache();
