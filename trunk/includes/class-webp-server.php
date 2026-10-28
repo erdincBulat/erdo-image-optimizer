@@ -249,6 +249,9 @@ class ERDO_WebP_Server {
         return "# BEGIN " . self::HTACCESS_MARKER . "\n"
             . "<IfModule mod_rewrite.c>\n"
             . "  RewriteEngine On\n"
+            // Bu klasörde RewriteEngine açılınca kökteki WordPress kuralları uygulanmaz; eksik
+            // dosya index.php'ye düşmez ve yeniden adlandırılmış görselin eski URL'si 404 olur.
+            . "  RewriteOptions Inherit\n"
             . "  RewriteCond %{HTTP_ACCEPT} image/avif\n"
             . "  RewriteCond %{REQUEST_FILENAME}.avif -f\n"
             . "  RewriteRule ^(.+)\\.(jpe?g|png|gif)$ $1.$2.avif [NC,T=image/avif,L]\n"
@@ -256,8 +259,10 @@ class ERDO_WebP_Server {
             . "  RewriteCond %{REQUEST_FILENAME}.webp -f\n"
             . "  RewriteRule ^(.+)\\.(jpe?g|png|gif)$ $1.$2.webp [NC,T=image/webp,L]\n"
             . "</IfModule>\n"
+            // Kardeşler de (x.jpg.webp): yeniden yazmadan sonra eşleşen ad bu. Yoksa LiteSpeed
+            // WebP yanıtına Vary eklemez ve önbellekler JPEG ile WebP'yi karıştırır.
             . "<IfModule mod_headers.c>\n"
-            . "  <FilesMatch \"(?i)\\.(jpe?g|png|gif)$\">\n"
+            . "  <FilesMatch \"(?i)\\.(jpe?g|png|gif)(\\.(webp|avif))?$\">\n"
             . "    Header append Vary Accept\n"
             . "  </FilesMatch>\n"
             . "</IfModule>\n"

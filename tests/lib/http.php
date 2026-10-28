@@ -11,7 +11,9 @@ function et_site_up() {
 }
 
 function et_fetch( $url ) {
-    $r = wp_remote_get( $url, array( 'timeout' => 30, 'headers' => array( 'Accept' => 'text/html' ) ) );
+    // Fixture posts reuse their slugs from suite to suite; a page cache (LiteSpeed Cache on
+    // staging) would serve the old HTML. A fresh query string is always a cache miss.
+    $r = wp_remote_get( add_query_arg( 'et_nc', wp_rand(), $url ), array( 'timeout' => 30, 'headers' => array( 'Accept' => 'text/html' ) ) );
     if ( is_wp_error( $r ) ) {
         throw new ET_Fail( 'fetch failed: ' . $r->get_error_message() . ' ' . $url );
     }

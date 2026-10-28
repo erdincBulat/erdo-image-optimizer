@@ -101,6 +101,10 @@ It cannot see images hard-coded in theme or plugin PHP files, images used only i
 
 Yes. The default delivery method writes `<picture>` tags into the HTML, so every browser gets a URL it can use and caches do not mix formats up. The `.htaccess` method serves different files under the same URL; use it only if your CDN respects the `Vary: Accept` header. The setup detects Cloudflare and recommends `<picture>` tags.
 
+= Does the `.htaccess` method work on LiteSpeed and nginx? =
+
+LiteSpeed and OpenLiteSpeed read the same rules as Apache, but apply a changed `.htaccess` only after up to a minute, so check the result after that. nginx does not read `.htaccess`: copy the snippet from Settings > Delivery into your `server { }` block (not inside a `location`) and reload nginx. In both cases the old URLs of renamed images keep redirecting.
+
 = Which AI providers can I use, and what does it cost? =
 
 Anthropic (Claude), Google (Gemini) or OpenAI, connected under Settings > Connectors in WordPress 7.0 or newer. You pay your provider directly, with your own key. The plugin prefers small, inexpensive vision models; its own estimate is roughly $0.15 to $0.40 per 1,000 images, shown before every bulk run. Actual prices depend on your provider and model.
@@ -179,7 +183,7 @@ Suggestions are stored on your site and never applied automatically. Each one wa
 This release rebuilds the plugin around safety and image SEO.
 
 * NEW: Non-destructive WebP/AVIF. Copies are saved next to every image and size (`photo.jpg.webp`); originals are never modified or deleted, and a copy is kept only if it is smaller.
-* NEW: Correct `<picture>` delivery with `srcset` and `sizes`, a fixed `.htaccess` rewrite with `Vary: Accept`, and an nginx snippet that works (the 2.x one never served the copies) and sends AVIF with the right content type on older nginx versions.
+* NEW: Correct `<picture>` delivery with `srcset` and `sizes`, a fixed `.htaccess` rewrite (Apache and LiteSpeed) that sends `Vary: Accept` on the WebP/AVIF response too and keeps the WordPress rules working in the uploads folder, and an nginx snippet that works (the 2.x one never served the copies) and sends AVIF with the right content type on older nginx versions.
 * NEW: WebP/AVIF support is measured with a real test encode. True lossless WebP; animated GIFs are kept animated with Imagick or skipped, never flattened.
 * NEW: Usage index that records where every image is used, including theme settings, widgets, page builders, ACF and WooCommerce galleries.
 * NEW: Quarantine instead of deletion, with restore, explicit permanent deletion and optional automatic emptying.
@@ -190,7 +194,7 @@ This release rebuilds the plugin around safety and image SEO.
 * NEW: Redesigned admin with Overview, Library, Cleanup, AI Suggestions and Settings tabs, a detail panel, a first-run setup and an activity log.
 * NEW: WP-CLI commands `index`, `unused`, `quarantine`, `rename` and `migrate`.
 * NEW: Repair tool for images converted by 2.x, plus a fallback that keeps them visible until repaired.
-* CHANGED: Resizing on upload now uses the WordPress "big image" threshold, which keeps the full-size original.
+* CHANGED: Resizing on upload now uses the WordPress "big image" threshold, which keeps the full-size original. A maximum size set in the plugin also applies when the theme turns that threshold off.
 * CHANGED: Requires WordPress 6.5 or newer.
 * REMOVED: SVG uploads (use Safe SVG), BunnyCDN integration (use a pull zone), the lazy-loading filter (WordPress handles it), the network settings page and the `_erdo_backup` folder workflow.
 * SECURITY: Every file operation is restricted to the uploads folder; all strings are translatable.

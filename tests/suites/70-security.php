@@ -16,6 +16,7 @@ $session = function ( $user_id ) {
     $exp     = time() + HOUR_IN_SECONDS;
     $token   = WP_Session_Tokens::get_instance( $user_id )->create( $exp );
     $auth    = wp_generate_auth_cookie( $user_id, $exp, 'auth', $token );
+    $secure  = wp_generate_auth_cookie( $user_id, $exp, 'secure_auth', $token ); // read instead of AUTH_COOKIE over HTTPS
     $logged  = wp_generate_auth_cookie( $user_id, $exp, 'logged_in', $token );
     $prev    = $_COOKIE;
     $_COOKIE[ LOGGED_IN_COOKIE ] = $logged;
@@ -25,6 +26,7 @@ $session = function ( $user_id ) {
     return array(
         'cookies' => array(
             new WP_Http_Cookie( array( 'name' => AUTH_COOKIE, 'value' => $auth ) ),
+            new WP_Http_Cookie( array( 'name' => SECURE_AUTH_COOKIE, 'value' => $secure ) ),
             new WP_Http_Cookie( array( 'name' => LOGGED_IN_COOKIE, 'value' => $logged ) ),
         ),
         'nonce'   => $nonce,

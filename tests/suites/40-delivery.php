@@ -17,7 +17,10 @@ et_options( array(
 $good_orig = get_attached_file( $m['img']['good'] );
 et_convert( $m['img']['good'], 'webp' );
 et_convert( $m['img']['dup_a'], 'webp' );
-$tags = et_image_tags( et_fetch( get_permalink( $m['post']['good'] ) ) );
+$html = et_fetch( get_permalink( $m['post']['good'] ) );
+$tags = et_image_tags( $html );
+// LiteSpeed Cache's own lazy load moves src/srcset to data-* and lazy-loads every image.
+$lazy_plugin = false !== strpos( $html, 'data-lazyloaded' );
 
 et_test( 'picture mode: page has no broken images or invalid markup', function () use ( $m ) {
     et_assert_page_ok( $m['post']['good'] );
@@ -33,7 +36,10 @@ et_test( 'picture mode: <source> offers the WebP via srcset', function () use ( 
     et_assert( $found, 'no <source type=image/webp srcset=...webp>' );
 }, 'F2' );
 
-et_test( 'picture mode: responsive srcset is preserved for every width', function () use ( $tags ) {
+et_test( 'picture mode: responsive srcset is preserved for every width', function () use ( $tags, $lazy_plugin ) {
+    if ( $lazy_plugin ) {
+        et_skip( 'another plugin lazy-loads images (srcset moved to data-srcset)' );
+    }
     // Compare the first <source> with the <img> of the same <picture> (the next
     // img after it); an earlier img, e.g. the theme's site logo, is not wrapped.
     $img_w = $src_w = 0;
@@ -48,7 +54,10 @@ et_test( 'picture mode: responsive srcset is preserved for every width', functio
     et_eq( $img_w, $src_w, 'source srcset candidate count' );
 }, 'F2' );
 
-et_test( 'LCP: first content image is not lazy-loaded', function () use ( $tags ) {
+et_test( 'LCP: first content image is not lazy-loaded', function () use ( $tags, $lazy_plugin ) {
+    if ( $lazy_plugin ) {
+        et_skip( 'another plugin lazy-loads images' );
+    }
     $first = null;
     foreach ( $tags as $t ) {
         if ( 'img' === $t['tag'] && false !== strpos( $t['class'] ?? '', 'wp-image-' ) ) {
@@ -91,7 +100,13 @@ et_test( 'server rewrite: the .jpg URL serves the WebP to browsers that accept i
         ERDO_WebP_Server::write_htaccess_rules();
     }
     try {
-        $url  = wp_get_attachment_url( $m['img']['good'] );
+        $url = wp_get_attachment_url( $m['img']['good'] );
+        if ( false !== strpos( $server, 'litespeed' ) ) {
+            // LiteSpeed applies a changed .htaccess after up to ~30 s (it caches the per-folder state).
+            for ( $i = 0; $i < 14 && false === strpos( (string) ( et_status( $url . '?ls=' . $i, 'image/webp,*/*' )['type'] ?? '' ), 'webp' ); $i++ ) {
+                sleep( 5 );
+            }
+        }
         $webp = et_status( $url, 'image/avif,image/webp,*/*' ); // no AVIF copy: falls through to WebP
         $jpeg = et_status( $url, 'image/png,*/*' );
         et_eq( 200, $webp ? $webp['code'] : 0, 'webp request' );

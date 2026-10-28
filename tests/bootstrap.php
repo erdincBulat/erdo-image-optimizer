@@ -35,7 +35,9 @@ if ( ! $et_suite || ! file_exists( $et_file ) ) {
 }
 
 ET::$suite = basename( $et_suite );
-wp_set_current_user( (int) get_user_by( 'login', 'admin' )->ID );
+// "admin" on the local sites; staging sites have another administrator login.
+$et_admin = get_user_by( 'login', 'admin' ) ?: current( get_users( array( 'role' => 'administrator', 'number' => 1 ) ) );
+wp_set_current_user( $et_admin ? (int) $et_admin->ID : 0 );
 
 $et_snapshot = et_snapshot_state();
 register_shutdown_function( function () use ( $et_snapshot ) {

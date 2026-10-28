@@ -92,11 +92,16 @@ et_test( 'resize: restore brings back the original size and removes the backup',
 } );
 
 /* --- Removed features -------------------------------------------------- */
-et_test( 'SVG uploads are gone even if the old setting is still on', function () {
-    update_option( 'erdo_allow_svg', 1 );
-    $mimes = get_allowed_mime_types( get_current_user_id() );
-    delete_option( 'erdo_allow_svg' );
-    et_assert( ! isset( $mimes['svg'] ) && ! in_array( 'image/svg+xml', $mimes, true ), 'svg allowed' );
+et_test( 'SVG uploads are gone: the plugin no longer filters upload_mimes', function () {
+    // Only this plugin's own callbacks count: themes and builders (Elementor, Kirki…) may allow SVG themselves.
+    $root = wp_normalize_path( ERDO_PATH );
+    foreach ( $GLOBALS['wp_filter']['upload_mimes']->callbacks ?? array() as $cbs ) {
+        foreach ( $cbs as $cb ) {
+            $f   = $cb['function'];
+            $ref = is_array( $f ) ? new ReflectionMethod( $f[0], $f[1] ) : new ReflectionFunction( $f );
+            et_assert( 0 !== strpos( wp_normalize_path( (string) $ref->getFileName() ), $root ), 'plugin still filters upload_mimes' );
+        }
+    }
     et_assert( ! has_filter( 'wp_handle_upload_prefilter', 'erdo_sanitize_svg_on_upload' ), 'svg upload filter still hooked' );
 } );
 

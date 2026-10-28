@@ -196,7 +196,13 @@ function et_fixtures() {
     $img['alpha'] = et_add_attachment( "$dir/fx-alpha.png", 'fx alpha', 'Transparent' );
     imagegif( et_noise( 300, 200, 23 ), "$dir/fx-static.gif" );
     $img['gif_static'] = et_add_attachment( "$dir/fx-static.gif", 'fx static gif', 'Static gif' );
+    // Core default threshold, even where a theme turns scaling off (__return_false).
+    $threshold = function () {
+        return 2560;
+    };
+    add_filter( 'big_image_size_threshold', $threshold, 99 );
     $jpg( 'oversized', 'fx-oversized.jpg', 3000, 2000, 24, 'fx oversized', 'Oversized' );
+    remove_filter( 'big_image_size_threshold', $threshold, 99 );
     $jpg( 'unused', 'fx-truly-unused.jpg', 800, 500, 25, 'fx truly unused', 'Unused' );
     $jpg( 'term_thumb', 'fx-term-thumb.jpg', 600, 600, 28, 'fx term thumb', 'Category' );
     $jpg( 'css_bg', 'fx-css-background.jpg', 1200, 400, 30, 'fx css background', '' );

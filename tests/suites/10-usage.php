@@ -35,11 +35,13 @@ et_test( 'full rebuild agrees with the live-updated index', function () use ( $m
 }, 'F3' );
 
 et_test( 'usage map names the source (post title + place, Customizer, term)', function () use ( $m ) {
+    switch_to_locale( 'en_US' ); // the labels are checked in English; staging sites run in Turkish
     $featured = implode( ' | ', et_usage_labels( $m['img']['featured'] ) );
     et_assert( false !== stripos( $featured, 'FX Featured' ) && false !== stripos( $featured, 'featured' ), 'featured: ' . $featured );
     $logo = implode( ' | ', et_usage_labels( $m['img']['logo'] ) );
     et_assert( false !== stripos( $logo, 'theme' ), 'logo: ' . $logo );
     $term = implode( ' | ', et_usage_labels( $m['img']['term_thumb'] ) );
+    restore_previous_locale();
     et_assert( false !== stripos( $term, 'FX Category' ), 'term: ' . $term );
 }, 'F3' );
 

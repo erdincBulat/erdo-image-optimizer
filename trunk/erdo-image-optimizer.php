@@ -165,7 +165,8 @@ function erdo_big_image_threshold( $threshold ) {
     $max = (int) get_option( 'erdo_max_width', 0 );
     return $max > 0 ? $max : $threshold;
 }
-add_filter( 'big_image_size_threshold', 'erdo_big_image_threshold' );
+// 20: bazı temalar 10'da __return_false ile ölçeklemeyi kapatır; burada seçilen boyut yine uygulanır.
+add_filter( 'big_image_size_threshold', 'erdo_big_image_threshold', 20 );
 
 /* WebP/AVIF dönüşümü ve EXIF temizliği: ERDO_Converter::on_generate_metadata()
    Lazy loading: WordPress 5.5+ (ve 6.3+ LCP/fetchpriority mantığı) yönetir. */
