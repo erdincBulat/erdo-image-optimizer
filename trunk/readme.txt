@@ -12,7 +12,7 @@ Score every image for SEO, get AI alt text with your own provider key, quarantin
 
 == Description ==
 
-Erdo Image Optimizer helps you get your media library ready for search, one image at a time or all at once. It scores every image from 0 to 100, tells you what to fix, and gives you safe tools to fix it: alt text (written by you, taken from the file name, or suggested by AI), renaming with automatic redirects, a reversible cleanup for images nobody uses, and WebP/AVIF copies that sit next to your originals.
+Erdo Image Optimizer is an image SEO plugin for WordPress. It scores every image in your media library from 0 to 100 and helps you fix what holds it back in Google Images and on your pages: missing or weak alt text (written by you, taken from the file name, or suggested by AI), camera file names such as IMG_1234 (renamed safely, with 301 redirects), unused images (moved to a reversible quarantine), and heavy JPEG and PNG files (served as WebP or AVIF copies while the originals stay untouched).
 
 Nothing is changed without a preview, and almost everything can be undone.
 
