@@ -1,26 +1,117 @@
 {
-	"$schema": "https://playground.wordpress.net/blueprint-schema.json",
-	"meta": {
-		"title": "Erdo Image Optimizer",
-		"author": "erdincbulat",
-		"description": "Try Erdo Image Optimizer instantly: WebP/AVIF conversion, 6-point image SEO audit, bulk alt text, and lazy loading, no install required."
-	},
-	"landingPage": "/wp-admin/admin.php?page=erdo-image-optimizer",
-	"preferredVersions": {
-		"php": "8.3",
-		"wp": "latest"
-	},
-	"login": true,
-	"steps": [
-		{
-			"step": "installPlugin",
-			"pluginData": {
-				"resource": "wordpress.org/plugins",
-				"slug": "erdo-image-optimizer"
-			},
-			"options": {
-				"activate": true
-			}
-		}
-	]
+  "$schema": "https://playground.wordpress.net/blueprint-schema.json",
+  "meta": {
+    "title": "Erdo Image Optimizer live preview",
+    "author": "erdincbulat",
+    "description": "Erdo Image Optimizer with three demo posts, five public-domain images (one unused) and WebP delivery turned on."
+  },
+  "landingPage": "/wp-admin/admin.php?page=erdo-image-optimizer",
+  "preferredVersions": {
+    "php": "8.3",
+    "wp": "latest"
+  },
+  "steps": [
+    {
+      "step": "login",
+      "username": "admin",
+      "password": "password"
+    },
+    {
+      "step": "installPlugin",
+      "pluginData": {
+        "resource": "wordpress.org/plugins",
+        "slug": "erdo-image-optimizer"
+      },
+      "options": {
+        "activate": true
+      },
+      "progress": {
+        "caption": "Installing Erdo Image Optimizer"
+      }
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "blogname": "Erdo Image Optimizer Demo",
+        "erdo_setup_done": 1,
+        "erdo_serve_webp": 1,
+        "erdo_auto_webp": 1,
+        "erdo_webp_serve_method": "picture",
+        "erdo_convert_format": "webp",
+        "erdo_image_sitemap": 1
+      }
+    },
+    {
+      "step": "mkdir",
+      "path": "/wordpress/wp-content/erdo-demo-import"
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/erdo-demo-import/IMG_4821.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a8/Tour_Eiffel_Wikimedia_Commons.jpg/960px-Tour_Eiffel_Wikimedia_Commons.jpg"
+      },
+      "progress": {
+        "caption": "Downloading demo images"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/erdo-demo-import/moraine-lake-banff-canada.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c5/Moraine_Lake_17092005.jpg/960px-Moraine_Lake_17092005.jpg"
+      },
+      "progress": {
+        "caption": "Downloading demo images"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/erdo-demo-import/pizza_margherita.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/91/Pizza-3007395.jpg/960px-Pizza-3007395.jpg"
+      },
+      "progress": {
+        "caption": "Downloading demo images"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/erdo-demo-import/earth-from-apollo-17.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/97/The_Earth_seen_from_Apollo_17.jpg/960px-The_Earth_seen_from_Apollo_17.jpg"
+      },
+      "progress": {
+        "caption": "Downloading demo images"
+      }
+    },
+    {
+      "step": "writeFile",
+      "path": "/wordpress/wp-content/erdo-demo-import/DSC_0042.jpg",
+      "data": {
+        "resource": "url",
+        "url": "https://upload.wikimedia.org/wikipedia/commons/thumb/9/98/Aldrin_Apollo_11_original.jpg/960px-Aldrin_Apollo_11_original.jpg"
+      },
+      "progress": {
+        "caption": "Downloading demo images"
+      }
+    },
+    {
+      "step": "runPHP",
+      "code": "<?php\nrequire_once '/wordpress/wp-load.php';\nrequire_once ABSPATH . 'wp-admin/includes/file.php';\nrequire_once ABSPATH . 'wp-admin/includes/media.php';\nrequire_once ABSPATH . 'wp-admin/includes/image.php';\nwp_set_current_user( 1 );\n\n$dir = WP_CONTENT_DIR . '/erdo-demo-import/';\n\nfunction erdo_demo_add( $dir, $file, $title, $alt ) {\n    if ( ! file_exists( $dir . $file ) ) {\n        return 0;\n    }\n    $tmp = wp_tempnam( $file );\n    copy( $dir . $file, $tmp );\n    $id = media_handle_sideload( array( 'name' => $file, 'tmp_name' => $tmp ), 0, $title );\n    if ( is_wp_error( $id ) ) {\n        @unlink( $tmp );\n        return 0;\n    }\n    if ( '' !== $alt ) {\n        update_post_meta( $id, '_wp_attachment_image_alt', $alt );\n    }\n    return (int) $id;\n}\n\nfunction erdo_demo_block( $id, $alt ) {\n    if ( ! $id ) {\n        return '';\n    }\n    $url = wp_get_attachment_image_url( $id, 'full' );\n    return '<!-- wp:image {\"id\":' . $id . ',\"sizeSlug\":\"full\",\"linkDestination\":\"none\"} -->' . \"\\n\"\n        . '<figure class=\"wp-block-image size-full\"><img src=\"' . esc_url( $url ) . '\" alt=\"' . esc_attr( $alt ) . '\" class=\"wp-image-' . $id . '\"/></figure>' . \"\\n\"\n        . '<!-- /wp:image -->' . \"\\n\\n\";\n}\n\nfunction erdo_demo_p( $text ) {\n    return \"<!-- wp:paragraph -->\\n<p>\" . esc_html( $text ) . \"</p>\\n<!-- /wp:paragraph -->\\n\\n\";\n}\n\n// Camera-style name and no alt text: shows the filename and alt checks failing.\n$eiffel = erdo_demo_add( $dir, 'IMG_4821.jpg', 'IMG_4821', '' );\n// Descriptive name and good alt text.\n$lake = erdo_demo_add( $dir, 'moraine-lake-banff-canada.jpg', 'Moraine Lake', 'Turquoise Moraine Lake surrounded by forest and snowy peaks in Banff National Park' );\n// Weak alt text (\"image of ...\") and an underscore in the name.\n$pizza = erdo_demo_add( $dir, 'pizza_margherita.jpg', 'Pizza', 'image of pizza' );\n// Used only as a featured image.\n$earth = erdo_demo_add( $dir, 'earth-from-apollo-17.jpg', 'Earth from Apollo 17', 'The whole Earth seen from space, with Africa and Antarctica visible' );\n// Not used anywhere: appears in Cleanup as unused.\nerdo_demo_add( $dir, 'DSC_0042.jpg', 'DSC_0042', '' );\n\nwp_insert_post( array(\n    'post_title'   => 'A weekend in Paris',\n    'post_status'  => 'publish',\n    'post_content' => erdo_demo_p( 'We started early and walked along the Seine to the Champ de Mars before the crowds arrived.' )\n        . erdo_demo_block( $eiffel, '' )\n        . erdo_demo_p( 'The view from the second floor is worth the climb, and the tickets are cheaper if you take the stairs.' ),\n) );\n\n$banff = wp_insert_post( array(\n    'post_title'   => 'Planning a trip to Banff',\n    'post_status'  => 'publish',\n    'post_content' => erdo_demo_p( 'Moraine Lake is at its bluest in July and August, once the ice has melted.' )\n        . erdo_demo_block( $lake, 'Turquoise Moraine Lake surrounded by forest and snowy peaks in Banff National Park' )\n        . erdo_demo_p( 'Private cars are no longer allowed on the lake road, so book the shuttle in advance.' ),\n) );\n\n$pizza_post = wp_insert_post( array(\n    'post_title'   => 'Homemade pizza night',\n    'post_status'  => 'publish',\n    'post_content' => erdo_demo_p( 'A long, cold rise gives the dough more flavour. Bake it as hot as your oven goes.' )\n        . erdo_demo_block( $pizza, 'image of pizza' )\n        . erdo_demo_p( 'Add fresh basil after baking so it stays green.' ),\n) );\n\nif ( $banff && $earth ) {\n    set_post_thumbnail( $banff, $earth );\n}\nif ( $pizza_post && $pizza ) {\n    set_post_thumbnail( $pizza_post, $pizza );\n}\n\n// Build the usage index now instead of waiting for WP-Cron (3.0+ only).\nif ( class_exists( 'ERDO_Usage' ) && method_exists( 'ERDO_Usage', 'rebuild' ) ) {\n    ERDO_Usage::rebuild();\n}\n\nforeach ( (array) glob( $dir . '*' ) as $f ) {\n    @unlink( $f );\n}\n@rmdir( $dir );\n",
+      "progress": {
+        "caption": "Creating demo posts and images"
+      }
+    },
+    {
+      "step": "setSiteOptions",
+      "options": {
+        "erdo_auto_sanitize": 1
+      }
+    }
+  ]
 }
